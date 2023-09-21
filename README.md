@@ -5,7 +5,7 @@ This python package is a solution to the problem with pytube regarding delays in
 ### usage:
 
 ```python
- >>> from pytube import YouTube
+ >>> from pytubenow import YouTube
  >>> YouTube('https://youtu.be/2lAe1cqCOXo').streams.first().download()
  >>> yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
  >>> yt.streams
