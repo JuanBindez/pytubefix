@@ -2,7 +2,7 @@
 from typing import Pattern, Union
 
 
-class PytubeNowError(Exception):
+class PytubeFixError(Exception):
     """Base pytube exception that all others inherit.
 
     This is done to not pollute the built-in exceptions, which *could* result
@@ -11,15 +11,15 @@ class PytubeNowError(Exception):
     """
 
 
-class MaxRetriesExceeded(PytubeNowError):
+class MaxRetriesExceeded(PytubeFixError):
     """Maximum number of retries exceeded."""
 
 
-class HTMLParseError(PytubeNowError):
+class HTMLParseError(PytubeFixError):
     """HTML could not be parsed"""
 
 
-class ExtractError(PytubeNowError):
+class ExtractError(PytubeFixError):
     """Data extraction based exception."""
 
 
@@ -38,7 +38,7 @@ class RegexMatchError(ExtractError):
         self.pattern = pattern
 
 
-class VideoUnavailable(PytubeNowError):
+class VideoUnavailable(PytubeFixError):
     """Base video unavailable error."""
     def __init__(self, video_id: str):
         """
