@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 import re
 
-from pytubenow import extract
-from pytubenow.exceptions import RegexMatchError
+from pytubefix import extract
+from pytubefix.exceptions import RegexMatchError
 
 
 def test_extract_video_id():

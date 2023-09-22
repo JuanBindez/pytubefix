@@ -11,14 +11,14 @@ smaller peripheral modules and functions.
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-import pytubenow
-import pytubenow.exceptions as exceptions
-from pytubenow import extract, request
-from pytubenow import Stream, StreamQuery
-from pytubenow.helpers import install_proxy
-from pytubenow.innertube import InnerTube
-from pytubenow.metadata import YouTubeMetadata
-from pytubenow.monostate import Monostate
+import pytubefix
+import pytubefix.exceptions as exceptions
+from pytubefix import extract, request
+from pytubefix import Stream, StreamQuery
+from pytubefix.helpers import install_proxy
+from pytubefix.innertube import InnerTube
+from pytubefix.metadata import YouTubeMetadata
+from pytubefix.monostate import Monostate
 
 logger = logging.getLogger(__name__)
 
@@ -137,12 +137,12 @@ class YouTube:
 
         # If the js_url doesn't match the cached url, fetch the new js and update
         #  the cache; otherwise, load the cache.
-        if pytubenow.__js_url__ != self.js_url:
+        if pytubefix.__js_url__ != self.js_url:
             self._js = request.get(self.js_url)
-            pytubenow.__js__ = self._js
-            pytubenow.__js_url__ = self.js_url
+            pytubefix.__js__ = self._js
+            pytubefix.__js_url__ = self.js_url
         else:
-            self._js = pytubenow.__js__
+            self._js = pytubefix.__js__
 
         return self._js
 
@@ -185,8 +185,8 @@ class YouTube:
             # To force an update to the js file, we clear the cache and retry
             self._js = None
             self._js_url = None
-            pytubenow.__js__ = None
-            pytubenow.__js_url__ = None
+            pytubefix.__js__ = None
+            pytubefix.__js_url__ = None
             extract.apply_signature(stream_manifest, self.vid_info, self.js)
 
         # build instances of :class:`Stream <Stream>`
@@ -268,7 +268,7 @@ class YouTube:
         self._vid_info = innertube_response
 
     @property
-    def caption_tracks(self) -> List[pytubenow.Caption]:
+    def caption_tracks(self) -> List[pytubefix.Caption]:
         """Get a list of :class:`Caption <Caption>`.
 
         :rtype: List[Caption]
@@ -278,15 +278,15 @@ class YouTube:
             .get("playerCaptionsTracklistRenderer", {})
             .get("captionTracks", [])
         )
-        return [pytubenow.Caption(track) for track in raw_tracks]
+        return [pytubefix.Caption(track) for track in raw_tracks]
 
     @property
-    def captions(self) -> pytubenow.CaptionQuery:
+    def captions(self) -> pytubefix.CaptionQuery:
         """Interface to query caption tracks.
 
         :rtype: :class:`CaptionQuery <CaptionQuery>`.
         """
-        return pytubenow.CaptionQuery(self.caption_tracks)
+        return pytubefix.CaptionQuery(self.caption_tracks)
 
     @property
     def streams(self) -> StreamQuery:

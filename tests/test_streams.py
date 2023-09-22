@@ -6,7 +6,7 @@ from unittest import mock
 from unittest.mock import MagicMock, Mock
 from urllib.error import HTTPError
 
-from pytubenow import request, Stream
+from pytubefix import request, Stream
 
 
 @mock.patch("pytube.streams.request")

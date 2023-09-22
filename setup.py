@@ -10,21 +10,21 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
-with open(os.path.join(here, "pytubenow", "version.py")) as fp:
+with open(os.path.join(here, "pytubefix", "version.py")) as fp:
     exec(fp.read())
 
 setup(
-    name="pytube",
+    name="pytubefix",
     version=__version__,  # noqa: F821
     author="Ronnie Ghose, Taylor Fox Dahlin, Nick Ficano",
     author_email="hey@pytube.io",
     packages=["pytube", "pytube.contrib"],
     package_data={"": ["LICENSE"],},
-    url="https://github.com/juanbindez/pytubenow",
-    license="The Unlicense (Unlicense)",
+    url="https://github.com/juanbindez/pytubefix",
+    license="MIT license",
     entry_points={
         "console_scripts": [
-            "pytubenow = pytubenow.cli:main"],},
+            "pytubefix = pytubefix.cli:main"],},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
@@ -51,8 +51,8 @@ setup(
     zip_safe=True,
     python_requires=">=3.7",
     project_urls={
-        "Bug Reports": "https://github.com/juanbindez/pytubenow/issues",
-        "Read the Docs": "https://pytubenow.io",
+        "Bug Reports": "https://github.com/juanbindez/pytubefix/issues",
+        "Read the Docs": "https://pytubefix.io",
     },
     keywords=["youtube", "download", "video", "stream",],
 )

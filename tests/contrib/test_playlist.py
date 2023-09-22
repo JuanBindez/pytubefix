@@ -1,7 +1,7 @@
 import datetime
 from unittest import mock
 
-from pytubenow import Playlist
+from pytubefix import Playlist
 
 
 @mock.patch("pytube.request.get")

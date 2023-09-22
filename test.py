@@ -1,5 +1,5 @@
-from pytubenow import YouTube
-from pytubenow.cli import on_progress
+from pytubefix import YouTube
+from pytubefix.cli import on_progress
 
 url = input("URL >")
 

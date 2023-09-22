@@ -1,11 +1,11 @@
-# pytubenow
+# pytubefix
 This python package is a solution to the problem with pytube regarding delays in updates
 
 
 ### usage:
 
 ```python
- >>> from pytubenow import YouTube
+ >>> from pytubefix import YouTube
  >>> YouTube('https://youtu.be/2lAe1cqCOXo').streams.first().download()
  >>> yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
  >>> yt.streams

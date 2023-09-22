@@ -1,7 +1,7 @@
 import pytest
 
-from pytubenow import cipher
-from pytubenow.exceptions import RegexMatchError
+from pytubefix import cipher
+from pytubefix.exceptions import RegexMatchError
 
 
 def test_map_functions():

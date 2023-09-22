@@ -7,7 +7,7 @@ import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath("../"))
 
-from pytubenow import __version__  # noqa
+from pytubefix import __version__  # noqa
 
 # -- General configuration ------------------------------------------------
 

@@ -2,9 +2,9 @@ from unittest import mock
 
 import pytest
 
-import pytubenow
-from pytubenow import YouTube
-from pytubenow.exceptions import RegexMatchError
+import pytubefix
+from pytubefix import YouTube
+from pytubefix.exceptions import RegexMatchError
 
 
 @mock.patch("urllib.request.install_opener")
@@ -46,10 +46,10 @@ def test_video_keywords(cipher_signature):
 
 
 def test_js_caching(cipher_signature):
-    assert pytubenow.__js__ is not None
-    assert pytubenow.__js_url__ is not None
-    assert pytubenow.__js__ == cipher_signature.js
-    assert pytubenow.__js_url__ == cipher_signature.js_url
+    assert pytubefix.__js__ is not None
+    assert pytubefix.__js_url__ is not None
+    assert pytubefix.__js__ == cipher_signature.js
+    assert pytubefix.__js_url__ == cipher_signature.js_url
 
 
 def test_channel_id(cipher_signature):

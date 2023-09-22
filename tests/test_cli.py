@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pytubenow import Caption, CaptionQuery, cli, StreamQuery
-from pytubenow.exceptions import PytubeError
+from pytubefix import Caption, CaptionQuery, cli, StreamQuery
+from pytubefix.exceptions import PytubeError
 
 parse_args = cli._parse_args
 

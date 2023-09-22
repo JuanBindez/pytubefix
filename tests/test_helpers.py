@@ -5,10 +5,10 @@ import os
 import pytest
 from unittest import mock
 
-from pytubenow import helpers
-from pytubenow.exceptions import RegexMatchError
-from pytubenow.helpers import cache, create_mock_html_json, deprecated, setup_logger
-from pytubenow.helpers import target_directory, uniqueify
+from pytubefix import helpers
+from pytubefix.exceptions import RegexMatchError
+from pytubefix.helpers import cache, create_mock_html_json, deprecated, setup_logger
+from pytubefix.helpers import target_directory, uniqueify
 
 
 def test_regex_search_no_match():

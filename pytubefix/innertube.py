@@ -12,7 +12,7 @@ import time
 from urllib import parse
 
 # Local imports
-from pytubenow import request
+from pytubefix import request
 
 # YouTube on TV client secrets
 _client_id = '861556708454-d6dlm3lh05idd8npek18k6be8ba3oc68.apps.googleusercontent.com'

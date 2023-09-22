@@ -1,6 +1,6 @@
 from unittest import mock
 
-from pytubenow import Channel
+from pytubefix import Channel
 
 
 @mock.patch('pytube.request.get')

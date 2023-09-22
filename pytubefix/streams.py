@@ -15,10 +15,10 @@ from typing import BinaryIO, Dict, Optional, Tuple
 from urllib.error import HTTPError
 from urllib.parse import parse_qs
 
-from pytubenow import extract, request
-from pytubenow.helpers import safe_filename, target_directory
-from pytubenow.itags import get_format_profile
-from pytubenow.monostate import Monostate
+from pytubefix import extract, request
+from pytubefix.helpers import safe_filename, target_directory
+from pytubefix.itags import get_format_profile
+from pytubefix.monostate import Monostate
 
 logger = logging.getLogger(__name__)
 

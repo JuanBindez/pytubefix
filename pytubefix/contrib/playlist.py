@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from datetime import date, datetime
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
-from pytubenow import extract, request, YouTube
-from pytubenow.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
+from pytubefix import extract, request, YouTube
+from pytubefix.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
 
 logger = logging.getLogger(__name__)
 

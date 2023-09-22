@@ -11,10 +11,10 @@ import datetime as dt
 import subprocess  # nosec
 from typing import List, Optional
 
-import pytubenow.exceptions as exceptions
-from pytubenow import __version__
-from pytubenow import CaptionQuery, Playlist, Stream, YouTube
-from pytubenow.helpers import safe_filename, setup_logger
+import pytubefix.exceptions as exceptions
+from pytubefix import __version__
+from pytubefix import CaptionQuery, Playlist, Stream, YouTube
+from pytubefix.helpers import safe_filename, setup_logger
 
 
 logger = logging.getLogger(__name__)

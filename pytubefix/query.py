@@ -2,8 +2,8 @@
 from collections.abc import Mapping, Sequence
 from typing import Callable, List, Optional, Union
 
-from pytubenow import Caption, Stream
-from pytubenow.helpers import deprecated
+from pytubefix import Caption, Stream
+from pytubefix.helpers import deprecated
 
 
 class StreamQuery(Sequence):

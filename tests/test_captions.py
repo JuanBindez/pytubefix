@@ -3,7 +3,7 @@ import pytest
 from unittest import mock
 from unittest.mock import MagicMock, mock_open, patch
 
-from pytubenow import Caption, CaptionQuery, captions
+from pytubefix import Caption, CaptionQuery, captions
 
 
 def test_float_to_srt_time_format():

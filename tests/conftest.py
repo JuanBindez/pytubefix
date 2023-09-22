@@ -5,7 +5,7 @@ import os
 import pytest
 from unittest import mock
 
-from pytubenow import YouTube
+from pytubefix import YouTube
 
 
 def load_playback_file(filename):

@@ -1,8 +1,8 @@
 import json
 import pytest
 
-from pytubenow.exceptions import HTMLParseError
-from pytubenow.parser import parse_for_object
+from pytubefix.exceptions import HTMLParseError
+from pytubefix.parser import parse_for_object
 
 
 def test_invalid_start():

@@ -4,8 +4,8 @@ import pytest
 from unittest import mock
 from urllib.error import URLError
 
-from pytubenow import request
-from pytubenow.exceptions import MaxRetriesExceeded
+from pytubefix import request
+from pytubefix.exceptions import MaxRetriesExceeded
 
 
 @mock.patch("pytube.request.urlopen")

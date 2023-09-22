@@ -3,8 +3,8 @@
 import logging
 
 # Local imports
-from pytubenow import YouTube
-from pytubenow.innertube import InnerTube
+from pytubefix import YouTube
+from pytubefix.innertube import InnerTube
 
 
 logger = logging.getLogger(__name__)

@@ -9,7 +9,7 @@ import warnings
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 from urllib import request
 
-from pytubenow.exceptions import RegexMatchError
+from pytubefix.exceptions import RegexMatchError
 
 logger = logging.getLogger(__name__)
 
@@ -306,7 +306,7 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
     :return dict data
         Dict used to generate the json.gz file
     """
-    from pytubenow import YouTube
+    from pytubefix import YouTube
     gzip_filename = 'yt-video-%s-html.json.gz' % vid_id
 
     # Get the pytube directory in order to navigate to /tests/mocks
