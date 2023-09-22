@@ -191,6 +191,7 @@ def get_transform_plan(js: str) -> List[str]:
     'DE.VR(a,3)',
     'DE.kT(a,21)']
     """
+    
     name = re.escape(get_initial_function_name(js))
     pattern = r"%s=function\(\w\){[a-z=\.\(\"\)]*;(.*);(?:.+)}" % name
     logger.debug("getting transform plan")
