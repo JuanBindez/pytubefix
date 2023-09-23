@@ -1,10 +1,10 @@
 # flake8: noqa: F401
 # noreorder
 """
-Pytubenow: a very serious Python library for downloading YouTube Videos.
+Pytubefix: a very serious Python library for downloading YouTube Videos.
 """
 __title__ = "pytubefix"
-__author__ = "Ronnie Ghose, Taylor Fox Dahlin, Nick Ficano"
+__author__ = "Juan Bindez"
 __license__ = "MIT License"
 __js__ = None
 __js_url__ = None
