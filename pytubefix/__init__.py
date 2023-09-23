@@ -5,7 +5,7 @@ Pytubenow: a very serious Python library for downloading YouTube Videos.
 """
 __title__ = "pytubenow"
 __author__ = "Ronnie Ghose, Taylor Fox Dahlin, Nick Ficano"
-__license__ = "The Unlicense (Unlicense)"
+__license__ = "MIT License"
 __js__ = None
 __js_url__ = None
 
