@@ -3,7 +3,7 @@
 """
 Pytubenow: a very serious Python library for downloading YouTube Videos.
 """
-__title__ = "pytubenow"
+__title__ = "pytubefix"
 __author__ = "Ronnie Ghose, Taylor Fox Dahlin, Nick Ficano"
 __license__ = "MIT License"
 __js__ = None
