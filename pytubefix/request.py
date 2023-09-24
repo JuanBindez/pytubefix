@@ -86,10 +86,10 @@ def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIME
 
 
 def seq_stream(
-    url,
-    timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-    max_retries=0
-):
+            url,
+            timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+            max_retries=0):
+
     """Read the response in sequence.
     :param str url: The URL to perform the GET request for.
     :rtype: Iterable[bytes]
@@ -130,11 +130,9 @@ def seq_stream(
     return  # pylint: disable=R1711
 
 
-def stream(
-    url,
-    timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-    max_retries=0
-):
+def stream(url,
+           timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+           max_retries=0):
     """Read the response in chunks.
     :param str url: The URL to perform the GET request for.
     :rtype: Iterable[bytes]
