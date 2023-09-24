@@ -1,6 +1,10 @@
 # pytubefix
 This python package is a solution to the problem with pytube regarding delays in updates
 
+### install:
+
+    pip install pytubefix 
+
 
 ### usage:
 
