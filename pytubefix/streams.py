@@ -257,17 +257,14 @@ class Stream:
         return f"{filename}.{self.subtype}"
 
 
-    def download(
-        self,
-        output_path: Optional[str] = None,
-        filename: Optional[str] = None,
-        filename_prefix: Optional[str] = None,
-        skip_existing: bool = True,
-        timeout: Optional[int] = None,
-        max_retries: Optional[int] = 0,
-        mp3: bool = False
-    ) -> str:
-        # Restante do código não alterado
+    def download(self,
+                output_path: Optional[str] = None,
+                filename: Optional[str] = None,
+                filename_prefix: Optional[str] = None,
+                skip_existing: bool = True,
+                timeout: Optional[int] = None,
+                max_retries: Optional[int] = 0,
+                mp3: bool = False) -> str:
         
         file_path = self.get_file_path(
             filename=filename,
