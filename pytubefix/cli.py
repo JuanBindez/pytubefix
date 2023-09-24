@@ -15,6 +15,7 @@ import pytubefix.exceptions as exceptions
 from pytubefix import __version__
 from pytubefix import CaptionQuery, Playlist, Stream, YouTube
 from pytubefix.helpers import safe_filename, setup_logger
+from pytubefix.colors import Color
 
 
 logger = logging.getLogger(__name__)
@@ -207,7 +208,7 @@ def build_playback_report(youtube: YouTube) -> None:
 
 
 def display_progress_bar(
-    bytes_received: int, filesize: int, ch: str = "█", scale: float = 0.55
+    bytes_received: int, filesize: int, ch: str = Color.GREEN + "█", scale: float = 0.55
 ) -> None:
     """Display a simple, pretty progress bar.
 
@@ -227,6 +228,7 @@ def display_progress_bar(
         Scale multiplier to reduce progress bar size.
 
     """
+
     columns = shutil.get_terminal_size().columns
     max_width = int(columns * scale)
 
@@ -240,19 +242,21 @@ def display_progress_bar(
 
 
 # noinspection PyUnusedLocal
-def on_progress(
-    stream: Stream, chunk: bytes, bytes_remaining: int
-) -> None:  # pylint: disable=W0613
+def on_progress(stream: Stream,
+                chunk: bytes, 
+                bytes_remaining: int
+                ) -> None:  # pylint: disable=W0613
+
     filesize = stream.filesize
     bytes_received = filesize - bytes_remaining
     display_progress_bar(bytes_received, filesize)
 
 
-def _download(
-    stream: Stream,
-    target: Optional[str] = None,
-    filename: Optional[str] = None,
-) -> None:
+def _download(stream: Stream,
+              target: Optional[str] = None,
+              filename: Optional[str] = None,
+              ) -> None:
+
     filesize_megabytes = stream.filesize // 1048576
     print(f"{filename or stream.default_filename} | {filesize_megabytes} MB")
     file_path = stream.get_file_path(filename=filename, output_path=target)
@@ -264,7 +268,12 @@ def _download(
     sys.stdout.write("\n")
 
 
-def _unique_name(base: str, subtype: str, media_type: str, target: str) -> str:
+def _unique_name(base: str, 
+                 subtype: str, 
+                 media_type: str, 
+                 target: str
+                 ) -> str:
+
     """
     Given a base name, the file format, and the target directory, will generate
     a filename unique for that directory and file format.
@@ -277,6 +286,7 @@ def _unique_name(base: str, subtype: str, media_type: str, target: str) -> str:
     :param Path target:
         Target directory for download.
     """
+
     counter = 0
     while True:
         file_name = f"{base}_{media_type}_{counter}"
@@ -286,9 +296,10 @@ def _unique_name(base: str, subtype: str, media_type: str, target: str) -> str:
         counter += 1
 
 
-def ffmpeg_process(
-    youtube: YouTube, resolution: str, target: Optional[str] = None
-) -> None:
+def ffmpeg_process(youtube: YouTube, 
+                   resolution: str, 
+                   target: Optional[str] = None
+                   ) -> None:
     """
     Decides the correct video stream to download, then calls _ffmpeg_downloader.
 
@@ -299,6 +310,7 @@ def ffmpeg_process(
     :param str target:
         Target directory for download
     """
+
     youtube.register_on_progress_callback(on_progress)
     target = target or os.getcwd()
 
@@ -325,6 +337,7 @@ def ffmpeg_process(
             video_stream = youtube.streams.filter(
                 progressive=False, resolution=resolution
             ).first()
+
     if video_stream is None:
         print(f"Could not find a stream with resolution: {resolution}")
         print("Try one of these:")
@@ -344,9 +357,9 @@ def ffmpeg_process(
     )
 
 
-def _ffmpeg_downloader(
-    audio_stream: Stream, video_stream: Stream, target: str
-) -> None:
+def _ffmpeg_downloader(audio_stream: Stream, 
+                       video_stream: Stream, 
+                       target: str) -> None:
     """
     Given a YouTube Stream object, finds the correct audio stream, downloads them both
     giving them a unique name, them uses ffmpeg to create a new file with the audio
