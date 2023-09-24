@@ -24,7 +24,7 @@ setup(name = "pytubefix",
       license = "MIT license",
       entry_points = {
         "console_scripts": [
-            "pytubefix = pytubefix.cli:main"],},
+          "pytubefix = pytubefix.cli:main"],},
       classifiers = [
             "Development Status :: 5 - Production/Stable",
             "Environment :: Console",
