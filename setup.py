@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This module contains setup instructions for pytube."""
+"""This module contains setup instructions for pytubefix."""
 import codecs
 import os
 
@@ -22,6 +22,7 @@ setup(
     package_data={"": ["LICENSE"],},
     url="https://github.com/juanbindez/pytubefix",
     license="MIT license",
+    install_requires[''],
     entry_points={
         "console_scripts": [
             "pytubefix = pytubefix.cli:main"],},
