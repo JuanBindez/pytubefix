@@ -214,7 +214,7 @@ class Stream:
         return self._filesize_gb
     
     @property
-    def title(self) -> str:
+    def title(self,) -> str:
         """Get title of video
 
         :rtype: str
@@ -256,6 +256,7 @@ class Stream:
         filename = safe_filename(self.title)
         return f"{filename}.{self.subtype}"
 
+
     def download(
         self,
         output_path: Optional[str] = None,
@@ -263,39 +264,11 @@ class Stream:
         filename_prefix: Optional[str] = None,
         skip_existing: bool = True,
         timeout: Optional[int] = None,
-        max_retries: Optional[int] = 0
+        max_retries: Optional[int] = 0,
+        mp3: bool = False
     ) -> str:
-        """Write the media stream to disk.
-
-        :param output_path:
-            (optional) Output path for writing media file. If one is not
-            specified, defaults to the current working directory.
-        :type output_path: str or None
-        :param filename:
-            (optional) Output filename (stem only) for writing media file.
-            If one is not specified, the default filename is used.
-        :type filename: str or None
-        :param filename_prefix:
-            (optional) A string that will be prepended to the filename.
-            For example a number in a playlist or the name of a series.
-            If one is not specified, nothing will be prepended
-            This is separate from filename so you can use the default
-            filename but still add a prefix.
-        :type filename_prefix: str or None
-        :param skip_existing:
-            (optional) Skip existing files, defaults to True
-        :type skip_existing: bool
-        :param timeout:
-            (optional) Request timeout length in seconds. Uses system default.
-        :type timeout: int
-        :param max_retries:
-            (optional) Number of retries to attempt after socket timeout. Defaults to 0.
-        :type max_retries: int
-        :returns:
-            Path to the saved video
-        :rtype: str
-
-        """
+        # Restante do código não alterado
+        
         file_path = self.get_file_path(
             filename=filename,
             output_path=output_path,
@@ -334,8 +307,15 @@ class Stream:
                     bytes_remaining -= len(chunk)
                     # send to the on_progress callback.
                     self.on_progress(chunk, fh, bytes_remaining)
+
+        if mp3:
+            mp3_file_path = os.path.splitext(file_path)[0] + '.mp3'
+            os.rename(file_path, mp3_file_path)
+            file_path = mp3_file_path
+
         self.on_complete(file_path)
         return file_path
+    
 
     def get_file_path(
         self,
