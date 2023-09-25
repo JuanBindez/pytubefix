@@ -46,22 +46,6 @@ ys.download(mp3=True) # pass the parameter mp3=Tre to save in .mp3
 
 ### if you want to download complete playlists:
 
-'''python
-
-from pytubefix import YouTube
-from pytubefix import Playlist
-from pytubefix.cli import on_progress
- 
-url = input("URL Here >")
-
-pl = Playlist(url)
-
-for video in pl.videos:
-    ys = video.streams.get_audio_only()
-    ys.download(mp3=True)
-'''
-
-
 ```python
 
 from pytubefix import YouTube
