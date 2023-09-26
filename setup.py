@@ -16,7 +16,7 @@ with open(os.path.join(here, "pytubefix", "version.py")) as fp:
 
 setup(name = "pytubefix",
       version = __version__,  # noqa: F821
-      author = "Juan Bindez",
+      author = "Juan Bindez, Elsevar Asadov",
       author_email = "juanbindez780@gmail.com",
       packages = ["pytubefix", "pytubefix.contrib"],
       package_data = {"": ["LICENSE"],},
