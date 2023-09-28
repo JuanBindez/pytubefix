@@ -341,7 +341,7 @@ class YouTube:
         )
 
         if self._title:
-            return self._author + self._title
+            return self._author + " - " + self._title
 
         try:
             self._title = self.vid_info['videoDetails']['title'] #+ self._author
@@ -356,7 +356,7 @@ class YouTube:
                 )
             )
         # print(self.vid_info['videoDetails'])
-        return self._author + self._title
+        return self._author + " - " + self._title
 
     @title.setter
     def title(self, value):
