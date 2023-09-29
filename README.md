@@ -1,7 +1,6 @@
 # pytubefix
 
 ![PyPI - Version](https://img.shields.io/pypi/v/pytubefix)
-![PyPI - Downloads](https://img.shields.io/pypi/dd/pytubefix)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/pytubefix)
 
 
