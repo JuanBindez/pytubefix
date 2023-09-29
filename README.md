@@ -1,6 +1,7 @@
 # pytubefix
 
-[![PyPI version](https://badge.fury.io/py/pytubefix.svg)](https://badge.fury.io/py/pytubefix)
+![PyPI - Version](https://img.shields.io/pypi/v/pytubefix)
+
 
 
 #### This python package is a solution to the problem with pytube regarding delays in updates
