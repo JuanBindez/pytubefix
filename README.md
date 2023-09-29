@@ -2,6 +2,7 @@
 
 ![PyPI - Version](https://img.shields.io/pypi/v/pytubefix)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/pytubefix)
+![PyPI - License](https://img.shields.io/pypi/l/pytubefix)
 
 
 
