@@ -7,7 +7,7 @@
 
 
 
-#### This python package is a solution to the problem with pytube regarding delays in updates
+### This python3 library is a solution to pytube's problem regarding update delays
 
 ### install:
 
