@@ -13,7 +13,7 @@
 
     pip install pytubefix 
 
-
+----------
 ### usage:
 
 ```python
@@ -69,4 +69,64 @@ for video in pl.videos:
 
 ```
 ----------
+
+### Subtitle/Caption Tracks:
+
+#### viewing available subtitles:
+
+```python
+
+from pytubefix import YouTube
+
+yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
+subtitles = yt.captions
+
+print(subtitles)
+
+```
+
+#### printing the subtitle tracks:
+
+```python
+
+from pytubefix import YouTube
+ 
+
+yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
+
+caption = yt.captions.get_by_language_code('en')
+print(caption.generate_srt_captions())
+
+```
+------------
+### Using Channels:
+
+#### get the channel name:
+
+```python
+
+from pytubefix import Channel
+
+c = Channel("https://www.youtube.com/@ProgrammingKnowledge/featured")
+
+print(f'Channel name: {c.channel_name}')
+
+```
+
+#### to download all videos from a channel:
+
+
+```python
+
+from pytubefix import Channel
+
+c = Channel("https://www.youtube.com/@ProgrammingKnowledge")
+
+print(f'Downloading videos by: {c.channel_name}')
+
+for video in c.videos:
+    download = video.streams.get_highest_resolution().download()
+
+```
+-----------
 
