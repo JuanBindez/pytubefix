@@ -1,29 +1,29 @@
 .. _install:
 
-Installation of pytubenow
+Installation of pytubefix
 ======================
 
 This guide assumes you already have python and pip installed.
 
-To install pytubenow, run the following command in your terminal::
+To install pytubefix, run the following command in your terminal::
 
-    $ pip install pytubenow
+    $ pip install pytubefix
 
 Get the Source Code
 -------------------
 
-pytubenow is actively developed on GitHub, where the source is `available <https://github.com/pytubenow/pytubenow>`_.
+pytubefix is actively developed on GitHub, where the source is `available <https://github.com/pytubefix/pytubefix>`_.
 
 You can either clone the public repository::
 
-    $ git clone git://github.com/pytubenow/pytubenow.git
+    $ git clone git://github.com/pytubefix/pytubefix.git
 
-Or, download the `tarball <https://github.com/pytubenow/pytubenow/tarball/master>`_::
+Or, download the `tarball <https://github.com/pytubefix/pytubefix/tarball/master>`_::
 
-    $ curl -OL https://github.com/pytubenow/pytubenow/tarball/master
+    $ curl -OL https://github.com/pytubefix/pytubefix/tarball/master
     # optionally, zipball is also available (for Windows users).
 
 Once you have a copy of the source, you can embed it in your Python package, or install it into your site-packages by running::
 
-    $ cd pytubenow
+    $ cd pytubefix
     $ python -m pip install .

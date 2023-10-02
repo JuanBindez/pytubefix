@@ -3,7 +3,7 @@
 API
 ===
 
-.. module:: pytubenow
+.. module:: pytubefix
 
 
 YouTube Object
@@ -16,80 +16,80 @@ YouTube Object
 Playlist Object
 ---------------
 
-.. autoclass:: pytubenow.contrib.playlist.Playlist
+.. autoclass:: pytubefix.contrib.playlist.Playlist
    :members:
    :inherited-members:
 
 Channel Object
 --------------
 
-.. autoclass:: pytubenow.contrib.channel.Channel
+.. autoclass:: pytubefix.contrib.channel.Channel
    :members:
    :inherited-members:
 
 Stream Object
 -------------
 
-.. autoclass:: pytubenow.Stream
+.. autoclass:: pytubefix.Stream
    :members:
    :inherited-members:
 
 StreamQuery Object
 ------------------
 
-.. autoclass:: pytubenow.query.StreamQuery
+.. autoclass:: pytubefix.query.StreamQuery
    :members:
    :inherited-members:
 
 Caption Object
 --------------
 
-.. autoclass:: pytubenow.Caption
+.. autoclass:: pytubefix.Caption
    :members:
    :inherited-members:
 
 CaptionQuery Object
 -------------------
 
-.. autoclass:: pytubenow.query.CaptionQuery
+.. autoclass:: pytubefix.query.CaptionQuery
    :members:
    :inherited-members:
 
 Search Object
 -------------
 
-.. autoclass:: pytubenow.contrib.search.Search
+.. autoclass:: pytubefix.contrib.search.Search
    :members:
    :inherited-members:
 
 Extract
 -------
 
-.. automodule:: pytubenow.extract
+.. automodule:: pytubefix.extract
     :members:
 
 Cipher
 ------
 
-.. automodule:: pytubenow.cipher
+.. automodule:: pytubefix.cipher
     :members:
 
 Exceptions
 ----------
 
-.. automodule:: pytubenow.exceptions
+.. automodule:: pytubefix.exceptions
     :members:
 
 
 Helpers
 -------
 
-.. automodule:: pytubenow.helpers
+.. automodule:: pytubefix.helpers
     :members:
 
 
 Request
 -------
 
-.. automodule:: pytubenow.request
+.. automodule:: pytubefix.request
     :members:

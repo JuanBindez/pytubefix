@@ -3,27 +3,27 @@
 Quickstart
 ==========
 
-This guide will walk you through the basic usage of pytubenow.
+This guide will walk you through the basic usage of pytubefix.
 
 Let's get started with some examples.
 
 Downloading a Video
 -------------------
 
-Downloading a video from YouTube with pytubenow is incredibly easy.
+Downloading a video from YouTube with pytubefix is incredibly easy.
 
 Begin by importing the YouTube class::
 
-    >>> from pytubenow import YouTube
+    >>> from pytubefix import YouTube
 
 Now, let's try to download a video. For this example, let's take something
 like the YouTube Rewind video for 2019::
 
     >>> yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
 
-Now, we have a :class:`YouTube <pytubenow.YouTube>` object called ``yt``.
+Now, we have a :class:`YouTube <pytubefix.YouTube>` object called ``yt``.
 
-The pytubenow API makes all information intuitive to access. For example, this is
+The pytubefix API makes all information intuitive to access. For example, this is
 how you would get the video's title::
 
     >>> yt.title
@@ -59,11 +59,11 @@ downloaded, and is called with two arguments: the stream and the file path.
 This could be used, for example, to perform post-download processing on a video
 like trimming the length of it.
 
-The use_oauth and allow_oauth_cache flags allow you to authorize pytubenow to
+The use_oauth and allow_oauth_cache flags allow you to authorize pytubefix to
 interact with YouTube using your account, and can be used to bypass age
 restrictions or access private videos and playlists. If allow_oauth_cache is
 set to True, you should only be prompted to do so once, after which point
-pytubenow will cache the tokens it needs to act on your behalf. Otherwise, you
+pytubefix will cache the tokens it needs to act on your behalf. Otherwise, you
 will be prompted again for each action that requires you to be authenticated.
 
 Once you have a YouTube object set up, you're ready to start looking at

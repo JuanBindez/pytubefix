@@ -3,15 +3,15 @@
 Using Playlists
 ===============
 
-This guide will walk you through the basics of working with pytubenow Playlists.
+This guide will walk you through the basics of working with pytubefix Playlists.
 
 Creating a Playlist
 -------------------
 
-Using pytubenow to interact with playlists is very simple. 
+Using pytubefix to interact with playlists is very simple. 
 Begin by importing the Playlist class::
 
-    >>> from pytubenow import Playlist
+    >>> from pytubefix import Playlist
 
 Now let's create a playlist object. You can do this by initializing the object with a playlist URL::
 
@@ -21,7 +21,7 @@ Or you can create one from a video link in a playlist::
 
     >>> p = Playlist('https://www.youtube.com/watch?v=41qgdwd3zAg&list=PLS1QulWo1RIaJECMeUT4LFwJ-ghgoSH6n')
 
-Now, we have a :class:`Playlist <pytubenow.Playlist>` object called ``p`` that we can do some work with.
+Now, we have a :class:`Playlist <pytubefix.Playlist>` object called ``p`` that we can do some work with.
 
 Interacting with a playlist
 ---------------------------

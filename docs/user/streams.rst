@@ -27,7 +27,7 @@ codec, while others have just video or just audio, this is a result of YouTube
 supporting a streaming technique called Dynamic Adaptive Streaming over HTTP
 (DASH).
 
-In the context of pytubenow, the implications are for the highest quality streams;
+In the context of pytubefix, the implications are for the highest quality streams;
 you now need to download both the audio and video tracks and then post-process
 them with software like FFmpeg to merge them.
 
@@ -38,11 +38,11 @@ to as "progressive download") are still available, but only for resolutions
 Filtering Streams
 =================
 
-pytubenow has built-in functionality to filter the streams available in a YouTube
+pytubefix has built-in functionality to filter the streams available in a YouTube
 object with the .filter() method. You can pass it a number of different keyword
 arguments, so let's review some of the different options you're most likely to
 use. For a complete list of available properties to filter on, you can view the
-API documentation here: :meth:`pytubenow.StreamQuery.filter`.
+API documentation here: :meth:`pytubefix.StreamQuery.filter`.
 
 Filtering by streaming method
 -----------------------------
@@ -50,7 +50,7 @@ Filtering by streaming method
 As mentioned before, progressive streams have the video and audio in a single
 file, but typically do not provide the highest quality media; meanwhile,
 adaptive streams split the video and audio tracks but can provide much higher
-quality. pytubenow makes it easy to filter based on the type of stream that you're
+quality. pytubefix makes it easy to filter based on the type of stream that you're
 interested.
 
 For example, you can filter to only progressive streams with the following::
@@ -97,7 +97,7 @@ To query only streams in the MP4 format::
 Downloading Streams
 ===================
 
-After you've selected the :class:`Stream <pytubenow.Stream>` you're interested,
+After you've selected the :class:`Stream <pytubefix.Stream>` you're interested,
 you're ready to interact with it. At this point, you can query information
 about the stream, such as its filesize, whether the stream is adaptive, and
 more. You can also use the download method to save the file::
@@ -106,4 +106,4 @@ more. You can also use the download method to save the file::
     >>> stream.download()
 
 The download method has a number of different useful arguments, which are
-documented in the API reference here: :meth:`pytubenow.Stream.download`.
+documented in the API reference here: :meth:`pytubefix.Stream.download`.

@@ -3,22 +3,22 @@
 Using the search feature
 ========================
 
-pytubenow includes functionality to search YouTube and return results almost
+pytubefix includes functionality to search YouTube and return results almost
 identical to those you would find using the search bar on YouTube's website.
-The integration into pytubenow means that we can directly provide you with
+The integration into pytubefix means that we can directly provide you with
 YouTube objects that can be inspected and dowloaded, instead of needing to do
 additional processing.
 
 Using the Search object is really easy::
 
-    >>> from pytubenow import Search
+    >>> from pytubefix import Search
     >>> s = Search('YouTube Rewind')
     >>> len(s.results)
     17
     >>> s.results
     [\
-        <pytubenow.__main__.YouTube object: videoId=YbJOTdZBX1g>, \
-        <pytubenow.__main__.YouTube object: videoId=PKtnafFtfEo>, \
+        <pytubefix.__main__.YouTube object: videoId=YbJOTdZBX1g>, \
+        <pytubefix.__main__.YouTube object: videoId=PKtnafFtfEo>, \
         ...\
     ]
     >>> 

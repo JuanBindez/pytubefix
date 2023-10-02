@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""pytube documentation build configuration file."""
+"""pytubefix documentation build configuration file."""
 import os
 import sys
 
@@ -34,8 +34,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "pytubenow"
-author = "Ronnie Ghose, Taylor Fox Dahlin, Nick Ficano"
+project = "pytubefix"
+author = "Juan Bindez"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -117,9 +117,9 @@ latex_elements = {}
 latex_documents = [
     (
         master_doc,
-        "pytubenow.tex",
-        "pytubenow Documentation",
-        "Nick Ficano",
+        "pytubefix.tex",
+        "pytubefix Documentation",
+        "Juan Bindez",
         "manual",
     ),
 ]
@@ -129,7 +129,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "pytubenow", "pytubenow Documentation", [author], 1,),
+    (master_doc, "pytubefix", "pytubefix Documentation", [author], 1,),
 ]
 
 # -- Options for Texinfo output -------------------------------------------
@@ -140,10 +140,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "pytubenow",
-        "pytubenow Documentation",
+        "pytubefix",
+        "pytubefix Documentation",
         author,
-        "pytubenow",
+        "pytubefix",
         "One line description of project.",
         "Miscellaneous",
     ),
