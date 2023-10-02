@@ -59,6 +59,19 @@ class Caption:
         recompiles them into the "SubRip Subtitle" format.
         """
         return self.xml_caption_to_srt(self.xml_captions)
+    
+    def save_captions(self, filename: str):
+        """Generate and save "SubRip Subtitle" captions to a text file.
+
+        Takes the xml captions from :meth:`~pytubefix.Caption.xml_captions` and
+        recompiles them into the "SubRip Subtitle" format and saves it to a text file.
+        
+        :param filename: The name of the file to save the captions.
+        """
+        srt_captions = self.xml_caption_to_srt(self.xml_captions)
+        
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write(srt_captions)
 
     @staticmethod
     def float_to_srt_time_format(d: float) -> str:

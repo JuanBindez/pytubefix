@@ -6,15 +6,14 @@
 
 
 
-
 ### This python3 library is a solution to pytube's problem regarding update delays
 
-### install:
+## install:
 
-    pip install pytubefix 
+    pip install pytubefix
 
 ----------
-### usage:
+## usage:
 
 ```python
 
@@ -51,7 +50,7 @@ ys.download(mp3=True) # pass the parameter mp3=Tre to save in .mp3
 
 -----------
 
-### if you want to download complete playlists:
+## if you want to download complete playlists:
 
 ```python
 
@@ -70,7 +69,7 @@ for video in pl.videos:
 ```
 ----------
 
-### Subtitle/Caption Tracks:
+## Subtitle/Caption Tracks:
 
 #### viewing available subtitles:
 
@@ -98,8 +97,22 @@ caption = yt.captions.get_by_language_code('en')
 print(caption.generate_srt_captions())
 
 ```
+
+#### now you can save subtitles to a txt file:
+
+```python
+
+from pytubefix import YouTube
+ 
+yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
+
+caption = yt.captions.get_by_language_code('en')
+caption.save_captions("captions.txt")
+
+```
+
 ------------
-### Using Channels:
+## Using Channels:
 
 #### get the channel name:
 

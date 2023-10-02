@@ -1,9 +1,7 @@
-from pytubefix import Channel
+from pytubefix import YouTube
+ 
 
-c = Channel("https://www.youtube.com/@ProgrammingKnowledge")
+yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
 
-print(f'Downloading videos by: {c.channel_name}')
-
-for video in c.videos:
-    download = video.streams.get_highest_resolution().download()
-
+caption = yt.captions.get_by_language_code('en')
+caption.save_captions("captions.txt")
