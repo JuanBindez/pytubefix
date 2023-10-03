@@ -31,7 +31,7 @@ ys.download()
 
 ----------
 
-### If you want to save in .mp3 just pass the mp3=True parameter in the download() method, must be used together with the get_audio_only method:
+### If you want to save in .mp3 just pass the mp3=True parameter (note the real audio compression format is MP4A):
 
 
 ```python
@@ -64,7 +64,7 @@ pl = Playlist(url)
 
 for video in pl.videos:
     ys = video.streams.get_audio_only()
-    ys.download(mp3=True) # pass the parameter mp3=Tre to save in .mp3
+    ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
 
 ```
 ----------
