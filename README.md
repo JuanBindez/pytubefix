@@ -31,7 +31,7 @@ ys.download()
 
 ----------
 
-### If you want to save in .mp3 just pass the mp3=True parameter (note the real audio compression format is MP4A):
+### If you want to save in .mp3 just pass the mp3=True parameter (note the real audio compression format is MP4A), the file is just renamed to .mp3 so that it is recognized by any app:
 
 
 ```python
