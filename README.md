@@ -6,7 +6,7 @@
 
 
 
-### This python3 library is a solution to pytube's problem regarding update delays
+### Python 3 library for downloading YouTube Videos, focused on fast updates.
 
 ## install:
 
