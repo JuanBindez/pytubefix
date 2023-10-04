@@ -337,11 +337,11 @@ class YouTube:
         :rtype: str
         """
         self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
+            "author", "author"
         )
 
         if self._title:
-            return self._author + " - " + self._title
+            return self._title
 
         try:
             self._title = self.vid_info['videoDetails']['title'] #+ self._author

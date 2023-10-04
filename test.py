@@ -1,7 +1,10 @@
 from pytubefix import YouTube
+from pytubefix.cli import on_progress
  
-
-yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
-
-caption = yt.captions.get_by_language_code('en')
-caption.save_captions("captions.txt")
+url = input("URL >")
+ 
+yt = YouTube(url, on_progress_callback = on_progress)
+print(yt.title)
+ 
+ys = yt.streams.get_audio_only()
+ys.download(mp3=True)

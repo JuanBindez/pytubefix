@@ -15,6 +15,8 @@
 ----------
 ## usage:
 
+### mp4 video download highest resolution:
+
 ```python
 
 from pytubefix import YouTube
@@ -31,7 +33,7 @@ ys.download()
 
 ----------
 
-### If you want to save in .mp3 just pass the mp3=True parameter (note the real audio compression format is MP4A), the file is just renamed to .mp3 so that it is recognized by any app:
+### If you want to save in .mp3 just pass the mp3=True parameter (MPEG-4 AAC audio codec):
 
 
 ```python
@@ -44,7 +46,7 @@ url = input("URL >")
 yt = YouTube(url, on_progress_callback = on_progress)
 print(yt.title)
  
-ys = yt.streams.get_audio_only() # use this method -> get_audio_only()
+ys = yt.streams.get_audio_only()
 ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
 ```
 
