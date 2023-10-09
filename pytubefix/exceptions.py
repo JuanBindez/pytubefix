@@ -1,6 +1,8 @@
 """Library specific exception definitions."""
 from typing import Pattern, Union
+from .colors import Color
 
+c = Color()
 
 class PytubeFixError(Exception):
     """Base pytube exception that all others inherit.
@@ -9,7 +11,6 @@ class PytubeFixError(Exception):
     in unintended errors being unexpectedly and incorrectly handled within
     implementers code.
     """
-
 
 class MaxRetriesExceeded(PytubeFixError):
     """Maximum number of retries exceeded."""
@@ -33,7 +34,7 @@ class RegexMatchError(ExtractError):
         :param str pattern:
             Pattern that failed to match
         """
-        super().__init__(f"{caller}: could not find match for {pattern}")
+        super().__init__(c.RED + f"{caller}: could not find match for {pattern}" + c.RESET)
         self.caller = caller
         self.pattern = pattern
 
@@ -50,7 +51,7 @@ class VideoUnavailable(PytubeFixError):
 
     @property
     def error_string(self):
-        return f'{self.video_id} is unavailable'
+        return c.RED + f'{self.video_id} is unavailable' + c.RESET
 
 
 class AgeRestrictedError(VideoUnavailable):
@@ -65,7 +66,7 @@ class AgeRestrictedError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f"{self.video_id} is age restricted, and can't be accessed without logging in."
+        return c.RED + f"Video ID = {self.video_id}: is age restricted, and can't be accessed without logging in." + c.RESET
 
 
 class LiveStreamError(VideoUnavailable):
@@ -80,7 +81,7 @@ class LiveStreamError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{self.video_id} is streaming live and cannot be loaded'
+        return c.RED + f'{self.video_id} is streaming live and cannot be loaded' + c.RESET
 
 
 class VideoPrivate(VideoUnavailable):
@@ -94,7 +95,7 @@ class VideoPrivate(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{self.video_id} is a private video'
+        return c.RED + f'{self.video_id} is a private video' + c.RESET
 
 
 class RecordingUnavailable(VideoUnavailable):
@@ -108,7 +109,7 @@ class RecordingUnavailable(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{self.video_id} does not have a live stream recording available'
+        return c.RED + f'{self.video_id} does not have a live stream recording available' + c.RESET
 
 
 class MembersOnly(VideoUnavailable):
@@ -128,7 +129,7 @@ class MembersOnly(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{self.video_id} is a members-only video'
+        return c.RED + f'{self.video_id} is a members-only video' + c.RESET
 
 
 class VideoRegionBlocked(VideoUnavailable):
@@ -142,4 +143,4 @@ class VideoRegionBlocked(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{self.video_id} is not available in your region'
+        return c.RED + f'{self.video_id} is not available in your region' + c.RESET
