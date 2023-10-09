@@ -12,10 +12,9 @@
 
     pip install pytubefix
 
-----------
 ## usage:
 
-### mp4 video download highest resolution:
+#### mp4 video download highest resolution:
 
 ```python
 
@@ -31,9 +30,7 @@ ys = yt.streams.get_highest_resolution()
 ys.download()
 ```
 
-----------
-
-### If you want to save in .mp3 just pass the mp3=True parameter (MPEG-4 AAC audio codec):
+#### If you want to save in .mp3 just pass the mp3=True parameter (MPEG-4 AAC audio codec):
 
 
 ```python
@@ -50,9 +47,7 @@ ys = yt.streams.get_audio_only()
 ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
 ```
 
------------
-
-## if you want to download complete playlists:
+#### if you want to download complete playlists:
 
 ```python
 
@@ -69,7 +64,22 @@ for video in pl.videos:
     ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
 
 ```
-----------
+
+#### if you want to add authentication
+
+```python
+
+from pytubefix import YouTube
+ 
+url = input("URL Here >")
+
+yt = YouTube(url, use_oauth=True, allow_oauth_cache=True, on_progress_callback = on_progress)
+           
+ys = yt.streams.get_audio_only()
+
+ys.download(mp3=True) # you will only get the request to authenticate once you download
+
+```
 
 ## Subtitle/Caption Tracks:
 
@@ -114,7 +124,6 @@ caption.save_captions("captions.txt")
 
 ```
 
-------------
 ## Using Channels:
 
 #### get the channel name:
@@ -144,5 +153,4 @@ for video in c.videos:
     download = video.streams.get_highest_resolution().download()
 
 ```
------------
 
