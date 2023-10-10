@@ -29,7 +29,11 @@ bumpversion-major:
 	git push
 	git push --tags
 
+git-push:
+	git push -u origin main
+
 upload:
+	pip install twine
 	python setup.py sdist bdist_wheel
 	twine upload dist/*
 
