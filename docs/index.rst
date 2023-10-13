@@ -1,7 +1,6 @@
 .. pytubefix documentation master file,
 
 pytubefix
-
 ======
 
 **pytubefix** is a lightweight, Pythonic, dependency-free, library (and
