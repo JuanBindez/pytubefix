@@ -10,15 +10,19 @@ command-line utility) for downloading YouTube Videos.
 
 **Behold, a perfect balance of simplicity versus flexibility**::
 
-    >>> from pytubefix import YouTube
-    >>> YouTube('https://youtu.be/9bZkp7q19f0').streams.first().download()
-    >>> yt = YouTube('http://youtube.com/watch?v=9bZkp7q19f0')
-    >>> yt.streams
-    ... .filter(progressive=True, file_extension='mp4')
-    ... .order_by('resolution')
-    ... .desc()
-    ... .first()
-    ... .download()
+´´ṕython
+from pytubefix import YouTube
+from pytubefix.cli import on_progress
+ 
+url = input("URL >")
+ 
+yt = YouTube(url, on_progress_callback = on_progress)
+print(yt.title)
+ 
+ys = yt.streams.get_highest_resolution()
+ys.download()
+
+´´´
 
 Features
 --------
