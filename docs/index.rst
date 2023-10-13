@@ -52,6 +52,7 @@ of pytubefix.
    user/search
    user/cli
    user/exceptions
+   user/mp3
 
 The API Documentation
 -----------------------------
