@@ -46,13 +46,13 @@ of pytubefix.
    user/install
    user/quickstart
    user/streams
+   user/mp3
    user/captions
    user/playlist
    user/channel
    user/search
    user/cli
    user/exceptions
-   user/mp3
 
 The API Documentation
 -----------------------------
