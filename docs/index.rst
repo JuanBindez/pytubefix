@@ -2,6 +2,7 @@
 
 pytubefix
 ======
+Release v\ |version|. (:ref:`Installation<install>`)
 
 **pytubefix** is a lightweight, Pythonic, dependency-free, library (and
 command-line utility) for downloading YouTube Videos.
