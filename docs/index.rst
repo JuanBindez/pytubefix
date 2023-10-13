@@ -4,6 +4,16 @@ pytubefix
 ======
 Release v\ |version|. (:ref:`Installation<install>`)
 
+
+.. image:: https://img.shields.io/pypi/v/direnumerate.svg
+  :alt: Pypi
+  :target: https://pypi.python.org/pypi/direnumerate/
+
+.. image:: https://img.shields.io/pypi/pyversions/direnumerate.svg
+  :alt: Python Versions
+  :target: https://pypi.python.org/pypi/direnumerate/
+
+
 **pytubefix** is a lightweight, Pythonic, dependency-free, library (and
 command-line utility) for downloading YouTube Videos.
 
