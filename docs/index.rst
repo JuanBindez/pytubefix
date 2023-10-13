@@ -5,13 +5,13 @@ pytubefix
 Release v\ |version|. (:ref:`Installation<install>`)
 
 
-.. image:: https://img.shields.io/pypi/v/direnumerate.svg
+.. image:: https://img.shields.io/pypi/v/pytubefix.svg
   :alt: Pypi
-  :target: https://pypi.python.org/pypi/direnumerate/
+  :target: https://pypi.python.org/pypi/pytubefix/
 
-.. image:: https://img.shields.io/pypi/pyversions/direnumerate.svg
+.. image:: https://img.shields.io/pypi/pyversions/pytubefix.svg
   :alt: Python Versions
-  :target: https://pypi.python.org/pypi/direnumerate/
+  :target: https://pypi.python.org/pypi/pytubefix/
 
 
 **pytubefix** is a lightweight, Pythonic, dependency-free, library (and
