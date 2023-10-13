@@ -2,10 +2,6 @@
 
 pytubefix
 
-![PyPI - Version](https://img.shields.io/pypi/v/pytubefix)
-![PyPI - License](https://img.shields.io/pypi/l/pytubefix)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pytubefix)
-
 ======
 
 **pytubefix** is a lightweight, Pythonic, dependency-free, library (and
