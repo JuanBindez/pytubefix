@@ -3,7 +3,7 @@
 mp3 download (MPEG-4 AAC audio codec):
 =============================
 
-If you want to save in .mp3 just pass the mp3=True parameter:
+**If you want to save in .mp3 just pass the mp3=True parameter**::
 
         from pytubefix import YouTube
         from pytubefix.cli import on_progress
