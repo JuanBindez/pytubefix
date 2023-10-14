@@ -52,6 +52,6 @@ setup(name = "pytubefix",
       python_requires = ">=3.7",
       project_urls = {
         "Bug Reports": "https://github.com/juanbindez/pytubefix/issues",
-        "Read the Docs": "https://github.com/JuanBindez/pytubefix/tree/main/docs/user",
+        "Read the Docs": "http://pytubefix.readthedocs.io/",
       },
       keywords = ["youtube", "download", "video", "stream",],)
