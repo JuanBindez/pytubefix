@@ -6,7 +6,7 @@
 
 
 
-### Python 3 library for downloading YouTube Videos, focused on fast updates.
+### Python 3 library for downloading YouTube Videos, a fork of pytube to keep it updated.
 
 ## install:
 
