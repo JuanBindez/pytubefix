@@ -6,8 +6,13 @@ Subtitle/Caption Tracks
 pytubefix exposes the caption tracks in much the same way as querying the media
 streams. Let's begin by switching to a video that contains them::
 
-    >>> yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
-    >>> yt.captions
+    from pytubefix import YouTube
+
+    yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
+    subtitles = yt.captions
+    
+    print(subtitles)
+
     {'ar': <Caption lang="Arabic" code="ar">, 'zh-HK': <Caption lang="Chinese (Hong Kong)" code="zh-HK">, 'zh-TW': <Caption lang="Chinese (Taiwan)" code="zh-TW">, 'hr': <Caption lang="Croatian" code="hr">, 'cs': <Caption lang="Czech" code="cs">, 'da': <Caption lang="Danish" code="da">, 'nl': <Caption lang="Dutch" code="nl">, 'en': <Caption lang="English" code="en">, 'en-GB': <Caption lang="English (United Kingdom)" code="en-GB">, 'et': <Caption lang="Estonian" code="et">, 'fil': <Caption lang="Filipino" code="fil">, 'fi': <Caption lang="Finnish" code="fi">, 'fr-CA': <Caption lang="French (Canada)" code="fr-CA">, 'fr-FR': <Caption lang="French (France)" code="fr-FR">, 'de': <Caption lang="German" code="de">, 'el': <Caption lang="Greek" code="el">, 'iw': <Caption lang="Hebrew" code="iw">, 'hu': <Caption lang="Hungarian" code="hu">, 'id': <Caption lang="Indonesian" code="id">, 'it': <Caption lang="Italian" code="it">, 'ja': <Caption lang="Japanese" code="ja">, 'ko': <Caption lang="Korean" code="ko">, 'lv': <Caption lang="Latvian" code="lv">, 'lt': <Caption lang="Lithuanian" code="lt">, 'ms': <Caption lang="Malay" code="ms">, 'no': <Caption lang="Norwegian" code="no">, 'pl': <Caption lang="Polish" code="pl">, 'pt-BR': <Caption lang="Portuguese (Brazil)" code="pt-BR">, 'pt-PT': <Caption lang="Portuguese (Portugal)" code="pt-PT">, 'ro': <Caption lang="Romanian" code="ro">, 'ru': <Caption lang="Russian" code="ru">, 'sk': <Caption lang="Slovak" code="sk">, 'es-419': <Caption lang="Spanish (Latin America)" code="es-419">, 'es-ES': <Caption lang="Spanish (Spain)" code="es-ES">, 'sv': <Caption lang="Swedish" code="sv">, 'th': <Caption lang="Thai" code="th">, 'tr': <Caption lang="Turkish" code="tr">, 'uk': <Caption lang="Ukrainian" code="uk">, 'ur': <Caption lang="Urdu" code="ur">, 'vi': <Caption lang="Vietnamese" code="vi">}
 
 Now let's checkout the english captions::
