@@ -41,6 +41,19 @@ If, for example, we wanted to download all of the videos in a playlist, we would
         ys = video.streams.get_highest_resolution()
         ys.download()
 
+we wanted to download all of the audios in a playlist, we would do the following::
+
+    from pytubefix import Playlist
+    from pytubefix.cli import on_progress
+     
+    url = input("url here >")
+    
+    pl = Playlist(url)
+    
+    for video in pl.videos:
+        ys = video.streams.get_audio_only()
+        ys.download(mp3=True)
+
 Or, if we're only interested in the URLs for the videos, we can look at those as well::
 
     >>> for url in p.video_urls[:3]:
