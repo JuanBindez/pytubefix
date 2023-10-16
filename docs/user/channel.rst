@@ -23,6 +23,16 @@ Or you can create one from a link to the channel's video page::
 
 Now, we have a :class:`Channel <pytubefix.Channel>` object called ``c`` that we can do some work with.
 
+
+::get the channel name::
+
+    from pytubefix import Channel
+    
+    c = Channel("https://www.youtube.com/@ProgrammingKnowledge/featured")
+    
+    print(f'Channel name: {c.channel_name}')
+
+
 Interacting with a channel
 --------------------------
 
