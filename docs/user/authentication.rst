@@ -14,8 +14,8 @@ Add Authentication:
         print(yt.title)
          
         ys = yt.streams.get_highest_resolution()
-        ys.download()# you will only get the request to authenticate once you download
+        ys.download()# you will only receive the authentication request if you call the download() method
 
 
-**you will only get the request to authenticate once you download**
+**you will only receive the authentication request if you call the download() method**
 
