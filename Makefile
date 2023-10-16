@@ -17,7 +17,7 @@ requirements:
 
 bump_%: VER=$(patsubst bump_%,%,$@)
 bump_%: ## Bump Version with wildcard
-	bump-my-version bump ${VER}
+	pipenv run bump-my-version bump ${VER}
 	
 push_bump:
 	git push
@@ -33,8 +33,8 @@ git-push:
 	git push -u origin main
 
 upload:
-	pip install twine
-	python build
+	pip install twine build
+	python -m build
 	twine upload dist/*
 
 help:

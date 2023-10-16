@@ -55,7 +55,7 @@ license-files = ["LICENSE"]
 current_version = "1.6.0"
 allow_dirty = true
 commit = true
-tag = True
+tag = true
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
