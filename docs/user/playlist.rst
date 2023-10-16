@@ -30,10 +30,16 @@ Fundamentally, a Playlist object is just a container for YouTube objects.
 
 If, for example, we wanted to download all of the videos in a playlist, we would do the following::
 
-    >>> print(f'Downloading: {p.title}')
-    Downloading: Python Tutorial for Beginers (For Absolute Beginners)
-    >>> for video in p.videos:
-    >>>     video.streams.first().download()
+    from pytubefix import Playlist
+    from pytubefix.cli import on_progress
+     
+    url = input("url here >")
+    
+    pl = Playlist(url)
+    
+    for video in pl.videos:
+        ys = video.streams.get_highest_resolution()
+        ys.download()
 
 Or, if we're only interested in the URLs for the videos, we can look at those as well::
 
