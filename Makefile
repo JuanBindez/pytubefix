@@ -14,27 +14,27 @@ deploy-major: clean requirements bumpversion-major upload clean
 requirements:
 	pipenv_to_requirements
 
-bumpversion-patch:
-	bumpversion patch
+
+bump_%: VER=$(patsubst bump_%,%,$@)
+bump_%: ## Bump Version with wildcard
+	bump-my-version bump ${VER}
+	
+push_bump:
 	git push
 	git push --tags
 
-bumpversion-minor:
-	bumpversion minor
-	git push
-	git push --tags
+bumpversion-patch: bump_patch push_bump
 
-bumpversion-major:
-	bumpversion major
-	git push
-	git push --tags
+bumpversion-minor: bump_minor push_bump
+
+bumpversion-major: bump_major push_bump
 
 git-push:
 	git push -u origin main
 
 upload:
 	pip install twine
-	python setup.py sdist bdist_wheel
+	python build
 	twine upload dist/*
 
 help:
@@ -67,4 +67,4 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -fr {} +
 
 install: clean
-	python setup.py install
+	python -m pip install -e .
