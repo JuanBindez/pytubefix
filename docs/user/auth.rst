@@ -1,4 +1,4 @@
-.. _authentication:
+.. _auth:
 
 Add Authentication:
 =============================
@@ -16,6 +16,4 @@ Add Authentication:
         ys = yt.streams.get_highest_resolution()
         ys.download()# you will only receive the authentication request if you call the download() method
 
-
-**you will only receive the authentication request if you call the download() method**::
 
