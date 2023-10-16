@@ -56,7 +56,7 @@ of pytubefix.
    user/install
    user/quickstart
    user/streams
-   user/authentication
+   user/auth
    user/mp3
    user/captions
    user/playlist
