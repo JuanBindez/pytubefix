@@ -1,2 +1,1 @@
-include README.md LICENSE
-recursive-include tests *.py
+include README.md
