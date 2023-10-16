@@ -56,6 +56,7 @@ of pytubefix.
    user/install
    user/quickstart
    user/streams
+   user/authentication
    user/mp3
    user/captions
    user/playlist
@@ -63,7 +64,6 @@ of pytubefix.
    user/search
    user/cli
    user/exceptions
-   user/authentication
 
 The API Documentation
 -----------------------------
