@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 
 [dev-packages]
-bumpversion = "*"
+bump-my-version = "*"
 twine = "*"
 black = "==19.10b0"
 coveralls = "*"
