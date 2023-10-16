@@ -63,6 +63,7 @@ of pytubefix.
    user/search
    user/cli
    user/exceptions
+   user/authentication
 
 The API Documentation
 -----------------------------
