@@ -43,7 +43,7 @@ dependencies = []
 pytubefix = "pytubefix.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["pytubefix"]
+include = ["pytubefix*"]
 
 [tool.setuptools]
 license-files = ["LICENSE"]
