@@ -17,5 +17,5 @@ Add Authentication:
         ys.download()# you will only receive the authentication request if you call the download() method
 
 
-**you will only receive the authentication request if you call the download() method**
+**you will only receive the authentication request if you call the download() method**::
 
