@@ -15,11 +15,11 @@ Begin by importing the Channel class::
 
 Now let's create a channel object. You can do this by initializing the object with a channel URL::
 
-    >>> c = Channel('https://www.youtube.com/c/ProgrammingKnowledge')
+    >>> c = Channel('https://www.youtube.com/@ProgrammingKnowledge/featured')
 
 Or you can create one from a link to the channel's video page::
 
-    >>> c = Channel('https://www.youtube.com/c/ProgrammingKnowledge/videos')
+    >>> c = Channel('https://www.youtube.com/@ProgrammingKnowledge/videos')
 
 Now, we have a :class:`Channel <pytubefix.Channel>` object called ``c`` that we can do some work with.
 
@@ -30,10 +30,14 @@ Fundamentally, a Channel object is just a container for YouTube objects.
 
 If, for example, we wanted to download all of the videos created by a channel, we would do the following::
 
-    >>> print(f'Downloading videos by: {c.channel_name}')
-    Downloading videos by: ProgrammingKnowledge
-    >>> for video in c.videos:
-    >>>     video.streams.first().download()
+    from pytubefix import Channel
+
+    c = Channel("https://www.youtube.com/@ProgrammingKnowledge")
+    
+    print(f'Downloading videos by: {c.channel_name}')
+    
+    for video in c.videos:
+        download = video.streams.get_highest_resolution().download()
 
 Or, if we're only interested in the URLs for the videos, we can look at those as well::
 
