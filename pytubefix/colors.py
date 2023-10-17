@@ -36,6 +36,5 @@ INVERTE = '\033[;7m'
 RESET = '\033[0m'
 
 colors_list = [
-    GREEN, LIGTH_GREEN, YELLOW, BLUE, MAGENTA,
-    CYAN, LIGHT_CYAN,
+    GREEN,
 ]
