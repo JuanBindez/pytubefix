@@ -69,13 +69,14 @@
             "markers": "python_version >= '3.5'",
             "version": "==1.0.1"
         },
-        "bumpversion": {
+        "bump-my-version": {
             "hashes": [
-                "sha256:4ba55e4080d373f80177b4dabef146c07ce73c7d1377aabf9d3c3ae1f94584a6",
-                "sha256:4eb3267a38194d09f048a2179980bb4803701969bff2c85fa8f6d1ce050be15e"
+                "sha256:5ccafd65935c148e170a401a5dd4f62e7785ad41e075afd6eace4500a19d8b53",
+                "sha256:6b61d281b366effb87087f4ab9b7eed09119505faa2630dac5594f74a69f24e2"
             ],
             "index": "pypi",
-            "version": "==0.6.0"
+            "markers": "python_version >= '3.7'",
+            "version": "==0.11.0"
         },
         "certifi": {
             "hashes": [
