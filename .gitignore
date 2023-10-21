@@ -143,3 +143,5 @@ env/
 
 # Token cache location
 __cache__/
+
+debug.py

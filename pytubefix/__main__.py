@@ -379,7 +379,7 @@ class YouTube:
                 )
             )
         # print(self.vid_info['videoDetails'])
-        return self._author + " - " + self._title
+        return self._title
 
     @title.setter
     def title(self, value):
