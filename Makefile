@@ -33,8 +33,8 @@ git-push:
 	git push -u origin main
 
 upload:
-	python3 setup.py sdist
-	pip install twine
+	pip install twine build
+	python -m build
 	twine upload dist/*
 
 help:
