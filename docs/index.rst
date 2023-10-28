@@ -64,6 +64,7 @@ of pytubefix.
    user/search
    user/cli
    user/exceptions
+   user/changelog
 
 The API Documentation
 -----------------------------
