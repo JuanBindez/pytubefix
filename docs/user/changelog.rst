@@ -35,6 +35,16 @@ V1.1.2:
 V1.1.1:
 ------------------
 
+- cli improvements
+
+Bugfix:
+
+- fixed issue affecting Innertube (https://github.com/JuanBindez/pytubefix/pull/1/commits/a99e9e7df485744e4047b414f6f5880dfda945ca)
+
+Contributor:
+
+ElsevarAsadov
+
 V1.0.0:
 ------------------
 
