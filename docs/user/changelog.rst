@@ -6,6 +6,8 @@ CHANGELOG
 V1.8.0:
 ------------------
 
+-  Adding a dot to the pattern matching on the @ name as its a valid name. #11
+
 V1.7.1:
 ------------------
 
