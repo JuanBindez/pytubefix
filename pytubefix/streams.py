@@ -266,6 +266,16 @@ class Stream:
                 max_retries: Optional[int] = 0,
                 mp3: bool = False) -> str:
         
+        if mp3:
+            filename = self.title + ".mp3"
+
+            file_path = self.get_file_path(
+                filename=filename,
+                output_path=output_path,
+                filename_prefix=filename_prefix,
+            )
+    
+
         file_path = self.get_file_path(
             filename=filename,
             output_path=output_path,
@@ -304,12 +314,7 @@ class Stream:
                     bytes_remaining -= len(chunk)
                     # send to the on_progress callback.
                     self.on_progress(chunk, fh, bytes_remaining)
-
-        if mp3:
-            mp3_file_path = os.path.splitext(file_path)[0] + '.mp3'
-            os.rename(file_path, mp3_file_path)
-            file_path = mp3_file_path
-
+            
         self.on_complete(file_path)
         return file_path
     

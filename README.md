@@ -20,7 +20,7 @@
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
  
-url = input("URL >")
+url = input("url >")
  
 yt = YouTube(url, on_progress_callback = on_progress)
 print(yt.title)
@@ -37,7 +37,7 @@ ys.download()
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
  
-url = input("URL >")
+url = input("url >")
  
 yt = YouTube(url, on_progress_callback = on_progress)
 print(yt.title)
@@ -54,7 +54,7 @@ from pytubefix import YouTube
 from pytubefix import Playlist
 from pytubefix.cli import on_progress
  
-url = input("URL Here >")
+url = input("url Here >")
 
 pl = Playlist(url)
 
@@ -70,7 +70,7 @@ for video in pl.videos:
 
 from pytubefix import YouTube
  
-url = input("URL Here >")
+url = input("url Here >")
 
 yt = YouTube(url, use_oauth=True, allow_oauth_cache=True, on_progress_callback = on_progress)
            
