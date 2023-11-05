@@ -149,37 +149,65 @@ def test_xml_captions(request_get):
 
 @mock.patch("pytubefix.captions.request")
 def test_generate_srt_captions(request):
-    request.get.return_value = '''
-    <?xml version="1.0" encoding="utf-8"?>
-    <transcript>
-        <text start="6.5" dur="1.7">[Herb, Software Engineer]
-            本影片包含隱藏式字幕。
-        </text>
-        <text start="8.3" dur="2.7">
-            如要啓動字幕，請按一下這裡的圖示。
-        </text>
-    </transcript>
+
+    clean_text = lambda x: x.replace(' ', '').replace('\n', '')
+
+    xml_data = '''
+    <?xml version="1.0" encoding="utf-8" ?>
+        <timedtext format="3">
+    <body>
+    <p t="10200" d="940">K-pop!</p>
+    <p t="13400" d="2800">That is so awkward to watch.</p>
+    <p t="16200" d="2080">YouTube Rewind 2018.</p>
+    <p t="18480" d="3520">The most disliked video
+    in the history of YouTube.</p>
+    <p t="22780" d="2220">In 2018, we made something
+    you didn’t like.</p>
+    <p t="25100" d="2470">So in 2019, let’s see what
+    you DID like.</p>
+    <p t="27580" d="1400">Because you’re better at this
+    than we are.</p>
+    <p t="45110" d="1310">This is my outfit!</p>
+    </body>
+</timedtext>
     '''
+
+    request.get.return_value = xml_data
 
     caption = Caption(
         {"url": "url1", "name": {"simpleText": "name1"}, "languageCode": "en", "vssId": ".en"}
     )
 
-    assert (
-            caption.generate_srt_captions()
-            .replace(' ', '')
-            .replace('\n', '')
-
-            == '''
+    expected_output = '''
         1
-        00:00:06,500 --> 00:00:08,200
-        [Herb, Software Engineer] 本影片包含隱藏式字幕。
-        
-        2
-        00:00:08,300 --> 00:00:11,000
-        如要啓動字幕，請按一下這裡的圖示。
+00:00:10,200 --> 00:00:11,140
+K-pop!
+2
+00:00:13,400 --> 00:00:16,200
+That is so awkward to watch.
+3
+00:00:16,200 --> 00:00:18,280
+YouTube Rewind 2018.
+4
+00:00:18,480 --> 00:00:22,000
+The most disliked video
+    in the history of YouTube.
+5
+00:00:22,780 --> 00:00:25,000
+In 2018, we made something
+    you didn’t like.
+6
+00:00:25,100 --> 00:00:27,570
+So in 2019, let’s see what
+    you DID like.
+7
+00:00:27,580 --> 00:00:28,980
+Because you’re better at this
+    than we are.
+8
+00:00:45,110 --> 00:00:46,420
+This is my outfit!
 '''
-            .replace(' ', '')
-            .replace('\n', '')
 
-            )
+    assert clean_text(caption.generate_srt_captions()) == clean_text(expected_output)
+
