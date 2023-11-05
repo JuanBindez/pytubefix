@@ -8,7 +8,7 @@ from pytubefix import request
 from pytubefix.exceptions import MaxRetriesExceeded
 
 
-@mock.patch("pytube.request.urlopen")
+@mock.patch("pytubefix.request.urlopen")
 def test_streaming(mock_urlopen):
     # Given
     fake_stream_binary = [
@@ -28,7 +28,7 @@ def test_streaming(mock_urlopen):
     assert mock_response.read.call_count == 4
 
 
-@mock.patch('pytube.request.urlopen')
+@mock.patch('pytubefix.request.urlopen')
 def test_timeout(mock_urlopen):
     exc = URLError(reason=socket.timeout('timed_out'))
     mock_urlopen.side_effect = exc
@@ -37,7 +37,7 @@ def test_timeout(mock_urlopen):
         next(generator)
 
 
-@mock.patch("pytube.request.urlopen")
+@mock.patch("pytubefix.request.urlopen")
 def test_headers(mock_urlopen):
     response = mock.Mock()
     response.info.return_value = {"content-length": "16384"}
@@ -46,7 +46,7 @@ def test_headers(mock_urlopen):
     assert response == {"content-length": "16384"}
 
 
-@mock.patch("pytube.request.urlopen")
+@mock.patch("pytubefix.request.urlopen")
 def test_get(mock_urlopen):
     response = mock.Mock()
     response.read.return_value = "<html></html>".encode("utf-8")

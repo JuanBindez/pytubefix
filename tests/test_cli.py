@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pytubefix import Caption, CaptionQuery, cli, StreamQuery
-from pytubefix.exceptions import pytubefixError
+from pytubefix.exceptions import PytubeFixError
 
 parse_args = cli._parse_args
 
@@ -272,7 +272,7 @@ def test_download_with_playlist_video_error(
     videos = [youtube]
     playlist_instance = playlist.return_value
     playlist_instance.videos = videos
-    perform_args_on_youtube.side_effect = pytubefixError()
+    perform_args_on_youtube.side_effect = PytubeFixError()
     # When
     cli.main()
     # Then

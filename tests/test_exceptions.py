@@ -65,7 +65,7 @@ def test_region_locked_error():
 
 
 def test_raises_video_private(private):
-    with mock.patch('pytube.request.urlopen') as mock_url_open:
+    with mock.patch('pytubefixe.request.urlopen') as mock_url_open:
         # Mock the responses to YouTube
         mock_url_open_object = mock.Mock()
         mock_url_open_object.read.side_effect = [
@@ -77,7 +77,7 @@ def test_raises_video_private(private):
 
 
 def test_raises_recording_unavailable(missing_recording):
-    with mock.patch('pytube.request.urlopen') as mock_url_open:
+    with mock.patch('pytubefixe.request.urlopen') as mock_url_open:
         # Mock the responses to YouTube
         mock_url_open_object = mock.Mock()
         mock_url_open_object.read.side_effect = [
