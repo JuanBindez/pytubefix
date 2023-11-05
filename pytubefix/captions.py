@@ -46,7 +46,7 @@ class Caption:
     @property
     def json_captions(self) -> dict:
         """Download and parse the json caption tracks."""
-        json_captions_url = self.url.replace('fmt=srv3', 'fmt=json3')
+        json_captions_url = self.url.replace('fmt=srv3','fmt=json3')
         text = request.get(json_captions_url)
         parsed = json.loads(text)
         assert parsed['wireMagic'] == 'pb3', 'Unexpected captions format'
@@ -59,7 +59,7 @@ class Caption:
         recompiles them into the "SubRip Subtitle" format.
         """
         return self.xml_caption_to_srt(self.xml_captions)
-
+    
     def save_captions(self, filename: str):
         """Generate and save "SubRip Subtitle" captions to a text file.
 
@@ -69,7 +69,7 @@ class Caption:
         :param filename: The name of the file to save the captions.
         """
         srt_captions = self.xml_caption_to_srt(self.xml_captions)
-
+        
         with open(filename, 'w', encoding='utf-8') as file:
             file.write(srt_captions)
 
@@ -95,31 +95,42 @@ class Caption:
             XML formatted caption tracks.
         """
         segments = []
-
-        root = ElementTree.fromstring(xml_captions.strip())
-
-        texts = root.findall('text')
-
-        for count, text_tag in enumerate(texts, start=1):
-            start = float(text_tag.get("start"))
-            end = float(start) + float(text_tag.get("dur"))
-
-            start_str = Caption.float_to_srt_time_format(start)
-            end_str = Caption.float_to_srt_time_format(end)
-
-            content = text_tag.text
-
-            srt_data = f'{count}\n{start_str} --> {end_str}\n{content}'
-            segments.append(srt_data)
-        # TODO: Maybe the line breaks count is important for the correct format.Search it and fix it is necessary
+        root = ElementTree.fromstring(xml_captions)
+        
+        i=0
+        for child in list(root.iter("body"))[0]:
+            if child.tag == 'p':
+                caption = ''
+                if len(list(child))==0:
+                    # instead of 'continue'
+                    caption = child.text
+                for s in list(child):
+                    if s.tag == 's':
+                        caption += ' ' + s.text
+                caption = unescape(caption.replace("\n", " ").replace("  ", " "),)
+                try:
+                    duration = float(child.attrib["d"])/1000.0
+                except KeyError:
+                    duration = 0.0
+                start = float(child.attrib["t"])/1000.0
+                end = start + duration
+                sequence_number = i + 1  # convert from 0-indexed to 1.
+                line = "{seq}\n{start} --> {end}\n{text}\n".format(
+                    seq=sequence_number,
+                    start=self.float_to_srt_time_format(start),
+                    end=self.float_to_srt_time_format(end),
+                    text=caption,
+                )
+                segments.append(line)
+                i += 1
         return "\n".join(segments).strip()
 
     def download(
-            self,
-            title: str,
-            srt: bool = True,
-            output_path: Optional[str] = None,
-            filename_prefix: Optional[str] = None,
+        self,
+        title: str,
+        srt: bool = True,
+        output_path: Optional[str] = None,
+        filename_prefix: Optional[str] = None,
     ) -> str:
         """Write the media stream to disk.
 

@@ -2,6 +2,7 @@ import os
 import pytest
 from unittest import mock
 from unittest.mock import MagicMock, mock_open, patch
+
 from pytubefix import Caption, CaptionQuery, captions
 
 
@@ -51,7 +52,7 @@ def test_caption_query_get_by_language_code_when_not_exists():
         # assert not_found is not None  # should never reach here
 
 
-@mock.patch("pytubefix.captions.Caption.generate_srt_captions")
+@mock.patch("pytube.captions.Caption.generate_srt_captions")
 def test_download(srt):
     open_mock = mock_open()
     with patch("builtins.open", open_mock):
@@ -70,7 +71,7 @@ def test_download(srt):
         )
 
 
-@mock.patch("pytubefix.captions.Caption.generate_srt_captions")
+@mock.patch("pytube.captions.Caption.generate_srt_captions")
 def test_download_with_prefix(srt):
     open_mock = mock_open()
     with patch("builtins.open", open_mock):
@@ -90,7 +91,7 @@ def test_download_with_prefix(srt):
         )
 
 
-@mock.patch("pytubefix.captions.Caption.generate_srt_captions")
+@mock.patch("pytube.captions.Caption.generate_srt_captions")
 def test_download_with_output_path(srt):
     open_mock = mock_open()
     captions.target_directory = MagicMock(return_value="/target")
@@ -109,7 +110,7 @@ def test_download_with_output_path(srt):
         captions.target_directory.assert_called_with("blah")
 
 
-@mock.patch("pytubefix.captions.Caption.xml_captions")
+@mock.patch("pytube.captions.Caption.xml_captions")
 def test_download_xml_and_trim_extension(xml):
     open_mock = mock_open()
     with patch("builtins.open", open_mock):
@@ -138,7 +139,7 @@ def test_repr():
     assert repr(caption_query) == '{\'en\': <Caption lang="name1" code="en">}'
 
 
-@mock.patch("pytubefix.request.get")
+@mock.patch("pytube.request.get")
 def test_xml_captions(request_get):
     request_get.return_value = "test"
     caption = Caption(
@@ -147,7 +148,7 @@ def test_xml_captions(request_get):
     assert caption.xml_captions == "test"
 
 
-@mock.patch("pytubefix.captions.request")
+@mock.patch("pytube.captions.request")
 def test_generate_srt_captions(request):
 
     clean_text = lambda x: x.replace(' ', '').replace('\n', '')
@@ -210,4 +211,3 @@ This is my outfit!
 '''
 
     assert clean_text(caption.generate_srt_captions()) == clean_text(expected_output)
-
