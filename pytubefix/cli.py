@@ -17,7 +17,6 @@ import pytubefix.exceptions as exceptions
 from pytubefix import __version__
 from pytubefix import CaptionQuery, Playlist, Stream, YouTube
 from pytubefix.helpers import safe_filename, setup_logger
-from pytubefix.colors import colors_list
 
 
 logger = logging.getLogger(__name__)
@@ -209,7 +208,7 @@ def build_playback_report(youtube: YouTube) -> None:
         )
 
 def display_progress_bar(
-    bytes_received: int, filesize: int, ch: str = random.choice(colors_list) + "█", scale: float = 0.55
+    bytes_received: int, filesize: int, ch: str = "█", scale: float = 0.55
 ) -> None:
     """Display a simple, pretty progress bar.
 
