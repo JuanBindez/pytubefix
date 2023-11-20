@@ -3,7 +3,7 @@ import json
 import logging
 from collections.abc import Sequence
 from datetime import date, datetime
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union, Any
 
 from pytubefix import extract, request, YouTube
 from pytubefix.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
@@ -103,11 +103,14 @@ class Playlist(Sequence):
         return self.ytcfg['INNERTUBE_API_KEY']
 
     def _paginate(
-        self, until_watch_id: Optional[str] = None
+        self, initial_html: str, context: Optional[Any] = None,
+        until_watch_id: Optional[str] = None
     ) -> Iterable[List[str]]:
         """Parse the video links from the page source, yields the /watch?v=
         part from video link
 
+        :param initial_html str: html from the initial YouTube url, default: self.html
+        :param context Optional[Any]: Auxiliary object
         :param until_watch_id Optional[str]: YouTube Video watch id until
             which the playlist should be read.
 
@@ -115,7 +118,7 @@ class Playlist(Sequence):
         :returns: Iterable of lists of YouTube watch ids
         """
         videos_urls, continuation = self._extract_videos(
-            json.dumps(extract.initial_data(self.html))
+            json.dumps(extract.initial_data(initial_html)), context
         )
         if until_watch_id:
             try:
@@ -142,7 +145,7 @@ class Playlist(Sequence):
             req = request.post(load_more_url, extra_headers=headers, data=data)
             # extract up to 100 songs from the page loaded
             # returns another continuation if more videos are available
-            videos_urls, continuation = self._extract_videos(req)
+            videos_urls, continuation = self._extract_videos(req, context)
             if until_watch_id:
                 try:
                     trim_index = videos_urls.index(f"/watch?v={until_watch_id}")
@@ -193,11 +196,12 @@ class Playlist(Sequence):
         )
 
     @staticmethod
-    def _extract_videos(raw_json: str) -> Tuple[List[str], Optional[str]]:
+    def _extract_videos(raw_json: str, context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
         """Extracts videos from a raw json page
 
         :param str raw_json: Input json extracted from the page or the last
             server response
+        :param Optional[Any] context: Auxiliary object from _paginate
         :rtype: Tuple[List[str], Optional[str]]
         :returns: Tuple containing a list of up to 100 video watch ids and
             a continuation token, if more videos are available
@@ -270,7 +274,7 @@ class Playlist(Sequence):
         :returns:
             List of video URLs from the playlist trimmed at the given ID
         """
-        for page in self._paginate(until_watch_id=video_id):
+        for page in self._paginate(self.html, until_watch_id=video_id):
             yield from (self._video_url(watch_path) for watch_path in page)
 
     def url_generator(self):
@@ -278,7 +282,7 @@ class Playlist(Sequence):
 
         :Yields: Video URLs
         """
-        for page in self._paginate():
+        for page in self._paginate(self.html):
             for video in page:
                 yield self._video_url(video)
 
