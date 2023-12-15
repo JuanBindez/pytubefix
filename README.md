@@ -31,7 +31,6 @@ ys.download()
 
 #### If you want to save in .mp3 just pass the mp3=True parameter (MPEG-4 AAC audio codec):
 
-
 ```python
 
 from pytubefix import YouTube
