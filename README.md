@@ -68,6 +68,7 @@ for video in pl.videos:
 ```python
 
 from pytubefix import YouTube
+from pytubefix.cli import on_progress
  
 url = input("url Here >")
 
@@ -149,20 +150,5 @@ print(f'Downloading videos by: {c.channel_name}')
 
 for video in c.videos:
     download = video.streams.get_highest_resolution().download()
-
-```
-
-
-#### to get a list of live streams:
-
-```python
-
-from pytubefix import Channel
-
-url_channel = input("url > ")
-
-c = Channel(url_channel)
-
-print("live streams :", c.livestreams_urls)
 
 ```
