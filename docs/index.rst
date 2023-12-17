@@ -62,6 +62,7 @@ of pytubefix.
    user/playlist
    user/channel
    user/search
+   user/channel_playlists
    user/cli
    user/exceptions
 
