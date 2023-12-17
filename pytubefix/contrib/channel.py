@@ -155,6 +155,13 @@ class Channel(Playlist):
             self._about_html = request.get(self.about_url)
             return self._about_html
 
+    def videos_generator(self):
+        for url in self.video_urls:
+            if self.html_url == self.playlists_url:
+                yield Playlist(url)
+            else:
+                yield YouTube(url)
+
     def _build_continuation_url(self, continuation: str) -> Tuple[str, dict, dict]:
         """Helper method to build the url and headers required to request
         the next page of videos, shorts or streams
@@ -210,8 +217,13 @@ class Channel(Playlist):
                     active_tab = tab
                     break
 
-            # This is the json tree structure for videos, shorts and streams
-            videos = active_tab["tabRenderer"]["content"]["richGridRenderer"]["contents"]
+            try:
+                # This is the json tree structure for videos, shorts and streams
+                items = active_tab['tabRenderer']['content']['richGridRenderer']['contents']
+            except (KeyError, IndexError, TypeError):
+                # This is the json tree structure for playlists
+                items = active_tab['tabRenderer']['content']['sectionListRenderer']['contents'][0][
+                    'itemSectionRenderer']['contents'][0]['gridRenderer']['items']
 
             # This is the json tree structure of visitor data
             # It is necessary to send the visitorData together with the continuation token
@@ -225,7 +237,7 @@ class Channel(Playlist):
                 important_content = initial_data[1]['response']['onResponseReceivedActions'][
                     0
                 ]['appendContinuationItemsAction']['continuationItems']
-                videos = important_content
+                items = important_content
             except (KeyError, IndexError, TypeError):
                 try:
                     # this is the json tree structure, if the json was directly sent
@@ -233,35 +245,41 @@ class Channel(Playlist):
                     # no longer a list and no longer has the "response" key
                     important_content = initial_data['onResponseReceivedActions'][0][
                         'appendContinuationItemsAction']['continuationItems']
-                    videos = important_content
+                    items = important_content
                 except (KeyError, IndexError, TypeError) as p:
                     logger.info(p)
                     return [], None
 
         try:
-            continuation = videos[-1]['continuationItemRenderer'][
+            continuation = items[-1]['continuationItemRenderer'][
                 'continuationEndpoint'
             ]['continuationCommand']['token']
-            videos = videos[:-1]
+            items = items[:-1]
         except (KeyError, IndexError):
             # if there is an error, no continuation is available
             continuation = None
 
         # only extract the video ids from the video data
-        videos_url = []
+        items_url = []
         try:
             # Extract id from videos and live
-            for x in videos:
-                videos_url.append(f"/watch?v="
-                                  f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}")
+            for x in items:
+                items_url.append(f"/watch?v="
+                                 f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}")
         except (KeyError, IndexError, TypeError):
-            # Extract id from short videos
-            for x in videos:
-                videos_url.append(f"/watch?v="
-                                  f"{x['richItemRenderer']['content']['reelItemRenderer']['videoId']}")
+            try:
+                # Extract id from short videos
+                for x in items:
+                    items_url.append(f"/watch?v="
+                                     f"{x['richItemRenderer']['content']['reelItemRenderer']['videoId']}")
+            except (KeyError, IndexError, TypeError):
+                # Extract playlist id
+                for x in items:
+                    items_url.append(f"/playlist?list="
+                                     f"{x['gridPlaylistRenderer']['playlistId']}")
 
         # remove duplicates
-        return uniqueify(videos_url), continuation
+        return uniqueify(items_url), continuation
 
     @property
     def views(self) -> int:
@@ -285,16 +303,6 @@ class Channel(Playlist):
             return int(count_text)
         except KeyError:
             return 0
-
-    @property
-    def title(self) -> str:
-        """Extract the channel title.
-
-        :return: Channel title (name)
-        :rtype: str
-        """
-        self.html_url = self.channel_url
-        return self.initial_data['metadata']['channelMetadataRenderer']['title']
 
     @property
     def description(self) -> str:
@@ -369,5 +377,15 @@ class Channel(Playlist):
        :rtype: List[YouTube]
        :returns: List of YouTube
        """
-        self.html_url = self.live_url  # Set stream tab
+        self.html_url = self.live_url  # Set streams tab
+        return DeferredGeneratorList(self.videos_generator())
+
+    @property
+    def playlists(self) -> Iterable[Playlist]:
+        """Yields Playlist objects in this channel
+
+       :rtype: List[Playlist]
+       :returns: List of Playlist
+       """
+        self.html_url = self.playlists_url  # Set playlists tab
         return DeferredGeneratorList(self.videos_generator())
