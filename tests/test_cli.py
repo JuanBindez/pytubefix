@@ -10,6 +10,7 @@ from pytubefix import Caption, CaptionQuery, cli, StreamQuery
 from pytubefix.exceptions import PytubeFixError
 from urllib.error import HTTPError
 
+
 parse_args = cli._parse_args
 
 

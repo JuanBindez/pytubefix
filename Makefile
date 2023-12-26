@@ -29,9 +29,6 @@ bumpversion-minor: bump_minor push_bump
 
 bumpversion-major: bump_major push_bump
 
-git-push:
-	git push -u origin main
-
 upload:
 	pip install twine build
 	python -m build

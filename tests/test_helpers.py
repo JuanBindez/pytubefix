@@ -86,7 +86,7 @@ def test_setup_logger(logging):
     # When
     setup_logger(20)
     # Then
-    logging.getLogger.assert_called_with("pytube")
+    logging.getLogger.assert_called_with("pytubefix")
     logger.addHandler.assert_called()
     logger.setLevel.assert_called_with(20)
 
@@ -97,15 +97,15 @@ def test_create_mock_html_json(mock_url_open, mock_open):
     video_id = '2lAe1cqCOXo'
     gzip_html_filename = 'yt-video-%s-html.json.gz' % video_id
 
-    # Get the pytube directory in order to navigate to /tests/mocks
-    pytube_dir_path = os.path.abspath(
+    # Get the pytubefix directory in order to navigate to /tests/mocks
+    pytubefix_dir_path = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
             os.path.pardir
         )
     )
-    pytube_mocks_path = os.path.join(pytube_dir_path, 'tests', 'mocks')
-    gzip_html_filepath = os.path.join(pytube_mocks_path, gzip_html_filename)
+    pytubefix_mocks_path = os.path.join(pytubefix_dir_path, 'tests', 'mocks')
+    gzip_html_filepath = os.path.join(pytubefix_mocks_path, gzip_html_filename)
 
     # Mock the responses to YouTube
     mock_url_open_object = mock.Mock()

@@ -5,7 +5,7 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/pytubefix)
 
 
-### Python 3 library for downloading YouTube Videos.
+### Python3 library for downloading YouTube Videos.
 
 ## install:
 
@@ -30,7 +30,6 @@ ys.download()
 ```
 
 #### If you want to save in .mp3 just pass the mp3=True parameter (MPEG-4 AAC audio codec):
-
 
 ```python
 
@@ -69,6 +68,7 @@ for video in pl.videos:
 ```python
 
 from pytubefix import YouTube
+from pytubefix.cli import on_progress
  
 url = input("url Here >")
 
@@ -152,4 +152,3 @@ for video in c.videos:
     download = video.streams.get_highest_resolution().download()
 
 ```
-

@@ -144,7 +144,7 @@ def test_download(cipher_signature):
 )
 @mock.patch("pytubefix.streams.target_directory", MagicMock(return_value="/"))
 def test_download_with_prefix(cipher_signature):
-    with mock.patch("pytube.streams.open", mock.mock_open(), create=True):
+    with mock.patch("pytubefix.streams.open", mock.mock_open(), create=True):
         stream = cipher_signature.streams[0]
         file_path = stream.download(filename_prefix="prefix")
         assert file_path == "/prefixYouTube Rewind 2019 For the Record  YouTubeRewind.3gpp"
@@ -160,7 +160,7 @@ def test_download_with_prefix(cipher_signature):
 )
 @mock.patch("pytubefix.streams.target_directory", MagicMock(return_value="/"))
 def test_download_with_filename(cipher_signature):
-    with mock.patch("pytube.streams.open", mock.mock_open(), create=True):
+    with mock.patch("pytubefix.streams.open", mock.mock_open(), create=True):
         stream = cipher_signature.streams[0]
         file_path = stream.download(filename="cool name bro")
         assert file_path == "/cool name bro"

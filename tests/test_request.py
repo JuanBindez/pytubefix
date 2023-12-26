@@ -26,15 +26,10 @@ def test_streaming(mock_urlopen):
 
     count = 0
 
-
     for blob in response:
         if blob: count += len(blob)
-
-
     assert count == 24576
     assert mock_response.read.call_count == 4 + 1
-
-
 @mock.patch('pytubefix.request.urlopen')
 def test_timeout(mock_urlopen):
     exc = URLError(reason=socket.timeout('timed_out'))
