@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytubefix.exceptions as exceptions
 from pytubefix import YouTube
+from pytubefix.helpers import strip_color_codes
 
 
 def test_video_unavailable():
@@ -10,14 +11,14 @@ def test_video_unavailable():
         raise exceptions.VideoUnavailable(video_id="YLnZklYFe7E")
     except exceptions.VideoUnavailable as e:
         assert e.video_id == "YLnZklYFe7E"  # noqa: PT017
-        assert str(e) == "YLnZklYFe7E is unavailable"
+        assert strip_color_codes(str(e)) == "YLnZklYFe7E is unavailable"
 
 
 def test_regex_match_error():
     try:
         raise exceptions.RegexMatchError(caller="hello", pattern="*")
     except exceptions.RegexMatchError as e:
-        assert str(e) == "hello: could not find match for *"
+        assert strip_color_codes(str(e)) == "hello: could not find match for *"
 
 
 def test_live_stream_error():
@@ -28,7 +29,7 @@ def test_live_stream_error():
         raise exceptions.LiveStreamError(video_id='YLnZklYFe7E')
     except exceptions.LiveStreamError as e:
         assert e.video_id == 'YLnZklYFe7E'  # noqa: PT017
-        assert str(e) == 'YLnZklYFe7E is streaming live and cannot be loaded'
+        assert strip_color_codes(str(e)) == 'YLnZklYFe7E is streaming live and cannot be loaded'
 
 
 def test_recording_unavailable_error():
@@ -39,7 +40,7 @@ def test_recording_unavailable_error():
         raise exceptions.RecordingUnavailable(video_id='5YceQ8YqYMc')
     except exceptions.RecordingUnavailable as e:
         assert e.video_id == '5YceQ8YqYMc'  # noqa: PT017
-        assert str(e) == '5YceQ8YqYMc does not have a live stream recording available'
+        assert strip_color_codes(str(e)) == '5YceQ8YqYMc does not have a live stream recording available'
 
 
 def test_private_error():
@@ -50,7 +51,7 @@ def test_private_error():
         raise exceptions.VideoPrivate('m8uHb5jIGN8')
     except exceptions.VideoPrivate as e:
         assert e.video_id == 'm8uHb5jIGN8'  # noqa: PT017
-        assert str(e) == 'm8uHb5jIGN8 is a private video'
+        assert strip_color_codes(str(e)) == 'm8uHb5jIGN8 is a private video'
 
 
 def test_region_locked_error():
@@ -61,7 +62,7 @@ def test_region_locked_error():
         raise exceptions.VideoRegionBlocked('hZpzr8TbF08')
     except exceptions.VideoRegionBlocked as e:
         assert e.video_id == 'hZpzr8TbF08'  # noqa: PT017
-        assert str(e) == 'hZpzr8TbF08 is not available in your region'
+        assert strip_color_codes(str(e)) == 'hZpzr8TbF08 is not available in your region'
 
 
 def test_raises_video_private(private):

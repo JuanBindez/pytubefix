@@ -1,3 +1,11 @@
+"""
+
+TODO: REFACTOR THIS FILE
+
+"""
+
+
+
 #!/usr/bin/env python3
 """A simple command line application to download youtube videos."""
 
@@ -12,18 +20,19 @@ import sys
 import datetime as dt
 import subprocess  # nosec
 from typing import List, Optional
-
 import pytubefix.exceptions as exceptions
 from pytubefix import __version__
-from pytubefix import CaptionQuery, Playlist, Stream, YouTube
+from pytubefix import CaptionQuery, Playlist, Stream
 from pytubefix.helpers import safe_filename, setup_logger
+from pytubefix import YouTube
 
 
 logger = logging.getLogger(__name__)
 
-
 def main():
-    """Command line application to download youtube videos."""
+    # TODO: Refactor cli.py to OOP
+    # temporary fix
+    from pytubefix import YouTube
     # noinspection PyTypeChecker
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
@@ -46,13 +55,15 @@ def main():
         for youtube_video in playlist.videos:
             try:
                 _perform_args_on_youtube(youtube_video, args)
-            except exceptions.PytubeError as e:
+            except exceptions.PytubeFixError as e:
                 print(f"There was an error with video: {youtube_video}")
                 print(e)
     else:
         print("Loading video...")
+
         youtube = YouTube(args.url)
         _perform_args_on_youtube(youtube, args)
+
 
 
 def _perform_args_on_youtube(
@@ -86,6 +97,8 @@ def _perform_args_on_youtube(
         ffmpeg_process(
             youtube=youtube, resolution=args.ffmpeg, target=args.target
         )
+    else:
+        print("A")
 
 
 def _parse_args(
@@ -234,7 +247,7 @@ def display_progress_bar(
 
     filled = int(round(max_width * bytes_received / float(filesize)))
     remaining = max_width - filled
-    progress_bar = ch * max(filled, 1) + " " * remaining
+    progress_bar = ch * filled + " " * remaining
     percent = round(100.0 * bytes_received / float(filesize), 1)
     text = f" ↳ |{progress_bar}| {percent}%\r"
     sys.stdout.write(text)

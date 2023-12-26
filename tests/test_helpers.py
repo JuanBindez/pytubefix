@@ -79,7 +79,7 @@ def test_target_directory_with_no_path(_, makedirs):  # noqa: PT019
     makedirs.assert_called()
 
 
-@mock.patch("pytube.helpers.logging")
+@mock.patch("pytubefix.helpers.logging")
 def test_setup_logger(logging):
     # Given
     logger = logging.getLogger.return_value
@@ -92,7 +92,7 @@ def test_setup_logger(logging):
 
 
 @mock.patch('builtins.open', new_callable=mock.mock_open)
-@mock.patch('pytube.request.urlopen')
+@mock.patch('pytubefix.request.urlopen')
 def test_create_mock_html_json(mock_url_open, mock_open):
     video_id = '2lAe1cqCOXo'
     gzip_html_filename = 'yt-video-%s-html.json.gz' % video_id
