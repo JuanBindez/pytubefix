@@ -130,6 +130,7 @@ def seq_stream(
     return  # pylint: disable=R1711
 
 
+# TODO: Refactor this code
 def stream(url,
            timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
            max_retries=0):
@@ -184,10 +185,15 @@ def stream(url,
             except (KeyError, IndexError, ValueError) as e:
                 logger.error(e)
         while True:
-            chunk = response.read()
+            try:
+                chunk = response.read()
+            except StopIteration:
+                return
+
             if not chunk:
                 break
-            downloaded += len(chunk)
+
+            if chunk: downloaded += len(chunk)
             yield chunk
     return  # pylint: disable=R1711
 

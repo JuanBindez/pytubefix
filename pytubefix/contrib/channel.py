@@ -27,8 +27,7 @@ class Channel(Playlist):
         )
 
         self.videos_url = self.channel_url + '/videos'
-        self.shorts_url = self.channel_url + '/shorts'
-        self.live_url = self.channel_url + '/streams'
+
         self.playlists_url = self.channel_url + '/playlists'
         self.community_url = self.channel_url + '/community'
         self.featured_channels_url = self.channel_url + '/channels'

@@ -333,3 +333,8 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
         f.write(json.dumps(html_data).encode('utf-8'))
 
     return html_data
+
+# Remove ANSI color codes from a colored string
+def strip_color_codes(input_str):
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', input_str)

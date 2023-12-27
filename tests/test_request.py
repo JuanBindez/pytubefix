@@ -23,11 +23,13 @@ def test_streaming(mock_urlopen):
     mock_urlopen.return_value = mock_response
     # When
     response = request.stream("http://fakeassurl.gov/streaming_test")
-    # Then
-    assert len(b''.join(response)) == 3 * 8 * 1024
-    assert mock_response.read.call_count == 4
 
+    count = 0
 
+    for blob in response:
+        if blob: count += len(blob)
+    assert count == 24576
+    assert mock_response.read.call_count == 4 + 1
 @mock.patch('pytubefix.request.urlopen')
 def test_timeout(mock_urlopen):
     exc = URLError(reason=socket.timeout('timed_out'))

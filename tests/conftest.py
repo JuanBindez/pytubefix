@@ -37,10 +37,7 @@ def load_and_init_from_playback_file(filename, mock_urlopen):
     #  and descramble(), but this functionality has since been
     #  deferred
     v = YouTube(pb["url"])
-    v.watch_html
     v._vid_info = pb['vid_info']
-    v.js
-    v.fmt_streams
     return v
 
 

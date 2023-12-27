@@ -304,6 +304,8 @@ class Stream:
             except HTTPError as e:
                 if e.code != 404:
                     raise
+            except StopIteration:
+                pass
                 # Some adaptive streams need to be requested with sequence numbers
                 for chunk in request.seq_stream(
                     self.url,
@@ -376,7 +378,9 @@ class Stream:
         :rtype: None
 
         """
+
         file_handler.write(chunk)
+
         logger.debug("download remaining: %s", bytes_remaining)
         if self._monostate.on_progress:
             self._monostate.on_progress(self, chunk, bytes_remaining)

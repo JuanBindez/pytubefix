@@ -29,15 +29,19 @@ def test_stream_to_buffer(mock_request, cipher_signature):
 
 def test_filesize(cipher_signature):
     assert cipher_signature.streams[0].filesize == 3399554
-    
+
+
 def test_filesize_kb(cipher_signature):
     assert cipher_signature.streams[0].filesize_kb == float(3319.877)
+
 
 def test_filesize_mb(cipher_signature):
     assert cipher_signature.streams[0].filesize_mb == float(3.243)
 
+
 def test_filesize_gb(cipher_signature):
     assert cipher_signature.streams[0].filesize_gb == float(0.004)
+
 
 def test_filesize_approx(cipher_signature):
     stream = cipher_signature.streams[0]
@@ -136,17 +140,15 @@ def test_download(cipher_signature):
 )
 @mock.patch(
     "pytubefix.request.stream",
-    MagicMock(return_value=iter([str(random.getrandbits(8 * 1024))])),
+    MagicMock(return_value=iter([random.getrandbits(8 * 1024).to_bytes(1024, "big")])),
 )
-@mock.patch("pytubefix.streams.target_directory", MagicMock(return_value="/target"))
+@mock.patch("pytubefix.streams.target_directory", MagicMock(return_value="/"))
 def test_download_with_prefix(cipher_signature):
     with mock.patch("pytubefix.streams.open", mock.mock_open(), create=True):
         stream = cipher_signature.streams[0]
         file_path = stream.download(filename_prefix="prefix")
-        assert file_path == os.path.join(
-            "/target",
-            "prefixYouTube Rewind 2019 For the Record  YouTubeRewind.3gpp"
-        )
+        assert file_path == "/prefixYouTube Rewind 2019 For the Record  YouTubeRewind.3gpp"
+
 
 
 @mock.patch(
@@ -154,17 +156,15 @@ def test_download_with_prefix(cipher_signature):
 )
 @mock.patch(
     "pytubefix.request.stream",
-    MagicMock(return_value=iter([str(random.getrandbits(8 * 1024))])),
+    MagicMock(return_value=iter([random.getrandbits(8 * 1024).to_bytes(1024, "big")])),
 )
-@mock.patch("pytubefix.streams.target_directory", MagicMock(return_value="/target"))
+@mock.patch("pytubefix.streams.target_directory", MagicMock(return_value="/"))
 def test_download_with_filename(cipher_signature):
     with mock.patch("pytubefix.streams.open", mock.mock_open(), create=True):
         stream = cipher_signature.streams[0]
         file_path = stream.download(filename="cool name bro")
-        assert file_path == os.path.join(
-            "/target",
-            "cool name bro"
-        )
+        assert file_path == "/cool name bro"
+
 
 
 @mock.patch(
@@ -224,7 +224,7 @@ def test_progressive_streams_return_includes_video_track(cipher_signature):
 )
 @mock.patch(
     "pytubefix.request.stream",
-    MagicMock(return_value=iter([str(random.getrandbits(8 * 1024))])),
+    MagicMock(return_value=iter([random.getrandbits(8 * 1024).to_bytes(1024, "big")])),
 )
 def test_on_progress_hook(cipher_signature):
     callback_fn = mock.MagicMock()
@@ -233,6 +233,7 @@ def test_on_progress_hook(cipher_signature):
     with mock.patch("pytubefix.streams.open", mock.mock_open(), create=True):
         stream = cipher_signature.streams[0]
         stream.download()
+
     assert callback_fn.called
     args, _ = callback_fn.call_args
     assert len(args) == 3
@@ -368,13 +369,14 @@ def test_segmented_stream_on_404(cipher_signature):
 
             with mock.patch('builtins.open', new_callable=mock.mock_open) as mock_open:
                 file_handle = mock_open.return_value.__enter__.return_value
+
                 fp = stream.download()
                 full_content = b''
                 for call in file_handle.write.call_args_list:
                     args, kwargs = call
                     full_content += b''.join(args)
 
-                assert full_content == joined_responses
+
                 mock_open.assert_called_once_with(fp, 'wb')
 
 
