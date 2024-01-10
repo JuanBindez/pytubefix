@@ -49,7 +49,6 @@ ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
 
 ```python
 
-from pytubefix import YouTube
 from pytubefix import Playlist
 from pytubefix.cli import on_progress
  
