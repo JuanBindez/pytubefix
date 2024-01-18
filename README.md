@@ -5,7 +5,7 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/pytubefix)
 
 
-### Python3 library for downloading YouTube Videos.
+### A pytube fork with additional features and fixes.
 
 ## install:
 
