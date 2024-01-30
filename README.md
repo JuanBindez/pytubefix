@@ -7,7 +7,7 @@
 
 ### A pytube fork with additional features and fixes.
 
-[Link to the PDF documentation](https://pytubefix.readthedocs.io/_/downloads/en/latest/pdf/)
+[PDF documentation](https://pytubefix.readthedocs.io/_/downloads/en/latest/pdf/)
 
 
 ## install:
