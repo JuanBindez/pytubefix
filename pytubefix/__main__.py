@@ -375,7 +375,7 @@ class YouTube:
             raise exceptions.PytubeFixError(
                 (
                     f'Exception while accessing title of {self.watch_url}. '
-                    'Please file a bug report at https://github.com/pytube/pytube'
+                    'Please file a bug report at https://github.com/JuanBindez/pytubefix'
                 )
             )
         # print(self.vid_info['videoDetails'])

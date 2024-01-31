@@ -1,3 +1,3 @@
 git add .
-git commit -m 'Release 1.13.2 ->   Fixed AttributeError when trying to get shorts and live #32'
+git commit -m '1.13.3 ->  Fix: Correct exception handling #33'
 git push -u origin main
