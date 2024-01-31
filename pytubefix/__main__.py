@@ -372,7 +372,7 @@ class YouTube:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
-            raise exceptions.PytubeError(
+            raise exceptions.PytubeFixError(
                 (
                     f'Exception while accessing title of {self.watch_url}. '
                     'Please file a bug report at https://github.com/pytube/pytube'
