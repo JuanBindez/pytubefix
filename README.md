@@ -7,9 +7,9 @@
 <a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
 
-### A pytube fork with additional features and fixes.
+## A pytube fork with additional features and fixes.
 
-#### Documentation
+### Documentation
 
 * [Readthedocs](https://pytubefix.readthedocs.io)
 
@@ -20,7 +20,7 @@
 
     pip install pytubefix
 
-## usage:
+## Quickstart:
 
 #### mp4 video download highest resolution:
 
