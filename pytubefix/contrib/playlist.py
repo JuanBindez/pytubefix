@@ -316,7 +316,7 @@ class Playlist(Sequence):
         return len(self.video_urls)
 
     def __repr__(self) -> str:
-        return f'<pytube.contrib.Playlist object: playlistId={self.playlist_id}>'
+        return f'<pytubefix.contrib.Playlist object: playlistId={self.playlist_id}>'
 
     @property
     @cache

@@ -270,12 +270,10 @@ def uniqueify(duped_list: List) -> List:
     :return List result
         De-duplicated list
     """
-    seen: Dict[Any, bool] = {}
     result = []
     for item in duped_list:
-        if item in seen:
+        if item in result:
             continue
-        seen[item] = True
         result.append(item)
     return result
 
