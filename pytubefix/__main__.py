@@ -25,7 +25,7 @@
 This module implements the core developer interface for pytubefix.
 
 The problem domain of the :class:`YouTube <YouTube> class focuses almost
-exclusively on the developer interface. Pytube offloads the heavy lifting to
+exclusively on the developer interface. Pytubefix offloads the heavy lifting to
 smaller peripheral modules and functions.
 
 """
@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 
 class YouTube:
-    """Core developer interface for pytube."""
+    """Core developer interface for pytubefix."""
 
     def __init__(
         self,
@@ -364,7 +364,7 @@ class YouTube:
         )
 
         if self._title:
-            return self._title
+            return self._title.replace('/', '\\')
 
         try:
             self._title = self.vid_info['videoDetails']['title'] #+ self._author
@@ -379,7 +379,7 @@ class YouTube:
                 )
             )
         # print(self.vid_info['videoDetails'])
-        return self._title
+        return self._title.replace('/', '\\')
 
     @title.setter
     def title(self, value):
