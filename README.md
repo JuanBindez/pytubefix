@@ -19,6 +19,10 @@
 
     pip install pytubefix
 
+### in Ubuntu
+
+    pip install pytubefix --break-system-packages
+
 ## Quickstart:
 
 #### mp4 video download highest resolution:
