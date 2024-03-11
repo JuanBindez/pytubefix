@@ -155,7 +155,7 @@ class Search:
                     logger.warning(f'Search term: {self.query}')
                     logger.warning(
                         'Please open an issue at '
-                        'https://github.com/pytube/pytube/issues '
+                        'https://github.com/JuanBindez/pytubefix/issues '
                         'and provide this log output.'
                     )
                     continue
