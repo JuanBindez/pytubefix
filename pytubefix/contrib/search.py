@@ -240,24 +240,24 @@ class Search:
 
                 # Get playlist results
                 if 'playlistRenderer' in video_details:
-                    playlist.append(Playlist(f'https://www.youtube.com/playlist?list='
-                                             f'{video_details['playlistRenderer']['playlistId']}'))
+                    playlist.append(Playlist(f"https://www.youtube.com/playlist?list="
+                                             f"{video_details['playlistRenderer']['playlistId']}"))
 
                 # Get channel results
                 if 'channelRenderer' in video_details:
-                    channel.append(Channel(f'https://www.youtube.com/channel/'
-                                           f'{video_details['channelRenderer']['channelId']}'))
+                    channel.append(Channel(f"https://www.youtube.com/channel/"
+                                           f"{video_details['channelRenderer']['channelId']}"))
 
                 # Get shorts results
                 if 'reelShelfRenderer' in video_details:
                     for items in video_details['reelShelfRenderer']['items']:
-                        shorts.append(YouTube(f'https://www.youtube.com/watch?v='
-                                              f'{items['reelItemRenderer']['videoId']}'))
+                        shorts.append(YouTube(f"https://www.youtube.com/watch?v="
+                                              f"{items['reelItemRenderer']['videoId']}"))
 
                 # Get videos results
                 if 'videoRenderer' in video_details:
-                    videos.append(YouTube(f'https://www.youtube.com/watch?v='
-                                          f'{video_details['videoRenderer']['videoId']}'))
+                    videos.append(YouTube(f"https://www.youtube.com/watch?v="
+                                          f"{video_details['videoRenderer']['videoId']}"))
 
             results['videos'] = videos
             results['shorts'] = shorts
