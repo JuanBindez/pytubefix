@@ -3,9 +3,9 @@
 import logging
 
 # Local imports
-from pytubefix import YouTube
+from pytubefix import YouTube, Channel, Playlist
+from pytubefix.helpers import deprecated
 from pytubefix.innertube import InnerTube
-
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class Search:
         #  and contains completion suggestions, so we must store this separately
         self._initial_results = None
 
-        self._results = None
+        self._results = {}
         self._completion_suggestions = None
 
         # Used for keeping track of query continuations so that new results
@@ -46,23 +46,113 @@ class Search:
         return self._completion_suggestions
 
     @property
-    def results(self):
-        """Return search results.
+    def videos(self) -> list[YouTube]:
+        """Returns the search result videos.
+
+        On first call, will generate and return the first set of results.
+        Additional results can be generated using ``.get_next_results()``.
+
+        :rtype: list[YouTube]
+        :returns:
+            A list of YouTube objects.
+        """
+        if not self._results:
+            results, continuation = self.fetch_and_parse()
+            self._current_continuation = continuation
+            self._results['videos'] = results['videos']
+            self._results['shorts'] = results['shorts']
+            self._results['playlist'] = results['playlist']
+            self._results['channel'] = results['channel']
+
+        return [items for items in self._results['videos']]
+
+    @property
+    def shorts(self) -> list[YouTube]:
+        """Returns the search result shorts.
+
+        On first call, will generate and return the first set of results.
+        Additional results can be generated using ``.get_next_results()``.
+
+        :rtype: list[YouTube]
+        :returns:
+            A list of YouTube objects.
+        """
+        if not self._results:
+            results, continuation = self.fetch_and_parse()
+            self._current_continuation = continuation
+            self._results['videos'] = results['videos']
+            self._results['shorts'] = results['shorts']
+            self._results['playlist'] = results['playlist']
+            self._results['channel'] = results['channel']
+
+        return [items for items in self._results['shorts']]
+
+    @property
+    def playlist(self) -> list[Playlist]:
+        """Returns the search result playlist.
+
+        On first call, will generate and return the first set of results.
+        Additional results can be generated using ``.get_next_results()``.
+
+        :rtype: list[Playlist]
+        :returns:
+            A list of Playlist objects.
+        """
+        if not self._results:
+            results, continuation = self.fetch_and_parse()
+            self._current_continuation = continuation
+            self._results['videos'] = results['videos']
+            self._results['shorts'] = results['shorts']
+            self._results['playlist'] = results['playlist']
+            self._results['channel'] = results['channel']
+
+        return [items for items in self._results['playlist']]
+
+    @property
+    def channel(self) -> list[Channel]:
+        """Returns the search result channel.
+
+        On first call, will generate and return the first set of results.
+        Additional results can be generated using ``.get_next_results()``.
+
+        :rtype: list[Channel]
+        :returns:
+            A list of Channel objects.
+        """
+        if not self._results:
+            results, continuation = self.fetch_and_parse()
+            self._current_continuation = continuation
+            self._results['videos'] = results['videos']
+            self._results['shorts'] = results['shorts']
+            self._results['playlist'] = results['playlist']
+            self._results['channel'] = results['channel']
+
+        return [items for items in self._results['channel']]
+
+    @property
+    @deprecated("Get video results using: .videos")
+    def results(self) -> list:
+        """returns a list with videos, shorts, playlist and channels.
 
         On first call, will generate and return the first set of results.
         Additional results can be generated using ``.get_next_results()``.
 
         :rtype: list
         :returns:
-            A list of YouTube objects.
+            A list of YouTube, Playlist and Channel objects.
         """
-        if self._results:
-            return self._results
+        # Remove these comments to get the list of videos, shorts, playlist and channel
 
-        videos, continuation = self.fetch_and_parse()
-        self._results = videos
-        self._current_continuation = continuation
-        return self._results
+        # if not self._results:
+        #     results, continuation = self.fetch_and_parse()
+        #     self._current_continuation = continuation
+        #     self._results['videos'] = results['videos']
+        #     self._results['shorts'] = results['shorts']
+        #     self._results['playlist'] = results['playlist']
+        #     self._results['channel'] = results['channel']
+
+        #  return [items for values in self._results.values() for items in values]
+        return self.videos
 
     def get_next_results(self):
         """Use the stored continuation string to fetch the next set of results.
@@ -70,9 +160,12 @@ class Search:
         This method does not return the results, but instead updates the results property.
         """
         if self._current_continuation:
-            videos, continuation = self.fetch_and_parse(self._current_continuation)
-            self._results.extend(videos)
+            results, continuation = self.fetch_and_parse(self._current_continuation)
             self._current_continuation = continuation
+            self._results['videos'].extend(results['videos'])
+            self._results['shorts'].extend(results['shorts'])
+            self._results['playlist'].extend(results['playlist'])
+            self._results['channel'].extend(results['channel'])
         else:
             raise IndexError
 
@@ -112,8 +205,12 @@ class Search:
             next_continuation = None
 
         # If the itemSectionRenderer doesn't exist, assume no results.
+        results = {}
         if item_renderer:
             videos = []
+            shorts = []
+            playlist = []
+            channel = []
             raw_video_list = item_renderer['contents']
             for video_details in raw_video_list:
                 # Skip over ads
@@ -129,14 +226,6 @@ class Search:
                 if 'radioRenderer' in video_details:
                     continue
 
-                # Skip playlist results
-                if 'playlistRenderer' in video_details:
-                    continue
-
-                # Skip channel results
-                if 'channelRenderer' in video_details:
-                    continue
-
                 # Skip 'people also searched for' results
                 if 'horizontalCardListRenderer' in video_details:
                     continue
@@ -149,66 +238,33 @@ class Search:
                 if 'backgroundPromoRenderer' in video_details:
                     continue
 
-                if 'videoRenderer' not in video_details:
-                    logger.warning('Unexpected renderer encountered.')
-                    logger.warning(f'Renderer name: {video_details.keys()}')
-                    logger.warning(f'Search term: {self.query}')
-                    logger.warning(
-                        'Please open an issue at '
-                        'https://github.com/JuanBindez/pytubefix/issues '
-                        'and provide this log output.'
-                    )
-                    continue
+                # Get playlist results
+                if 'playlistRenderer' in video_details:
+                    playlist.append(Playlist(f'https://www.youtube.com/playlist?list='
+                                             f'{video_details['playlistRenderer']['playlistId']}'))
 
-                # Extract relevant video information from the details.
-                # Some of this can be used to pre-populate attributes of the
-                #  YouTube object.
-                vid_renderer = video_details['videoRenderer']
-                vid_id = vid_renderer['videoId']
-                vid_url = f'https://www.youtube.com/watch?v={vid_id}'
-                vid_title = vid_renderer['title']['runs'][0]['text']
-                vid_channel_name = vid_renderer['ownerText']['runs'][0]['text']
-                vid_channel_uri = vid_renderer['ownerText']['runs'][0][
-                    'navigationEndpoint']['commandMetadata']['webCommandMetadata']['url']
-                # Livestreams have "runs", non-livestreams have "simpleText",
-                #  and scheduled releases do not have 'viewCountText'
-                if 'viewCountText' in vid_renderer:
-                    if 'runs' in vid_renderer['viewCountText']:
-                        vid_view_count_text = vid_renderer['viewCountText']['runs'][0]['text']
-                    else:
-                        vid_view_count_text = vid_renderer['viewCountText']['simpleText']
-                    # Strip ' views' text, then remove commas
-                    stripped_text = vid_view_count_text.split()[0].replace(',','')
-                    if stripped_text == 'No':
-                        vid_view_count = 0
-                    else:
-                        vid_view_count = int(stripped_text)
-                else:
-                    vid_view_count = 0
-                if 'lengthText' in vid_renderer:
-                    vid_length = vid_renderer['lengthText']['simpleText']
-                else:
-                    vid_length = None
+                # Get channel results
+                if 'channelRenderer' in video_details:
+                    channel.append(Channel(f'https://www.youtube.com/channel/'
+                                           f'{video_details['channelRenderer']['channelId']}'))
 
-                vid_metadata = {
-                    'id': vid_id,
-                    'url': vid_url,
-                    'title': vid_title,
-                    'channel_name': vid_channel_name,
-                    'channel_url': vid_channel_uri,
-                    'view_count': vid_view_count,
-                    'length': vid_length
-                }
+                # Get shorts results
+                if 'reelShelfRenderer' in video_details:
+                    for items in video_details['reelShelfRenderer']['items']:
+                        shorts.append(YouTube(f'https://www.youtube.com/watch?v='
+                                              f'{items['reelItemRenderer']['videoId']}'))
 
-                # Construct YouTube object from metadata and append to results
-                vid = YouTube(vid_metadata['url'])
-                vid.author = vid_metadata['channel_name']
-                vid.title = vid_metadata['title']
-                videos.append(vid)
-        else:
-            videos = None
+                # Get videos results
+                if 'videoRenderer' in video_details:
+                    videos.append(YouTube(f'https://www.youtube.com/watch?v='
+                                          f'{video_details['videoRenderer']['videoId']}'))
 
-        return videos, next_continuation
+            results['videos'] = videos
+            results['shorts'] = shorts
+            results['playlist'] = playlist
+            results['channel'] = channel
+
+        return results, next_continuation
 
     def fetch_query(self, continuation=None):
         """Fetch raw results from the innertube API.
