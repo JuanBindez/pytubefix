@@ -1,6 +1,6 @@
 .. _cli:
 
-Command-line interface (CLI)
+Command-line Interface (CLI)
 =============================
 
 pytubefix also ships with a tiny CLI for interacting with videos and playlists.
