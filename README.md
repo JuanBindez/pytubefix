@@ -8,11 +8,7 @@
 
 ## A pytube fork with additional features and fixes.
 
-### Documentation
-
-* [Readthedocs](https://pytubefix.readthedocs.io)
-
-* [PDF ](https://pytubefix.readthedocs.io/_/downloads/en/latest/pdf/)
+* [Documentation](https://pytubefix.readthedocs.io)
 
 ----------
 ## install:
