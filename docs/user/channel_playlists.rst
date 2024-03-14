@@ -1,6 +1,6 @@
 .. _channel_playlists:
 
-Getting channel playlists
+Getting Channel Playlists
 =============================
 
 **This code takes the ids of the channel's playlists and returns an array containing the playlist objects:**::
