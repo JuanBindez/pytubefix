@@ -1,6 +1,6 @@
 .. _exceptions:
 
-Exception handling
+Exception Handling
 ==================
 
 pytubefix implements a number of useful exceptions for handling program flow.
