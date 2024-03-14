@@ -312,6 +312,37 @@ class YouTube:
         return pytubefix.CaptionQuery(self.caption_tracks)
 
     @property
+    def chapters(self) -> List[pytubefix.Chapter]:
+        """Get a list of :class:`Chapter <Chapter>`.
+
+        :rtype: List[Chapter]
+        """
+        try:
+            chapters_data = self.initial_data['playerOverlays']['playerOverlayRenderer'][
+                'decoratedPlayerBarRenderer']['decoratedPlayerBarRenderer']['playerBar'][
+                'multiMarkersPlayerBarRenderer']['markersMap'][0]['value']['chapters']
+        except (KeyError, IndexError):
+            return []
+
+        result: List[pytubefix.Chapter] = []
+
+        for i, chapter_data in enumerate(chapters_data):
+            chapter_start = int(
+                chapter_data['chapterRenderer']['timeRangeStartMillis'] / 1000
+            )
+
+            if i == len(chapters_data) - 1:
+                chapter_end = self.length - chapter_start
+            else:
+                chapter_end = int(
+                    chapters_data[i + 1]['chapterRenderer']['timeRangeStartMillis'] / 1000
+                )
+
+            result.append(pytubefix.Chapter(chapter_data, chapter_end - chapter_start))
+
+        return result
+
+    @property
     def streams(self) -> StreamQuery:
         """Interface to query both adaptive (DASH) and progressive streams.
 

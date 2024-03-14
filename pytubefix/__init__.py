@@ -12,6 +12,7 @@ __js_url__ = None
 from pytubefix.version import __version__
 from pytubefix.streams import Stream
 from pytubefix.captions import Caption
+from pytubefix.chapters import Chapter
 from pytubefix.query import CaptionQuery, StreamQuery
 from pytubefix.__main__ import YouTube
 from pytubefix.contrib.playlist import Playlist

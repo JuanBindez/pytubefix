@@ -497,7 +497,7 @@ def apply_descrambler(stream_data: Dict) -> None:
     return formats
 
 
-def initial_data(watch_html: str) -> str:
+def initial_data(watch_html: str) -> dict:
     """Extract the ytInitialData json from the watch_html page.
 
     This mostly contains metadata necessary for rendering the page on-load,
