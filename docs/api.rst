@@ -62,6 +62,20 @@ Search Object
    :members:
    :inherited-members:
 
+ChapterThumbnail Object
+-------------
+
+.. autoclass:: pytubefix.chapters.ChapterThumbnail
+   :members:
+   :inherited-members:
+
+Chapter Object
+-------------
+
+.. autoclass:: pytubefix.chapters.Chapter
+   :members:
+   :inherited-members:
+
 Extract
 -------
 
@@ -93,3 +107,4 @@ Request
 
 .. automodule:: pytubefix.request
     :members:
+

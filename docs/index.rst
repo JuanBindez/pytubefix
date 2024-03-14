@@ -65,6 +65,7 @@ of pytubefix.
    user/channel_playlists
    user/cli
    user/exceptions
+   user/chapters
 
 The API Documentation
 -----------------------------
