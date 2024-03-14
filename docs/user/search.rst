@@ -50,34 +50,33 @@ as follows::
     ]
 
 
-**The .videos method will only return the videos**:
+The .videos method will only return the videos::
 
-	s = Search('YouTube Rewind')
+    s = Search('YouTube Rewind')
 
-	print(s.videos)
+    print(s.videos)
 
 
 Output::
 
-	[<pytubefix.__main__.YouTube object: videoId=_GuOjXYl5ew>, <pytubefix.__main__.YouTube object: videoId=FlsCjmMhFmw>, <pytubefix.__main__.YouTube object: videoId=KK9bwTlAvgo>, <pytubefix.__main__.YouTube object: videoId=YbJOTdZBX1g>, <pytubefix.__main__.YouTube object: videoId=H7jtC8vjXw8>, <pytubefix.__main__.YouTube object: videoId=iCkYw3cRwLo>, <pytubefix.__main__.YouTube object: videoId=zKx2B8WCQuw>, <pytubefix.__main__.YouTube object: videoId=2lAe1cqCOXo>, <pytubefix.__main__.YouTube object: videoId=By_Cn5ixYLg>, <pytubefix.__main__.YouTube object: videoId=Q5vQawTFJ0I>, <pytubefix.__main__.YouTube object: videoId=DpOCWIvpoE8>, <pytubefix.__main__.YouTube object: videoId=TjkRhh3Gh1U>, <pytubefix.__main__.YouTube object: videoId=PKtnafFtfEo>, <pytubefix.__main__.YouTube object: videoId=s7LNSuJHVww>, <pytubefix.__main__.YouTube object: videoId=diT6jc9flkc>, <pytubefix.__main__.YouTube object: videoId=SmnkYyHQqNs>, <pytubefix.__main__.YouTube object: videoId=glc2_--ZWoY>]
+    [<pytubefix.__main__.YouTube object: videoId=_GuOjXYl5ew>, <pytubefix.__main__.YouTube object: videoId=FlsCjmMhFmw>, <pytubefix.__main__.YouTube object: videoId=KK9bwTlAvgo>, <pytubefix.__main__.YouTube object: videoId=YbJOTdZBX1g>, <pytubefix.__main__.YouTube object: videoId=H7jtC8vjXw8>, <pytubefix.__main__.YouTube object: videoId=iCkYw3cRwLo>, <pytubefix.__main__.YouTube object: videoId=zKx2B8WCQuw>, <pytubefix.__main__.YouTube object: videoId=2lAe1cqCOXo>, <pytubefix.__main__.YouTube object: videoId=By_Cn5ixYLg>, <pytubefix.__main__.YouTube object: videoId=Q5vQawTFJ0I>, <pytubefix.__main__.YouTube object: videoId=DpOCWIvpoE8>, <pytubefix.__main__.YouTube object: videoId=TjkRhh3Gh1U>, <pytubefix.__main__.YouTube object: videoId=PKtnafFtfEo>, <pytubefix.__main__.YouTube object: videoId=s7LNSuJHVww>, <pytubefix.__main__.YouTube object: videoId=diT6jc9flkc>, <pytubefix.__main__.YouTube object: videoId=SmnkYyHQqNs>, <pytubefix.__main__.YouTube object: videoId=glc2_--ZWoY>]
 
 
-**The .shorts method will only return the shorts.**
+The .shorts method will only return the shorts.::
 
 Here it is interesting to note that videos and shorts are from the same class of objects::
 
-	s = Search('YouTube Rewind')
+    s = Search('YouTube Rewind')
 
-	print(s.shorts)
+    print(s.shorts)
 
 
 Output::
 
-	[<pytubefix.__main__.YouTube object: videoId=cu7g_MB8uF4>, <pytubefix.__main__.YouTube object: videoId=sLbrJ9qWHwM>, <pytubefix.__main__.YouTube object: videoId=hNsFChiug28>, <pytubefix.__main__.YouTube object: videoId=6Qs1k7DKyfE>, <pytubefix.__main__.YouTube object: videoId=_6N44bZRJKE>, <pytubefix.__main__.YouTube object: videoId=rownH_IdP28>, <pytubefix.__main__.YouTube object: videoId=McIHLyoc2zk>, <pytubefix.__main__.YouTube object: videoId=8LEJmOzCfas>, <pytubefix.__main__.YouTube object: videoId=nbO3_bxYHx4>, <pytubefix.__main__.YouTube object: videoId=aFOmxMKsFwo>, <pytubefix.__main__.YouTube object: videoId=j28LZp08GIQ>, <pytubefix.__main__.YouTube object: videoId=u5HFzlkQ6hU>, <pytubefix.__main__.YouTube object: videoId=GNRe864aQq4>, <pytubefix.__main__.YouTube object: videoId=egdkRjY8OsE>, <pytubefix.__main__.YouTube object: videoId=luM--KkUwCc>, <pytubefix.__main__.YouTube object: videoId=HEc18y-QQYM>, <pytubefix.__main__.YouTube object: videoId=W4ET-jP6yd4>, <pytubefix.__main__.YouTube object: videoId=lxF5sF9hHPI>, <pytubefix.__main__.YouTube object: videoId=T50I0hqULkA>, <pytubefix.__main__.YouTube object: videoId=FXezutlwJog>, <pytubefix.__main__.YouTube object: videoId=rownH_IdP28>, <pytubefix.__main__.YouTube object: videoId=McIHLyoc2zk>, <pytubefix.__main__.YouTube object: videoId=8LEJmOzCfas>, <pytubefix.__main__.YouTube object: videoId=nbO3_bxYHx4>, <pytubefix.__main__.YouTube object: videoId=aFOmxMKsFwo>, <pytubefix.__main__.YouTube object: videoId=j28LZp08GIQ>, <pytubefix.__main__.YouTube object: videoId=u5HFzlkQ6hU>, <pytubefix.__main__.YouTube object: videoId=GNRe864aQq4>, <pytubefix.__main__.YouTube object: videoId=egdkRjY8OsE>, <pytubefix.__main__.YouTube object: videoId=luM--KkUwCc>]
+    [<pytubefix.__main__.YouTube object: videoId=cu7g_MB8uF4>, <pytubefix.__main__.YouTube object: videoId=sLbrJ9qWHwM>, <pytubefix.__main__.YouTube object: videoId=hNsFChiug28>, <pytubefix.__main__.YouTube object: videoId=6Qs1k7DKyfE>, <pytubefix.__main__.YouTube object: videoId=_6N44bZRJKE>, <pytubefix.__main__.YouTube object: videoId=rownH_IdP28>, <pytubefix.__main__.YouTube object: videoId=McIHLyoc2zk>, <pytubefix.__main__.YouTube object: videoId=8LEJmOzCfas>, <pytubefix.__main__.YouTube object: videoId=nbO3_bxYHx4>, <pytubefix.__main__.YouTube object: videoId=aFOmxMKsFwo>, <pytubefix.__main__.YouTube object: videoId=j28LZp08GIQ>, <pytubefix.__main__.YouTube object: videoId=u5HFzlkQ6hU>, <pytubefix.__main__.YouTube object: videoId=GNRe864aQq4>, <pytubefix.__main__.YouTube object: videoId=egdkRjY8OsE>, <pytubefix.__main__.YouTube object: videoId=luM--KkUwCc>, <pytubefix.__main__.YouTube object: videoId=HEc18y-QQYM>, <pytubefix.__main__.YouTube object: videoId=W4ET-jP6yd4>, <pytubefix.__main__.YouTube object: videoId=lxF5sF9hHPI>, <pytubefix.__main__.YouTube object: videoId=T50I0hqULkA>, <pytubefix.__main__.YouTube object: videoId=FXezutlwJog>, <pytubefix.__main__.YouTube object: videoId=rownH_IdP28>, <pytubefix.__main__.YouTube object: videoId=McIHLyoc2zk>, <pytubefix.__main__.YouTube object: videoId=8LEJmOzCfas>, <pytubefix.__main__.YouTube object: videoId=nbO3_bxYHx4>, <pytubefix.__main__.YouTube object: videoId=aFOmxMKsFwo>, <pytubefix.__main__.YouTube object: videoId=j28LZp08GIQ>, <pytubefix.__main__.YouTube object: videoId=u5HFzlkQ6hU>, <pytubefix.__main__.YouTube object: videoId=GNRe864aQq4>, <pytubefix.__main__.YouTube object: videoId=egdkRjY8OsE>, <pytubefix.__main__.YouTube object: videoId=luM--KkUwCc>]
 
 
-**The .playlist method will only return playlists**:
-
+The .playlist method will only return playlists::
 
 	s = Search('python tutorial')
 
@@ -86,14 +85,14 @@ Output::
 
 Output::
 
-	[<pytubefix.contrib.Playlist object: playlistId=PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3>, <pytubefix.contrib.Playlist object: playlistId=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU>, <pytubefix.contrib.Playlist object: playlistId=PLWKjhJtqVAbnqBxcdjVGgT3uVR10bzTEB>, <pytubefix.contrib.Playlist object: playlistId=PLvE-ZAFRgX8hnECDn1v9HNTI71veL3oW0>]
+    [<pytubefix.contrib.Playlist object: playlistId=PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3>, <pytubefix.contrib.Playlist object: playlistId=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU>, <pytubefix.contrib.Playlist object: playlistId=PLWKjhJtqVAbnqBxcdjVGgT3uVR10bzTEB>, <pytubefix.contrib.Playlist object: playlistId=PLvE-ZAFRgX8hnECDn1v9HNTI71veL3oW0>]
 
 
-**The .channel method will return only the channels**:
+The .channel method will return only the channels::
 
-	s = Search('python channel')
+    s = Search('python channel')
 
-	print(s.channel)
+    print(s.channel)
 
 
 Output::
