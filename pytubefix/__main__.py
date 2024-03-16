@@ -332,7 +332,7 @@ class YouTube:
             )
 
             if i == len(chapters_data) - 1:
-                chapter_end = self.length - chapter_start
+                chapter_end = self.length
             else:
                 chapter_end = int(
                     chapters_data[i + 1]['chapterRenderer']['timeRangeStartMillis'] / 1000
