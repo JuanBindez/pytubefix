@@ -15,7 +15,7 @@
 
     pip install pytubefix
 
-### in Ubuntu
+### In Ubuntu
 
     pip install pytubefix --break-system-packages
 
