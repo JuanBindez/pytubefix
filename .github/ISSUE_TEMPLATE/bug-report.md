@@ -24,7 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
- - OS: [Windows, Linux/ Version]
+ - OS: [Your Operating System and Version]
  - Python Version [x.y.z]
  - Pytubefix Version [x.y.z]
 
