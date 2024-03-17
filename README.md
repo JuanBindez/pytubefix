@@ -2,6 +2,7 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pytubefix)
 ![PyPI - License](https://img.shields.io/pypi/l/pytubefix)
 ![Read the Docs](https://img.shields.io/readthedocs/pytubefix)
+![GitHub Release Date](https://img.shields.io/github/release-date-pre/juanbindez/pytubefix)
 ![GitHub Tag](https://img.shields.io/github/v/tag/JuanBindez/pytubefix?include_prereleases)
 <a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
