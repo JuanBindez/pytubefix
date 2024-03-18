@@ -5,7 +5,8 @@ Dubbed Streams
 
 **YouTube added videos that contain multiple audios for re-dubbing, but they have the same Itag**::
 
-Adds the possibility of filtering these streams that contain dubbing.::
+Adds the possibility of filtering these streams that contain dubbing.:
+
 
 * The `includes_multiple_audio_tracks` property checks if Itag has dubbed tracks, returns True or False.
 
