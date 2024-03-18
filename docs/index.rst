@@ -66,6 +66,7 @@ of pytubefix.
    user/cli
    user/exceptions
    user/chapters
+   user/dubbed_streams
 
 The API Documentation
 -----------------------------
