@@ -23,17 +23,16 @@ def publish_date(watch_html: str):
         The html contents of the watch page.
     :rtype: str
     :returns:
-        Publish date of the video.
+        Publish date of the video in ISO format with timezone.
     """
     try:
         result = regex_search(
-            r"(?<=itemprop=\"datePublished\" content=\")\d{4}-\d{2}-\d{2}",
+            r"(?<=itemprop=\"datePublished\" content=\")\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-\d{2}:\d{2}",
             watch_html, group=0
         )
     except RegexMatchError:
         return None
-    return datetime.strptime(result, '%Y-%m-%d')
-
+    return result
 
 def recording_available(watch_html):
     """Check if live stream recording is available.
