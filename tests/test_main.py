@@ -48,8 +48,8 @@ def test_video_keywords(cipher_signature):
 def test_js_caching(cipher_signature):
     assert pytubefix.__js__ is not None
     assert pytubefix.__js_url__ is not None
-    assert pytubefix.__js__ == cipher_signature.js
-    assert pytubefix.__js_url__ == cipher_signature.js_url
+    assert cipher_signature.js == pytubefix.__js__
+    assert cipher_signature.js_url == pytubefix.__js_url__
 
 
 def test_channel_id(cipher_signature):

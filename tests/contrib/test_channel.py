@@ -47,7 +47,7 @@ def test_channel_vanity_url(request_get, channel_videos_html):
     request_get.return_value = channel_videos_html
 
     c = Channel('https://www.youtube.com/c/ProgrammingKnowledge/videos')
-    assert c.vanity_url == 'http://www.youtube.com/c/ProgrammingKnowledge'
+    assert c.vanity_url == 'http://www.youtube.com/@ProgrammingKnowledge'
 
 
 @mock.patch('pytubefix.request.get')
@@ -55,19 +55,17 @@ def test_channel_video_list(request_get, channel_videos_html):
     request_get.return_value = channel_videos_html
 
     c = Channel('https://www.youtube.com/c/ProgrammingKnowledge/videos')
-    first_ten = [
-        'https://www.youtube.com/watch?v=t_xLpJo_35k',
-        'https://www.youtube.com/watch?v=ccbh5YhxouQ',
-        'https://www.youtube.com/watch?v=wDnFjDjxW_0',
-        'https://www.youtube.com/watch?v=F3W_p_4XftA',
-        'https://www.youtube.com/watch?v=_fxm0xGGEi4',
-        'https://www.youtube.com/watch?v=cRbKZzcuIsg',
-        'https://www.youtube.com/watch?v=sdDu3dfIuow',
-        'https://www.youtube.com/watch?v=10KIbp-gJCE',
-        'https://www.youtube.com/watch?v=wZIT-cRtd6s',
-        'https://www.youtube.com/watch?v=KucCvEbTj0w',
-    ]
-    assert c.video_urls[:10] == first_ten
+    first_ten = ('[<pytubefix.__main__.YouTube object: videoId=jZGxjmKOH0c>, '
+                 '<pytubefix.__main__.YouTube object: videoId=sZFH6sEbt9E>, '
+                 '<pytubefix.__main__.YouTube object: videoId=WUDivf0NEso>, '
+                 '<pytubefix.__main__.YouTube object: videoId=YbVHEKwlAOY>, '
+                 '<pytubefix.__main__.YouTube object: videoId=ChwsFldra-o>, '
+                 '<pytubefix.__main__.YouTube object: videoId=iECqUHiR5ao>, '
+                 '<pytubefix.__main__.YouTube object: videoId=-9P4CxRWL8c>, '
+                 '<pytubefix.__main__.YouTube object: videoId=vVrIDJ--GOA>, '
+                 '<pytubefix.__main__.YouTube object: videoId=uXP9KatdbBs>, '
+                 '<pytubefix.__main__.YouTube object: videoId=n6fcDbOr7Rg>]')
+    assert str(c.videos[:10]) == first_ten
 
 
 @mock.patch('pytubefix.request.get')

@@ -14,8 +14,8 @@ def test_title(request_get, playlist_long_html):
     pl = Playlist(url)
     pl_title = pl.title
     assert (
-        pl_title
-        == "Python Tutorial for Beginners (For Absolute Beginners)"
+            pl_title
+            == "Python Tutorial for Beginners (For Absolute Beginners)"
     )
 
 
@@ -39,14 +39,14 @@ def test_init_with_watch_url(request_get):
     )
     playlist = Playlist(url)
     assert (
-        playlist.playlist_url == "https://www.youtube.com/playlist?list"
-        "=PLS1QulWo1RIaJECMeUT4LFwJ-ghgoSH6n"
+            playlist.playlist_url == "https://www.youtube.com/playlist?list"
+                                     "=PLS1QulWo1RIaJECMeUT4LFwJ-ghgoSH6n"
     )
 
 
 @mock.patch("pytubefix.request.get")
 def test_last_updated(request_get, playlist_long_html):
-    expected = datetime.date(2020, 10, 8)
+    expected = datetime.date(2023, 4, 18)
     request_get.return_value = playlist_long_html
     playlist = Playlist(
         "https://www.youtube.com/playlist?list"
@@ -90,22 +90,20 @@ def test_html(request_get, playlist_html):
 def test_repr(request_get, playlist_html):
     url = "https://www.fakeurl.com/playlist?list=whatever"
     request_get.return_value = playlist_html
-    playlist = Playlist(url)
+    playlist = Playlist(url).videos
     assert (
-        repr(playlist) == "["
-        "'https://www.youtube.com/watch?v=ujTCoH21GlA', "
-        "'https://www.youtube.com/watch?v=45ryDIPHdGg', "
-        "'https://www.youtube.com/watch?v=1BYu65vLKdA', "
-        "'https://www.youtube.com/watch?v=3AQ_74xrch8', "
-        "'https://www.youtube.com/watch?v=ddqQUz9mZaM', "
-        "'https://www.youtube.com/watch?v=vwLT6bZrHEE', "
-        "'https://www.youtube.com/watch?v=TQKI0KE-JYY', "
-        "'https://www.youtube.com/watch?v=dNBvQ38MlT8', "
-        "'https://www.youtube.com/watch?v=JHxyrMgOUWI', "
-        "'https://www.youtube.com/watch?v=l2I8NycJMCY', "
-        "'https://www.youtube.com/watch?v=g1Zbuk1gAfk', "
-        "'https://www.youtube.com/watch?v=zixd-si9Q-o'"
-        "]"
+            repr(playlist) == '[<pytubefix.__main__.YouTube object: videoId=ujTCoH21GlA>, '
+                              '<pytubefix.__main__.YouTube object: videoId=45ryDIPHdGg>, '
+                              '<pytubefix.__main__.YouTube object: videoId=1BYu65vLKdA>, '
+                              '<pytubefix.__main__.YouTube object: videoId=3AQ_74xrch8>, '
+                              '<pytubefix.__main__.YouTube object: videoId=ddqQUz9mZaM>, '
+                              '<pytubefix.__main__.YouTube object: videoId=vwLT6bZrHEE>, '
+                              '<pytubefix.__main__.YouTube object: videoId=TQKI0KE-JYY>, '
+                              '<pytubefix.__main__.YouTube object: videoId=dNBvQ38MlT8>, '
+                              '<pytubefix.__main__.YouTube object: videoId=JHxyrMgOUWI>, '
+                              '<pytubefix.__main__.YouTube object: videoId=l2I8NycJMCY>, '
+                              '<pytubefix.__main__.YouTube object: videoId=g1Zbuk1gAfk>, '
+                              '<pytubefix.__main__.YouTube object: videoId=zixd-si9Q-o>]'
     )
     request_get.assert_called()
 
@@ -230,7 +228,7 @@ def test_trimmed_pagination(request_get, playlist_html, playlist_long_html):
 # TODO: Test case not clear to me
 @mock.patch("pytubefix.request.get")
 def test_trimmed_pagination_not_found(
-    request_get, playlist_html, playlist_long_html
+        request_get, playlist_html, playlist_long_html
 ):
     url = "https://www.fakeurl.com/playlist?list=whatever"
     request_get.side_effect = [
@@ -241,7 +239,7 @@ def test_trimmed_pagination_not_found(
         '"load_more_widget_html":""}',
         "{}",
     ]
-    playlist = Playlist(url) # noqa
+    playlist = Playlist(url)  # noqa
     # assert len(list(playlist.trimmed("wont-be-found"))) == 101 # noqa
     assert True
 
@@ -267,7 +265,7 @@ def test_playlist_length(request_get, playlist_long_html):
     url = 'https://www.example.com/playlist?list=whatever'
     request_get.return_value = playlist_long_html
     p = Playlist(url)
-    assert p.length == 217
+    assert p.length == 233
 
 
 @mock.patch("pytubefix.request.get")
@@ -295,7 +293,7 @@ def test_playlist_views(request_get, playlist_long_html):
     url = 'https://www.example.com/playlist?list=whatever'
     request_get.return_value = playlist_long_html
     p = Playlist(url)
-    assert p.views == 4617130
+    assert p.views == 4809626
 
 
 @mock.patch("pytubefix.request.get")

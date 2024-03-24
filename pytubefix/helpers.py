@@ -188,7 +188,7 @@ def setup_logger(level: int = logging.ERROR, log_filename: Optional[str] = None)
     formatter = logging.Formatter(fmt, datefmt=date_fmt)
 
     # https://github.com/pytube/pytube/issues/163
-    logger = logging.getLogger("pytube")
+    logger = logging.getLogger("pytubefix")
     logger.setLevel(level)
 
     stream_handler = logging.StreamHandler()
