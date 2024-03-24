@@ -199,7 +199,6 @@ def test_main_download_by_itag():
         print("HTTP Error happened this is probably due to authentication, ignoring...")
 
 
-
 def test_main_build_playback_report():
     parser = argparse.ArgumentParser()
     args = parse_args(
