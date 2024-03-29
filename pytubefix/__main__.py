@@ -391,14 +391,15 @@ class YouTube:
         :rtype: str
         """
         self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "author"
+            "author", "unknown"
         )
+
 
         if self._title:
             return self._title.replace('/', '\\')
 
         try:
-            self._title = self.vid_info['videoDetails']['title'] #+ self._author
+            self._title = self.vid_info['videoDetails']['title']
         except KeyError:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
@@ -409,9 +410,9 @@ class YouTube:
                     'Please file a bug report at https://github.com/JuanBindez/pytubefix'
                 )
             )
-        # print(self.vid_info['videoDetails'])
+        #print(self.vid_info['videoDetails'])
         return self._title.replace('/', '\\')
-
+    
     @title.setter
     def title(self, value):
         """Sets the title value."""
