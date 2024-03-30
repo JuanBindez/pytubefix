@@ -1,0 +1,4 @@
+git add .
+git commit -m '3.0.0'
+git push -u origin main
+make upload
