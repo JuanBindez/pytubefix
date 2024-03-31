@@ -18,21 +18,22 @@ logger = logging.getLogger(__name__)
 
 
 def publish_date(watch_html: str):
-    """Extract publish date
+    """Extract publish date and return it as a datetime object
     :param str watch_html:
         The html contents of the watch page.
-    :rtype: str
+    :rtype: datetime
     :returns:
-        Publish date of the video in ISO format with timezone.
+        Publish date of the video as a datetime object with timezone.
     """
     try:
-        result = regex_search(
-            r"(?<=itemprop=\"datePublished\" content=\")\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-\d{2}:\d{2}",
-            watch_html, group=0
+        result = re.search(
+            r"(?<=itemprop=\"datePublished\" content=\")\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}",
+            watch_html
         )
-    except RegexMatchError:
+        if result:
+            return datetime.fromisoformat(result.group(0))
+    except AttributeError:
         return None
-    return result
 
 def recording_available(watch_html):
     """Check if live stream recording is available.
@@ -88,7 +89,7 @@ def is_age_restricted(watch_html: str) -> bool:
     return True
 
 
-def playability_status(watch_html: str) -> (str, str):
+def playability_status(watch_html: str) -> tuple[str, str]:
     """Return the playability status and status explanation of a video.
 
     For example, a video may have a status of LOGIN_REQUIRED, and an explanation
