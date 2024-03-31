@@ -1,4 +1,4 @@
 git add .
-git commit -m '3.0.0'
+git commit -m '3.1-rc1:  updated publish_date function to return a datetime object #52 '
 git push -u origin main
 make upload
