@@ -52,7 +52,7 @@ _default_clients = {
                     'androidSdkVersion': 30
                 }
             },
-            "params": "CgIQBg"
+            "params": "CgIIAdgDAQ%3D%3D"
         },
         'header': {
             'User-Agent': 'com.google.android.youtube/',
@@ -249,7 +249,7 @@ _token_file = os.path.join(_cache_dir, 'tokens.json')
 
 class InnerTube:
     """Object for interacting with the innertube API."""
-    def __init__(self, client='ANDROID_MUSIC', use_oauth=False, allow_cache=True):
+    def __init__(self, client='ANDROID', use_oauth=False, allow_cache=True):
         """Initialize an InnerTube object.
 
         :param str client:
