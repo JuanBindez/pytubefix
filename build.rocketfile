@@ -1,4 +1,4 @@
 git add .
-git commit -m 'updated publish_date function to return a datetime object #52'
+git commit -m '4.0-rc1:  Fixed Video Not Available #58 '
 git push -u origin main
 make upload
