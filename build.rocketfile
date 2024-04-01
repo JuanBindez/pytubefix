@@ -1,4 +1,6 @@
 git add .
-git commit -m '4.0-rc1:  Fixed Video Not Available #58 '
+git commit -m 'v4.0-rc2 Fixed Video Not Available #58'
 git push -u origin main
+git tag v4.0-rc2
+git push --tag
 make upload
