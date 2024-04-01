@@ -1,5 +1,6 @@
 git add .
-git commit -m 'v4.0-rc3 Fixed Video Not Available #58'
-git tag v4.0-rc3
-git push -u origin main --follow-tags
+git commit -m 'v4.0-rc4: Fixed Video Not Available #58'
+git push -u origin main
+git tag v4.0-rc4
+git push --tag
 make upload
