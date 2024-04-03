@@ -1,0 +1,5 @@
+git add .
+git commit -m "merge.rocketfile"
+git checkout main
+git merge rc
+rocket build.rocketfile
