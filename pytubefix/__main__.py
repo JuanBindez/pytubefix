@@ -30,7 +30,6 @@ smaller peripheral modules and functions.
 
 """
 
-
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
@@ -50,18 +49,26 @@ class YouTube:
     """Core developer interface for pytubefix."""
 
     def __init__(
-        self,
-        url: str,
-        on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
-        on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
-        proxies: Dict[str, str] = None,
-        use_oauth: bool = False,
-        allow_oauth_cache: bool = True
+            self,
+            url: str,
+            client: str = 'ANDROID',
+            on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
+            on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
+            proxies: Dict[str, str] = None,
+            use_oauth: bool = False,
+            allow_oauth_cache: bool = True
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
         :param str url:
             A valid YouTube watch URL.
+        :param str client:
+            (Optional) A YouTube client,
+            Available:
+                WEB, WEB_EMBED, WEB_MUSIC, WEB_CREATOR,
+                ANDROID, ANDROID_EMBED, ANDROID_MUSIC, ANDROID_CREATOR,
+                IOS, IOS_EMBED, IOS_MUSIC, IOS_CREATOR,
+                MWEB, TV_EMBED.
         :param func on_progress_callback:
             (Optional) User defined callback function for stream download
             progress events.
@@ -97,6 +104,10 @@ class YouTube:
 
         self.watch_url = f"https://youtube.com/watch?v={self.video_id}"
         self.embed_url = f"https://www.youtube.com/embed/{self.video_id}"
+
+        self.client = client
+
+        self._signature_timestamp: dict = {}
 
         # Shared between all instances of `Stream` (Borg pattern).
         self.stream_monostate = Monostate(
@@ -180,9 +191,28 @@ class YouTube:
     def streaming_data(self):
         """Return streamingData from video info."""
         if 'streamingData' in self.vid_info:
+
+            invalid_id_list = ['aQvGIIdgFDM']  # List of YouTube error video IDs
+            video_id = self.vid_info['videoDetails']['videoId']
+
+            if video_id in invalid_id_list:
+                logger.warning(
+                    f'The {self.client} client did not get a valid response, trying to use the WEB client.'
+                )
+                logger.warning(
+                    f'Video ID: {video_id}'
+                )
+                logger.warning(
+                    'Please open an issue at '
+                    'https://github.com/JuanBindez/pytubefix/issues '
+                    'and provide this log output.'
+                )
+
+                self.try_another_client()
+
             return self.vid_info['streamingData']
         else:
-            self.bypass_age_gate()
+            self.try_another_client()
             return self.vid_info['streamingData']
 
     @property
@@ -237,8 +267,8 @@ class YouTube:
         for reason in messages:
             if status == 'UNPLAYABLE':
                 if reason == (
-                    'Join this channel to get access to members-only content '
-                    'like this video, and other exclusive perks.'
+                        'Join this channel to get access to members-only content '
+                        'like this video, and other exclusive perks.'
                 ):
                     raise exceptions.MembersOnly(video_id=self.video_id)
                 elif reason == 'This live stream recording is not available.':
@@ -247,8 +277,8 @@ class YouTube:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
             elif status == 'LOGIN_REQUIRED':
                 if reason == (
-                    'This is a private video. '
-                    'Please sign in to verify that you may see it.'
+                        'This is a private video. '
+                        'Please sign in to verify that you may see it.'
                 ):
                     raise exceptions.VideoPrivate(video_id=self.video_id)
             elif status == 'ERROR':
@@ -256,6 +286,24 @@ class YouTube:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
             elif status == 'LIVE_STREAM':
                 raise exceptions.LiveStreamError(video_id=self.video_id)
+
+    @property
+    def signature_timestamp(self) -> dict:
+        """WEB clients need to be signed with a signature timestamp.
+
+        The signature is found inside the player's base.js.
+
+        :rtype: Dict
+        """
+        if not self._signature_timestamp:
+            self._signature_timestamp = {
+                'playbackContext': {
+                    'contentPlaybackContext': {
+                        'signatureTimestamp': extract.signature_timestamp(self.js)
+                    }
+                }
+            }
+        return self._signature_timestamp
 
     @property
     def vid_info(self):
@@ -266,27 +314,39 @@ class YouTube:
         if self._vid_info:
             return self._vid_info
 
-        innertube = InnerTube(use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache)
+        innertube = InnerTube(client=self.client, use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache)
+        if innertube.require_js_player:
+            innertube.innertube_context.update(self.signature_timestamp)
 
         innertube_response = innertube.player(self.video_id)
         self._vid_info = innertube_response
         return self._vid_info
 
-    def bypass_age_gate(self):
-        """Attempt to update the vid_info by bypassing the age gate."""
+    def try_another_client(self):
+        """If the default client does not have streamData, try using another client.
+
+        We use the WEB client, as it is the most stable so far.
+
+        Previously, this function was used to bypass age gate by trying to use EMBED clients,
+        but it is no longer effective.
+
+        """
         innertube = InnerTube(
-            client='ANDROID_EMBED',
+            client='WEB',
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache
         )
+
+        if innertube.require_js_player:
+            innertube.innertube_context.update(self.signature_timestamp)
+
         innertube_response = innertube.player(self.video_id)
 
         playability_status = innertube_response['playabilityStatus'].get('status', None)
 
         # If we still can't access the video, raise an exception
-        # (tier 3 age restriction)
         if playability_status == 'UNPLAYABLE':
-            raise exceptions.AgeRestrictedError(self.video_id)
+            raise exceptions.VideoUnavailable(self.video_id)
 
         self._vid_info = innertube_response
 
@@ -394,7 +454,6 @@ class YouTube:
             "author", "unknown"
         )
 
-
         if self._title:
             return self._title.replace('/', '\\')
 
@@ -410,9 +469,9 @@ class YouTube:
                     'Please file a bug report at https://github.com/JuanBindez/pytubefix'
                 )
             )
-        #print(self.vid_info['videoDetails'])
+        # print(self.vid_info['videoDetails'])
         return self._title.replace('/', '\\')
-    
+
     @title.setter
     def title(self, value):
         """Sets the title value."""

@@ -41,7 +41,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True
     },
     'ANDROID': {
         'innertube_context': {
@@ -57,7 +58,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.android.youtube/',
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
     'IOS': {
         'innertube_context': {
@@ -72,7 +74,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.ios.youtube/'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
 
     'WEB_EMBED': {
@@ -88,7 +91,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True
     },
     'ANDROID_EMBED': {
         'innertube_context': {
@@ -104,7 +108,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.android.youtube/'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
     'IOS_EMBED': {
         'innertube_context': {
@@ -119,7 +124,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.ios.youtube/'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
 
     'WEB_MUSIC': {
@@ -134,7 +140,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True
     },
     'ANDROID_MUSIC': {
         'innertube_context': {
@@ -149,7 +156,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.android.apps.youtube.music/'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
     'IOS_MUSIC': {
         'innertube_context': {
@@ -164,7 +172,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.ios.youtubemusic/'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
 
     'WEB_CREATOR': {
@@ -179,7 +188,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True
     },
     'ANDROID_CREATOR': {
         'innertube_context': {
@@ -194,7 +204,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.android.apps.youtube.creator/',
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
     'IOS_CREATOR': {
         'innertube_context': {
@@ -209,7 +220,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'com.google.ios.ytcreator/'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': False
     },
 
     'MWEB': {
@@ -224,7 +236,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True
     },
 
     'TV_EMBED': {
@@ -239,7 +252,8 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0'
         },
-        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True
     },
 }
 _token_timeout = 1800
@@ -264,6 +278,7 @@ class InnerTube:
         self.innertube_context = _default_clients[client]['innertube_context']
         self.header = _default_clients[client]['header']
         self.api_key = _default_clients[client]['api_key']
+        self.require_js_player = _default_clients[client]['require_js_player']
         self.access_token = None
         self.refresh_token = None
         self.use_oauth = use_oauth
