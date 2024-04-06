@@ -1,6 +1,7 @@
 """Module for interacting with YouTube search."""
 # Native python imports
 import logging
+from typing import List
 
 # Local imports
 from pytubefix import YouTube, Channel, Playlist
@@ -46,7 +47,7 @@ class Search:
         return self._completion_suggestions
 
     @property
-    def videos(self) -> list[YouTube]:
+    def videos(self) -> List[YouTube]:
         """Returns the search result videos.
 
         On first call, will generate and return the first set of results.
@@ -67,7 +68,7 @@ class Search:
         return [items for items in self._results['videos']]
 
     @property
-    def shorts(self) -> list[YouTube]:
+    def shorts(self) -> List[YouTube]:
         """Returns the search result shorts.
 
         On first call, will generate and return the first set of results.
@@ -88,7 +89,7 @@ class Search:
         return [items for items in self._results['shorts']]
 
     @property
-    def playlist(self) -> list[Playlist]:
+    def playlist(self) -> List[Playlist]:
         """Returns the search result playlist.
 
         On first call, will generate and return the first set of results.
@@ -109,7 +110,7 @@ class Search:
         return [items for items in self._results['playlist']]
 
     @property
-    def channel(self) -> list[Channel]:
+    def channel(self) -> List[Channel]:
         """Returns the search result channel.
 
         On first call, will generate and return the first set of results.
