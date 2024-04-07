@@ -1,7 +1,7 @@
 git add .
-git commit -m '5.1-rc1'
+git commit -m '5.1.1'
 git push -u origin main
-git tag v5.1-rc1
+git tag v5.1.1
 git push --tag
 make clean
 make upload
