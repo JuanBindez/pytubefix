@@ -89,7 +89,7 @@ def is_age_restricted(watch_html: str) -> bool:
     return True
 
 
-def playability_status(watch_html: str) -> tuple[str, str]:
+def playability_status(watch_html: str) -> Tuple[Any, Any]:
     """Return the playability status and status explanation of a video.
 
     For example, a video may have a status of LOGIN_REQUIRED, and an explanation
