@@ -1,11 +1,4 @@
 git add .
-git commit -m "merge.rocketfile"
+git commit -m "merge in command -> rocket merge.rocketfile"
 git checkout main
-git merge rc
-git add .
-git commit -m ' Implemented native js interpreter #63'
-git push -u origin main
-git tag v5.0.0
-git push --tag
-make clean
-make upload
+git merge dev

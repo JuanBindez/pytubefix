@@ -1,7 +1,7 @@
 git add .
-git commit -m 'dev 5.1.2-rc1'
-git push -u origin dev
-git tag v5.1.2-rc1
+git commit -m 'fixed ANDROID / WEB client response #66'
+git push -u origin main
+git tag v5.1.2
 git push --tag
 make clean
 make upload
