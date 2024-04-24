@@ -13,9 +13,6 @@
 
     pip install pytubefix
 
-### In Ubuntu
-
-    pip install pytubefix --break-system-packages
 
 ## Quickstart:
 
