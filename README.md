@@ -8,16 +8,11 @@
 
 ## A pytube fork with additional features and fixes.
 
-[Documentation](https://pytubefix.readthedocs.io)
-
 ----------
 ## install:
 
     pip install pytubefix
 
-### In Ubuntu
-
-    pip install pytubefix --break-system-packages
 
 ## Quickstart:
 
