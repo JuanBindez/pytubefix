@@ -1,4 +1,4 @@
 git add .
-git commit -m "merge in command -> rocket merge.rocketfile"
+git commit -m "merged"
 git checkout main
 git merge dev
