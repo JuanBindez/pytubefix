@@ -9,12 +9,12 @@
 ## A pytube fork with additional features and fixes.
 
 ----------
-## install:
+## install
 
     pip install pytubefix
 
 
-## Quickstart:
+## Quickstart
 
 #### mp4 video download highest resolution:
 
