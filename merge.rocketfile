@@ -1,4 +1,4 @@
 git add .
-git commit -m "merged"
+git commit -m "Added new client to overcome ANDROID instability #70"
 git checkout main
-git merge dev
+git merge v5dev
