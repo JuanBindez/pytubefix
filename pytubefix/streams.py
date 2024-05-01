@@ -274,6 +274,32 @@ class Stream:
                 max_retries: Optional[int] = 0,
                 mp3: bool = False) -> str:
         
+        """
+        Download the file from the URL provided by `self.url`.
+
+        Args:
+            output_path (Optional[str]): Path where the downloaded file will be saved.
+            filename (Optional[str]): Name of the downloaded file.
+            filename_prefix (Optional[str]): Prefix to be added to the filename.
+            skip_existing (bool): Whether to skip the download if the file already exists.
+            timeout (Optional[int]): Timeout for the download request.
+            max_retries (Optional[int]): Maximum number of retries for the download.
+            mp3 (bool): Whether the file to be downloaded is an MP3 audio file.
+
+        Returns:
+            str: File path of the downloaded file.
+
+        Raises:
+            HTTPError: If an HTTP error occurs during the download.
+
+        Note:
+            If `mp3` is set to True, the downloaded file will be assumed to be an MP3 audio file.
+            If `filename` is not provided and `mp3` is True, the title of the resource will be used as the filename with '.mp3' extension.
+            If `filename` is provided and `mp3` is True, '.mp3' extension will be appended to the filename.
+            The progress of the download is tracked using the `on_progress` callback.
+            The `on_complete` callback is triggered after the download is completed.
+        """
+        
         if mp3:
             if filename is None:
                 filename = self.title + ".mp3"

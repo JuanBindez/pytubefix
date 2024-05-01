@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class DeferredGeneratorList:
     """A wrapper class for deferring list generation.
 
-    Pytube has some continuation generators that create web calls, which means
+    Pytubefix has some continuation generators that create web calls, which means
     that any time a full list is requested, all of those web calls must be
     made at once, which could lead to slowdowns. This will allow individual
     elements to be queried, so that slowdowns only happen as necessary. For
