@@ -5,9 +5,9 @@ TODO: REFACTOR THIS FILE
 """
 
 
-
 #!/usr/bin/env python3
 """A simple command line application to download youtube videos."""
+
 
 import random
 import argparse
@@ -25,9 +25,8 @@ from pytubefix import __version__
 from pytubefix import CaptionQuery, Playlist, Stream
 from pytubefix.helpers import safe_filename, setup_logger
 from pytubefix import YouTube
-
-
 logger = logging.getLogger(__name__)
+
 
 def main():
     # TODO: Refactor cli.py to OOP
@@ -37,9 +36,7 @@ def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
     if args.verbose:
-        log_filename = None
-        if args.logfile:
-            log_filename = args.logfile
+        log_filename = args.logfile or None
         setup_logger(logging.DEBUG, log_filename=log_filename)
         logger.debug(f'Pytube version: {__version__}')
 
@@ -52,6 +49,7 @@ def main():
         playlist = Playlist(args.url)
         if not args.target:
             args.target = safe_filename(playlist.title)
+
         for youtube_video in playlist.videos:
             try:
                 _perform_args_on_youtube(youtube_video, args)
@@ -65,11 +63,10 @@ def main():
         _perform_args_on_youtube(youtube, args)
 
 
-
 def _perform_args_on_youtube(
     youtube: YouTube, args: argparse.Namespace
 ) -> None:
-    if len(sys.argv) == 2 :  # no arguments parsed
+    if len(sys.argv) == 2:  # no arguments parsed
         download_highest_resolution_progressive(
             youtube=youtube, resolution="highest", target=args.target
         )
@@ -108,7 +105,7 @@ def _parse_args(
         "url", help="The YouTube /watch or /playlist url", nargs="?"
     )
     parser.add_argument(
-        "--version", action="version", version="%(prog)s " + __version__,
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument(
         "--itag", type=int, help="The itag for the desired stream",
@@ -220,6 +217,7 @@ def build_playback_report(youtube: YouTube) -> None:
             ).encode("utf8"),
         )
 
+
 def display_progress_bar(
     bytes_received: int, filesize: int, ch: str = "█", scale: float = 0.55
 ) -> None:
@@ -256,7 +254,7 @@ def display_progress_bar(
 
 # noinspection PyUnusedLocal
 def on_progress(stream: Stream,
-                chunk: bytes, 
+                chunk: bytes,
                 bytes_remaining: int
                 ) -> None:  # pylint: disable=W0613
 
@@ -281,12 +279,11 @@ def _download(stream: Stream,
     sys.stdout.write("\n")
 
 
-def _unique_name(base: str, 
-                 subtype: str, 
-                 media_type: str, 
+def _unique_name(base: str,
+                 subtype: str,
+                 media_type: str,
                  target: str
                  ) -> str:
-
     """
     Given a base name, the file format, and the target directory, will generate
     a filename unique for that directory and file format.
@@ -309,8 +306,8 @@ def _unique_name(base: str,
         counter += 1
 
 
-def ffmpeg_process(youtube: YouTube, 
-                   resolution: str, 
+def ffmpeg_process(youtube: YouTube,
+                   resolution: str,
                    target: Optional[str] = None
                    ) -> None:
     """
@@ -370,8 +367,8 @@ def ffmpeg_process(youtube: YouTube,
     )
 
 
-def _ffmpeg_downloader(audio_stream: Stream, 
-                       video_stream: Stream, 
+def _ffmpeg_downloader(audio_stream: Stream,
+                       video_stream: Stream,
                        target: str) -> None:
     """
     Given a YouTube Stream object, finds the correct audio stream, downloads them both

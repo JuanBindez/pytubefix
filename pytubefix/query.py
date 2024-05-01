@@ -254,6 +254,7 @@ class StreamQuery(Sequence):
             not found.
 
         """
+        # TODO: You need to make sure itag is an int or str, if it is a int remove casting.
         return self.itag_index.get(int(itag))
 
     def get_by_resolution(self, resolution: str) -> Optional[Stream]:
@@ -380,15 +381,12 @@ class StreamQuery(Sequence):
             pass
 
     @deprecated("Get the size of this list directly using len()")
-    def count(self, value: Optional[str] = None) -> int:  # pragma: no cover
+    def count(self, value: Optional[str] = None) -> int:    # pragma: no cover
         """Get the count of items in the list.
 
         :rtype: int
         """
-        if value:
-            return self.fmt_streams.count(value)
-
-        return len(self)
+        return self.fmt_streams.count(value) if value else len(self)
 
     @deprecated("This object can be treated as a list, all() is useless")
     def all(self) -> List[Stream]:  # pragma: no cover

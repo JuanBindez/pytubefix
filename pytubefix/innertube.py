@@ -303,15 +303,13 @@ class InnerTube:
         self.expires = None
 
         # Try to load from file if specified
-        if self.use_oauth and self.allow_cache:
-            # Try to load from file if possible
-            if os.path.exists(_token_file):
-                with open(_token_file) as f:
-                    data = json.load(f)
-                    self.access_token = data['access_token']
-                    self.refresh_token = data['refresh_token']
-                    self.expires = data['expires']
-                    self.refresh_bearer_token()
+        if self.use_oauth and self.allow_cache and os.path.exists(_token_file):
+            with open(_token_file) as f:
+                data = json.load(f)
+                self.access_token = data['access_token']
+                self.refresh_token = data['refresh_token']
+                self.expires = data['expires']
+                self.refresh_bearer_token()
 
     def cache_tokens(self):
         """Cache tokens to file if allowed."""
@@ -438,10 +436,10 @@ class InnerTube:
         if self.use_oauth:
             if self.access_token:
                 self.refresh_bearer_token()
-                headers['Authorization'] = f'Bearer {self.access_token}'
             else:
                 self.fetch_bearer_token()
-                headers['Authorization'] = f'Bearer {self.access_token}'
+
+            headers['Authorization'] = f'Bearer {self.access_token}'
 
         headers.update(self.header)
 

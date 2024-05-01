@@ -26,9 +26,7 @@ def _execute_request(
     base_headers = {"User-Agent": "Mozilla/5.0", "accept-language": "en-US,en"}
     if headers:
         base_headers.update(headers)
-    if data:
-        # encode data for request
-        if not isinstance(data, bytes):
+    if data and not isinstance(data, bytes): # encode data for request
             data = bytes(json.dumps(data), encoding="utf-8")
     if url.lower().startswith("http"):
         request = Request(url, headers=base_headers, method=method, data=data)
@@ -96,7 +94,7 @@ def seq_stream(
     """
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
-    base_url = '%s://%s/%s?' % (split_url.scheme, split_url.netloc, split_url.path)
+    base_url = f'{split_url.scheme}://{split_url.netloc}/{split_url.path}?'
 
     querys = dict(parse.parse_qsl(split_url.query))
 
@@ -154,16 +152,14 @@ def stream(url,
             # Try to execute the request, ignoring socket timeouts
             try:
                 response = _execute_request(
-                    url + f"&range={downloaded}-{stop_pos}",
+                    f"{url}&range={downloaded}-{stop_pos}",
                     method="GET",
                     timeout=timeout
                 )
             except URLError as e:
                 # We only want to skip over timeout errors, and
                 # raise any other URLError exceptions
-                if isinstance(e.reason, socket.timeout):
-                    pass
-                else:
+                if not isinstance(e.reason, socket.timeout):
                     raise
             except http.client.IncompleteRead:
                 # Allow retries on IncompleteRead errors for unreliable connections
@@ -176,7 +172,7 @@ def stream(url,
         if file_size == default_range_size:
             try:
                 resp = _execute_request(
-                    url + f"&range={0}-{99999999999}",
+                    f"{url}&range=0-99999999999",
                     method="GET",
                     timeout=timeout
                 )
@@ -218,7 +214,7 @@ def seq_filesize(url):
     total_filesize = 0
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
-    base_url = '%s://%s/%s?' % (split_url.scheme, split_url.netloc, split_url.path)
+    base_url = f'{split_url.scheme}://{split_url.netloc}/{split_url.path}?'
     querys = dict(parse.parse_qsl(split_url.query))
 
     # The 0th sequential request provides the file headers, which tell us
