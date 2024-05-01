@@ -275,14 +275,10 @@ class Stream:
                 mp3: bool = False) -> str:
         
         if mp3:
-            filename = self.title + ".mp3"
-
-            file_path = self.get_file_path(
-                filename=filename,
-                output_path=output_path,
-                filename_prefix=filename_prefix,
-            )
-    
+            if filename is None:
+                filename = self.title + ".mp3"
+            else:
+                filename = filename + ".mp3"
 
         file_path = self.get_file_path(
             filename=filename,
