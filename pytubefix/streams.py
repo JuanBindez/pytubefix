@@ -309,7 +309,6 @@ class Stream:
                 if e.code != 404:
                     raise
             except StopIteration:
-                pass
                 # Some adaptive streams need to be requested with sequence numbers
                 for chunk in request.seq_stream(
                     self.url,
@@ -320,10 +319,9 @@ class Stream:
                     bytes_remaining -= len(chunk)
                     # send to the on_progress callback.
                     self.on_progress(chunk, fh, bytes_remaining)
-            
+
         self.on_complete(file_path)
         return file_path
-    
 
     def get_file_path(
         self,

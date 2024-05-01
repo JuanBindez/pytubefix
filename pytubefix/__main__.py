@@ -84,14 +84,21 @@ class YouTube:
             (Optional) Cache OAuth tokens locally on the machine. Defaults to True.
             These tokens are only generated if use_oauth is set to True as well.
         """
-        self._js: Optional[str] = None  # js fetched by js_url
-        self._js_url: Optional[str] = None  # the url to the js, parsed from watch html
+        # js fetched by js_url
+        self._js: Optional[str] = None
 
-        self._vid_info: Optional[Dict] = None  # content fetched from innertube/player
+        # the url to the js, parsed from watch html
+        self._js_url: Optional[str] = None
 
-        self._watch_html: Optional[str] = None  # the html of /watch?v=<video_id>
+        # content fetched from innertube/player
+        self._vid_info: Optional[Dict] = None
+
+        # the html of /watch?v=<video_id>
+        self._watch_html: Optional[str] = None
         self._embed_html: Optional[str] = None
-        self._player_config_args: Optional[Dict] = None  # inline js in the html containing
+
+        # inline js in the html containing
+        self._player_config_args: Optional[Dict] = None
         self._age_restricted: Optional[bool] = None
 
         self._fmt_streams: Optional[List[Stream]] = None
@@ -192,7 +199,8 @@ class YouTube:
         """Return streamingData from video info."""
         if 'streamingData' in self.vid_info:
 
-            invalid_id_list = ['aQvGIIdgFDM']  # List of YouTube error video IDs
+            # List of YouTube error video IDs
+            invalid_id_list = ['aQvGIIdgFDM']
             video_id = self.vid_info['videoDetails']['videoId']
 
             if video_id in invalid_id_list:
@@ -209,11 +217,10 @@ class YouTube:
                 )
 
                 self.try_another_client()
-
-            return self.vid_info['streamingData']
         else:
             self.try_another_client()
-            return self.vid_info['streamingData']
+
+        return self.vid_info['streamingData']
 
     @property
     def fmt_streams(self):
@@ -459,7 +466,7 @@ class YouTube:
 
         try:
             self._title = self.vid_info['videoDetails']['title']
-        except KeyError:
+        except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
@@ -468,8 +475,8 @@ class YouTube:
                     f'Exception while accessing title of {self.watch_url}. '
                     'Please file a bug report at https://github.com/JuanBindez/pytubefix'
                 )
-            )
-        # print(self.vid_info['videoDetails'])
+            ) from e
+
         return self._title.replace('/', '\\')
 
     @title.setter
@@ -557,11 +564,10 @@ class YouTube:
 
         :rtype: YouTubeMetadata
         """
-        if self._metadata:
-            return self._metadata
-        else:
-            self._metadata = extract.metadata(self.initial_data)
-            return self._metadata
+        if not self._metadata:
+            self._metadata = extract.metadata(
+                self.initial_data)  # Creating the metadata
+        return self._metadata
 
     def register_on_progress_callback(self, func: Callable[[Any, bytes, int], None]):
         """Register a download progress callback function post initialization.
@@ -594,6 +600,5 @@ class YouTube:
             The video id of the YouTube video.
 
         :rtype: :class:`YouTube <YouTube>`
-        
         """
         return YouTube(f"https://www.youtube.com/watch?v={video_id}")
