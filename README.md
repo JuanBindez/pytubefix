@@ -9,10 +9,6 @@
 
 ## A pytube fork with additional features and fixes.
 
-##### Mainline: 5.4.2
-
-##### Stable: 5.4.2
-
 ----------
 ## install
 
