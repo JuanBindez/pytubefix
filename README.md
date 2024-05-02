@@ -6,9 +6,9 @@
 <a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
 
-Mainline Version: 5.4.2
+Mainline: 5.4.2
 
-Stable Version: 5.4.2
+Stable: 5.4.2
 
 
 
