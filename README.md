@@ -6,7 +6,7 @@
 <a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
 
-```html
+html
 <!DOCTYPE html>
 <html lang="en">
 <head>
