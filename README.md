@@ -1,9 +1,5 @@
 # pytubefix
 
-Mainline: 5.4.2
-
-Stable: 5.4.2
-
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pytubefix)
 ![PyPI - License](https://img.shields.io/pypi/l/pytubefix)
 ![Read the Docs](https://img.shields.io/readthedocs/pytubefix)
@@ -12,6 +8,10 @@ Stable: 5.4.2
 
 
 ## A pytube fork with additional features and fixes.
+
+Mainline: 5.4.2
+
+Stable: 5.4.2
 
 ----------
 ## install
