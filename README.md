@@ -6,6 +6,45 @@
 <a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pytubefix Versions</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Pytubefix Versions</h1>
+        <div id="versions"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('https://raw.githubusercontent.com/JuanBindez/pytubefix/v5dev/pytubefix/version.json')
+                .then(response => response.json())
+                .then(data => {
+                    const versionsDiv = document.getElementById('versions');
+                    const mainlineVersion = data.mainline;
+                    const stableVersion = data.stable;
+
+                    const mainlineElement = document.createElement('div');
+                    mainlineElement.textContent = `Mainline Version: ${mainlineVersion}`;
+                    versionsDiv.appendChild(mainlineElement);
+
+                    const stableElement = document.createElement('div');
+                    stableElement.textContent = `Stable Version: ${stableVersion}`;
+                    versionsDiv.appendChild(stableElement);
+                })
+                .catch(error => console.error('Error fetching versions:', error));
+        });
+    </script>
+</body>
+</html>
+
+
+
 ## A pytube fork with additional features and fixes.
 
 ----------
