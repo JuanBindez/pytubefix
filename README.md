@@ -1,15 +1,14 @@
 # pytubefix
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pytubefix)
-![PyPI - License](https://img.shields.io/pypi/l/pytubefix)
-![Read the Docs](https://img.shields.io/readthedocs/pytubefix)
-![GitHub Tag](https://img.shields.io/github/v/tag/JuanBindez/pytubefix?include_prereleases)
-<a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
-
 
 Mainline: 5.4.2
 
 Stable: 5.4.2
 
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pytubefix)
+![PyPI - License](https://img.shields.io/pypi/l/pytubefix)
+![Read the Docs](https://img.shields.io/readthedocs/pytubefix)
+![GitHub Tag](https://img.shields.io/github/v/tag/JuanBindez/pytubefix?include_prereleases)
+<a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
 
 ## A pytube fork with additional features and fixes.
