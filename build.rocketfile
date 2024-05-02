@@ -1,6 +1,6 @@
 git add .
 git commit -m 'update'
-git push -u origin main
+git push -u origin dev
 git tag v5.4.2
 git push --tag
 make clean
