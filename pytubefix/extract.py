@@ -486,7 +486,7 @@ def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
         return None
 
     # Merge formats and adaptiveFormats into a single list
-    formats = []
+    formats: list[Dict] = []
     if 'formats' in stream_data.keys():
         formats.extend(stream_data['formats'])
     if 'adaptiveFormats' in stream_data.keys():
