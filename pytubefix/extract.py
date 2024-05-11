@@ -464,7 +464,7 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str) -> None:
         stream_manifest[i]["url"] = url
 
 
-def apply_descrambler(stream_data: Dict) -> None:
+def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
     """Apply various in-place transforms to YouTube's media stream data.
 
     Creates a ``list`` of dictionaries by string splitting on commas, then
