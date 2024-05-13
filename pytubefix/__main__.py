@@ -49,14 +49,14 @@ class YouTube:
     """Core developer interface for pytubefix."""
 
     def __init__(
-            self,
-            url: str,
-            client: str = 'ANDROID_TESTSUITE',
-            on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
-            on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
-            proxies: Optional[Dict[str, str]] = None,
-            use_oauth: bool = False,
-            allow_oauth_cache: bool = True
+        self,
+        url: str,
+        client: str = "ANDROID_TESTSUITE",
+        on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
+        on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
+        proxies: Optional[Dict[str, str]] = None,
+        use_oauth: bool = False,
+        allow_oauth_cache: bool = True,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
@@ -132,7 +132,7 @@ class YouTube:
         self.allow_oauth_cache = allow_oauth_cache
 
     def __repr__(self):
-        return f'<pytubefix.__main__.YouTube object: videoId={self.video_id}>'
+        return f"<pytubefix.__main__.YouTube object: videoId={self.video_id}>"
 
     def __eq__(self, o: object) -> bool:
         # Compare types and urls, if they're same return true, else return false.
@@ -197,30 +197,28 @@ class YouTube:
     @property
     def streaming_data(self):
         """Return streamingData from video info."""
-        if 'streamingData' in self.vid_info:
+        if "streamingData" in self.vid_info:
 
             # List of YouTube error video IDs
-            invalid_id_list = ['aQvGIIdgFDM']
-            video_id = self.vid_info['videoDetails']['videoId']
+            invalid_id_list = ["aQvGIIdgFDM"]
+            video_id = self.vid_info["videoDetails"]["videoId"]
 
             if video_id in invalid_id_list:
                 logger.warning(
-                    f'The {self.client} client did not get a valid response, trying to use the WEB client.'
+                    f"The {self.client} client did not get a valid response, trying to use the WEB client."
                 )
+                logger.warning(f"Video ID: {video_id}")
                 logger.warning(
-                    f'Video ID: {video_id}'
-                )
-                logger.warning(
-                    'Please open an issue at '
-                    'https://github.com/JuanBindez/pytubefix/issues '
-                    'and provide this log output.'
+                    "Please open an issue at "
+                    "https://github.com/JuanBindez/pytubefix/issues "
+                    "and provide this log output."
                 )
 
                 self.try_another_client()
         else:
             self.try_another_client()
 
-        return self.vid_info['streamingData']
+        return self.vid_info["streamingData"]
 
     @property
     def fmt_streams(self):
@@ -272,26 +270,26 @@ class YouTube:
         status, messages = extract.playability_status(self.watch_html)
 
         for reason in messages:
-            if status == 'UNPLAYABLE':
+            if status == "UNPLAYABLE":
                 if reason == (
-                        'Join this channel to get access to members-only content '
-                        'like this video, and other exclusive perks.'
+                    "Join this channel to get access to members-only content "
+                    "like this video, and other exclusive perks."
                 ):
                     raise exceptions.MembersOnly(video_id=self.video_id)
-                elif reason == 'This live stream recording is not available.':
+                elif reason == "This live stream recording is not available.":
                     raise exceptions.RecordingUnavailable(video_id=self.video_id)
                 else:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
-            elif status == 'LOGIN_REQUIRED':
+            elif status == "LOGIN_REQUIRED":
                 if reason == (
-                        'This is a private video. '
-                        'Please sign in to verify that you may see it.'
+                    "This is a private video. "
+                    "Please sign in to verify that you may see it."
                 ):
                     raise exceptions.VideoPrivate(video_id=self.video_id)
-            elif status == 'ERROR':
-                if reason == 'Video unavailable':
+            elif status == "ERROR":
+                if reason == "Video unavailable":
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
-            elif status == 'LIVE_STREAM':
+            elif status == "LIVE_STREAM":
                 raise exceptions.LiveStreamError(video_id=self.video_id)
 
     @property
@@ -304,9 +302,9 @@ class YouTube:
         """
         if not self._signature_timestamp:
             self._signature_timestamp = {
-                'playbackContext': {
-                    'contentPlaybackContext': {
-                        'signatureTimestamp': extract.signature_timestamp(self.js)
+                "playbackContext": {
+                    "contentPlaybackContext": {
+                        "signatureTimestamp": extract.signature_timestamp(self.js)
                     }
                 }
             }
@@ -321,7 +319,11 @@ class YouTube:
         if self._vid_info:
             return self._vid_info
 
-        innertube = InnerTube(client=self.client, use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache)
+        innertube = InnerTube(
+            client=self.client,
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache,
+        )
         if innertube.require_js_player:
             innertube.innertube_context.update(self.signature_timestamp)
 
@@ -339,9 +341,7 @@ class YouTube:
 
         """
         innertube = InnerTube(
-            client='WEB',
-            use_oauth=self.use_oauth,
-            allow_cache=self.allow_oauth_cache
+            client="WEB", use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache
         )
 
         if innertube.require_js_player:
@@ -349,10 +349,10 @@ class YouTube:
 
         innertube_response = innertube.player(self.video_id)
 
-        playability_status = innertube_response['playabilityStatus'].get('status', None)
+        playability_status = innertube_response["playabilityStatus"].get("status", None)
 
         # If we still can't access the video, raise an exception
-        if playability_status == 'UNPLAYABLE':
+        if playability_status == "UNPLAYABLE":
             raise exceptions.VideoUnavailable(self.video_id)
 
         self._vid_info = innertube_response
@@ -385,9 +385,19 @@ class YouTube:
         :rtype: List[Chapter]
         """
         try:
-            chapters_data = self.initial_data['playerOverlays']['playerOverlayRenderer'][
-                'decoratedPlayerBarRenderer']['decoratedPlayerBarRenderer']['playerBar'][
-                'multiMarkersPlayerBarRenderer']['markersMap'][0]['value']['chapters']
+            chapters_data = self.initial_data["playerOverlays"][
+                "playerOverlayRenderer"
+            ]["decoratedPlayerBarRenderer"]["decoratedPlayerBarRenderer"]["playerBar"][
+                "multiMarkersPlayerBarRenderer"
+            ][
+                "markersMap"
+            ][
+                0
+            ][
+                "value"
+            ][
+                "chapters"
+            ]
         except (KeyError, IndexError):
             return []
 
@@ -395,17 +405,49 @@ class YouTube:
 
         for i, chapter_data in enumerate(chapters_data):
             chapter_start = int(
-                chapter_data['chapterRenderer']['timeRangeStartMillis'] / 1000
+                chapter_data["chapterRenderer"]["timeRangeStartMillis"] / 1000
             )
 
             if i == len(chapters_data) - 1:
                 chapter_end = self.length
             else:
                 chapter_end = int(
-                    chapters_data[i + 1]['chapterRenderer']['timeRangeStartMillis'] / 1000
+                    chapters_data[i + 1]["chapterRenderer"]["timeRangeStartMillis"]
+                    / 1000
                 )
 
             result.append(pytubefix.Chapter(chapter_data, chapter_end - chapter_start))
+
+        return result
+
+    @property
+    def key_moments(self) -> List[pytubefix.KeyMoment]:
+        """Get a list of :class:`KeyMoment <KeyMoment>`.
+
+        :rtype: List[KeyMoment]
+        """
+        try:
+            key_moments_data = self.initial_data["frameworkUpdates"][
+                "entityBatchUpdate"
+            ]["mutations"][1]["payload"]["macroMarkersListEntity"]["markersList"][
+                "markers"
+            ]
+        except (KeyError, IndexError):
+            return []
+
+        result: List[pytubefix.KeyMoment] = []
+
+        for i, key_moment_data in enumerate(key_moments_data):
+            key_moment_start = int(int(key_moment_data["startMillis"]) / 1000)
+
+            if i == len(key_moments_data) - 1:
+                key_moment_end = self.length
+            else:
+                key_moment_end = int(int(key_moments_data[i + 1]["startMillis"]) / 1000)
+
+            result.append(
+                pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start)
+            )
 
         return result
 
@@ -425,9 +467,7 @@ class YouTube:
         :rtype: str
         """
         thumbnail_details = (
-            self.vid_info.get("videoDetails", {})
-            .get("thumbnail", {})
-            .get("thumbnails")
+            self.vid_info.get("videoDetails", {}).get("thumbnail", {}).get("thumbnails")
         )
         if thumbnail_details:
             thumbnail_details = thumbnail_details[-1]  # last item has max size
@@ -457,27 +497,25 @@ class YouTube:
 
         :rtype: str
         """
-        self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
-        )
+        self._author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
 
         if self._title:
-            return self._title.replace('/', '\\')
+            return self._title.replace("/", "\\")
 
         try:
-            self._title = self.vid_info['videoDetails']['title']
+            self._title = self.vid_info["videoDetails"]["title"]
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
             raise exceptions.PytubeFixError(
                 (
-                    f'Exception while accessing title of {self.watch_url}. '
-                    'Please file a bug report at https://github.com/JuanBindez/pytubefix'
+                    f"Exception while accessing title of {self.watch_url}. "
+                    "Please file a bug report at https://github.com/JuanBindez/pytubefix"
                 )
             ) from e
 
-        return self._title.replace('/', '\\')
+        return self._title.replace("/", "\\")
 
     @title.setter
     def title(self, value):
@@ -507,7 +545,7 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
+        return int(self.vid_info.get("videoDetails", {}).get("lengthSeconds"))
 
     @property
     def views(self) -> int:
@@ -524,9 +562,7 @@ class YouTube:
         """
         if self._author:
             return self._author
-        self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
-        )
+        self._author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
         return self._author
 
     @author.setter
@@ -540,7 +576,7 @@ class YouTube:
 
         :rtype: List[str]
         """
-        return self.vid_info.get('videoDetails', {}).get('keywords', [])
+        return self.vid_info.get("videoDetails", {}).get("keywords", [])
 
     @property
     def channel_id(self) -> str:
@@ -548,7 +584,7 @@ class YouTube:
 
         :rtype: str
         """
-        return self.vid_info.get('videoDetails', {}).get('channelId', None)
+        return self.vid_info.get("videoDetails", {}).get("channelId", None)
 
     @property
     def channel_url(self) -> str:
@@ -556,7 +592,7 @@ class YouTube:
 
         :rtype: str
         """
-        return f'https://www.youtube.com/channel/{self.channel_id}'
+        return f"https://www.youtube.com/channel/{self.channel_id}"
 
     @property
     def metadata(self) -> Optional[YouTubeMetadata]:
@@ -566,7 +602,8 @@ class YouTube:
         """
         if not self._metadata:
             self._metadata = extract.metadata(
-                self.initial_data)  # Creating the metadata
+                self.initial_data
+            )  # Creating the metadata
         return self._metadata
 
     def register_on_progress_callback(self, func: Callable[[Any, bytes, int], None]):
