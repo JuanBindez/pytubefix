@@ -416,9 +416,16 @@ class YouTube:
         :rtype: List[KeyMoment]
         """
         try:
-            key_moments_data = self.initial_data['frameworkUpdates']['entityBatchUpdate'][
-                'mutations'][1]['payload'][
-                'macroMarkersListEntity']['markersList']['markers']
+            mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
+            found = False
+            for mutation in mutations:
+                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get('markerType') == "MARKER_TYPE_TIMESTAMPS":
+                    key_moments_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
+                    found = True
+                    break
+
+            if not found:
+                return []
         except (KeyError, IndexError):
             return []
 
@@ -437,6 +444,43 @@ class YouTube:
                 )
 
             result.append(pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start))
+
+        return result
+    
+    @property
+    def replayed_heatmap(self) -> List[Dict[str, float]]:
+        """Get a list of : `Dict<str, float>`.
+
+        :rtype: List[Dict[str, float]]
+        """
+        try:
+            mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
+            found = False
+            for mutation in mutations:
+                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get('markerType') == "MARKER_TYPE_HEATMAP":
+                    heatmaps_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
+                    found = True
+                    break
+
+            if not found:
+                return []
+        except (KeyError, IndexError):
+            return []
+
+        result: List[Dict[str, float]] = []
+
+        for i, heatmap_data in enumerate(heatmaps_data):
+            heatmap_start = int(heatmap_data['startMillis']) / 1000
+            duration = int(heatmap_data['durationMillis']) / 1000
+
+
+            norm_intensity = float(heatmap_data['intensityScoreNormalized'])
+
+            result.append({
+                "start_seconds": heatmap_start,
+                "duration": duration,
+                "norm_intensity": norm_intensity
+            })
 
         return result
 
