@@ -408,6 +408,81 @@ class YouTube:
             result.append(pytubefix.Chapter(chapter_data, chapter_end - chapter_start))
 
         return result
+    
+    @property
+    def key_moments(self) -> List[pytubefix.KeyMoment]:
+        """Get a list of :class:`KeyMoment <KeyMoment>`.
+
+        :rtype: List[KeyMoment]
+        """
+        try:
+            mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
+            found = False
+            for mutation in mutations:
+                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get('markerType') == "MARKER_TYPE_TIMESTAMPS":
+                    key_moments_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
+                    found = True
+                    break
+
+            if not found:
+                return []
+        except (KeyError, IndexError):
+            return []
+
+        result: List[pytubefix.KeyMoment] = []
+
+        for i, key_moment_data in enumerate(key_moments_data):
+            key_moment_start = int(
+                int(key_moment_data['startMillis']) / 1000
+            )
+
+            if i == len(key_moments_data) - 1:
+                key_moment_end = self.length
+            else:
+                key_moment_end = int(
+                    int(key_moments_data[i + 1]['startMillis']) / 1000
+                )
+
+            result.append(pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start))
+
+        return result
+    
+    @property
+    def replayed_heatmap(self) -> List[Dict[str, float]]:
+        """Get a list of : `Dict<str, float>`.
+
+        :rtype: List[Dict[str, float]]
+        """
+        try:
+            mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
+            found = False
+            for mutation in mutations:
+                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get('markerType') == "MARKER_TYPE_HEATMAP":
+                    heatmaps_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
+                    found = True
+                    break
+
+            if not found:
+                return []
+        except (KeyError, IndexError):
+            return []
+
+        result: List[Dict[str, float]] = []
+
+        for i, heatmap_data in enumerate(heatmaps_data):
+            heatmap_start = int(heatmap_data['startMillis']) / 1000
+            duration = int(heatmap_data['durationMillis']) / 1000
+
+
+            norm_intensity = float(heatmap_data['intensityScoreNormalized'])
+
+            result.append({
+                "start_seconds": heatmap_start,
+                "duration": duration,
+                "norm_intensity": norm_intensity
+            })
+
+        return result
 
     @property
     def streams(self) -> StreamQuery:

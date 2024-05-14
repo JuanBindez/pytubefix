@@ -13,6 +13,7 @@ from pytubefix.version import __version__
 from pytubefix.streams import Stream
 from pytubefix.captions import Caption
 from pytubefix.chapters import Chapter
+from pytubefix.keymoments import KeyMoment
 from pytubefix.query import CaptionQuery, StreamQuery
 from pytubefix.__main__ import YouTube
 from pytubefix.contrib.playlist import Playlist

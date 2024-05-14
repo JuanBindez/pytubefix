@@ -13,6 +13,22 @@ YouTube Object
    :members:
    :inherited-members:
 
+
+KeyMomentsThumbnail Object
+--------------------------
+
+.. autoclass:: pytubefix.KeyMomentsThumbnail
+   :members:
+   :inherited-members:
+
+KeyMoments Object
+-----------------
+
+.. autoclass:: pytubefix.KeyMoments
+   :members:
+   :inherited-members:
+
+
 Playlist Object
 ---------------
 

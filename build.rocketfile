@@ -1,7 +1,7 @@
 git add .
-git commit -m 'update'
+git commit -m 'update rc3 5.5 ->  Add support for extracting key moments #79 '
 git push -u origin dev
-git tag v5.4.2
+git tag v5.5-rc3
 git push --tag
 make clean
 make upload
