@@ -240,7 +240,7 @@ _default_clients = {
         'require_js_player': False
     },
     'MWEB': {
-        'inertube_context': {
+        'innertube_context': {
             'context': {
                 'client': {
                     'clientName': 'MWEB',
