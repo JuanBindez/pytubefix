@@ -363,8 +363,11 @@ class YouTube:
 
         :rtype: List[Caption]
         """
+
+        innertube_response = InnerTube(client='WEB').player(self.video_id)
+
         raw_tracks = (
-            self.vid_info.get("captions", {})
+            innertube_response.get("captions", {})
             .get("playerCaptionsTracklistRenderer", {})
             .get("captionTracks", [])
         )
