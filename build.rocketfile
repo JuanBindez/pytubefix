@@ -1,6 +1,6 @@
 git add .
 git commit -m 'pytubefix update'
-git push -u origin main
+git push -u origin dev
 git tag v5.6-rc1
 git push --tag
 make clean
