@@ -1,7 +1,0 @@
-git add .
-git commit -m 'pytubefix update'
-git push -u origin dev
-git tag v5.6-rc2
-git push --tag
-make clean
-make upload

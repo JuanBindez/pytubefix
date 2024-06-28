@@ -84,6 +84,10 @@ class Stream:
         self.resolution = itag_profile[
             "resolution"
         ]  # resolution (e.g.: "480p")
+        if 'width' in stream:
+            self.width = stream["width"]
+        if 'height' in stream:
+            self.width = stream["height"]
         self.is_3d = itag_profile["is_3d"]
         self.is_hdr = itag_profile["is_hdr"]
         self.is_live = itag_profile["is_live"]
