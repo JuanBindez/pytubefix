@@ -110,8 +110,9 @@ def get_throttling_function_name(js: str) -> str:
         # https://github.com/yt-dlp/yt-dlp/pull/10390/files
         # In this example we can find the name of the function at index "0" of "IRa"
         # a.D && (b = String.fromCharCode(110), c = a.get(b)) && (c = IRa[0](c), a.set(b,c), IRa.length || Ima(""))
-        r'(?:\.get\(\"n\"\)\)&&\(b=|b=String\.fromCharCode\(\d+\),c=a\.get\(b\)\)&&\(c=)([a-zA-Z0-9$]+)(?:\[('
-        r'\d+)\])?\([a-zA-Z0-9]\)'
+        r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&.*?\|\|\s*([a-z]+)',
+        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
+        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)',
     ]
     logger.debug('Finding throttling function name')
     for pattern in function_patterns:
