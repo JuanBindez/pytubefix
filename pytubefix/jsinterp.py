@@ -874,9 +874,11 @@ class JSInterpreter:
                     raise self.Exception(f'{member} {msg}', expr)
 
             def eval_method():
+                nonlocal member
                 types = {
                     'String': str,
                     'Math': float,
+                    'Array': list,
                 }
                 obj = local_vars.get(variable, types.get(variable, NO_DEFAULT))
                 if obj is NO_DEFAULT:
@@ -899,6 +901,22 @@ class JSInterpreter:
                 argvals = [
                     self.interpret_expression(v, local_vars, allow_recursion)
                     for v in self._separate(arg_str)]
+
+                # Fixup prototype call
+                # https://github.com/yt-dlp/yt-dlp/commit/6c056ea7aeb03660281653a9668547f2548f194f
+                if isinstance(obj, type) and member.startswith('prototype.'):
+                    new_member, _, func_prototype = member.partition('.')[2].partition('.')
+                    assertion(argvals, 'takes one or more arguments')
+                    assertion(isinstance(argvals[0], obj), f'needs binding to type {obj}')
+                    if func_prototype == 'call':
+                        obj, *argvals = argvals
+                    elif func_prototype == 'apply':
+                        assertion(len(argvals) == 2, 'takes two arguments')
+                        obj, argvals = argvals
+                        assertion(isinstance(argvals, list), 'second argument needs to be a list')
+                    else:
+                        raise self.Exception(f'Unsupported Function method {func_prototype}', expr)
+                    member = new_member
 
                 if obj == str:
                     if member == 'fromCharCode':

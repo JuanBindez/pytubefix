@@ -204,18 +204,6 @@ class YouTube:
             video_id = self.vid_info['videoDetails']['videoId']
 
             if video_id in invalid_id_list:
-                logger.warning(
-                    f'The {self.client} client did not get a valid response, trying to use the WEB client.'
-                )
-                logger.warning(
-                    f'Video ID: {video_id}'
-                )
-                logger.warning(
-                    'Please open an issue at '
-                    'https://github.com/JuanBindez/pytubefix/issues '
-                    'and provide this log output.'
-                )
-
                 self.try_another_client()
         else:
             self.try_another_client()
@@ -338,6 +326,19 @@ class YouTube:
         but it is no longer effective.
 
         """
+
+        logger.warning(
+            f'The {self.client} client did not get a valid response, trying to use the WEB client.'
+        )
+        logger.warning(
+            f'Video ID: {self.video_id}'
+        )
+        logger.warning(
+            'Please open an issue at '
+            'https://github.com/JuanBindez/pytubefix/issues '
+            'and provide this log output.'
+        )
+
         innertube = InnerTube(
             client='WEB',
             use_oauth=self.use_oauth,

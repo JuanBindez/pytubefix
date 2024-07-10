@@ -186,13 +186,12 @@ class Channel(Playlist):
         return (
             (
                 # was changed to this format (and post requests)
-                # between 2022.11.06 and 2022.11.20
-                "https://www.youtube.com/youtubei/v1/browse?key="
-                f"{self.yt_api_key}"
+                # around the day 2024.04.16
+                "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
             ),
             {
                 "X-YouTube-Client-Name": "1",
-                "X-YouTube-Client-Version": "2.20200720.00.02",
+                "X-YouTube-Client-Version": "2.20240530.02.00",
             },
             # extra data required for post request
             {
@@ -201,7 +200,10 @@ class Channel(Playlist):
                     "client": {
                         "clientName": "WEB",
                         "visitorData": self._visitor_data,
-                        "clientVersion": "2.20200720.00.02"
+                        "osName": "Windows",
+                        "osVersion": "10.0",
+                        "clientVersion": "2.20240530.02.00",
+                        "platform": "DESKTOP"
                     }
                 }
             }
