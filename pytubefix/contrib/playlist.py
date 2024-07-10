@@ -175,13 +175,12 @@ class Playlist(Sequence):
         return (
             (
                 # was changed to this format (and post requests)
-                # between 2021.03.02 and 2021.03.03
-                "https://www.youtube.com/youtubei/v1/browse?key="
-                f"{self.yt_api_key}"
+                # around the day 2024.04.16
+                "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
             ),
             {
                 "X-YouTube-Client-Name": "1",
-                "X-YouTube-Client-Version": "2.20200720.00.02",
+                "X-YouTube-Client-Version": "2.20240530.02.00",
             },
             # extra data required for post request
             {
@@ -189,7 +188,10 @@ class Playlist(Sequence):
                 "context": {
                     "client": {
                         "clientName": "WEB",
-                        "clientVersion": "2.20200720.00.02"
+                        "osName": "Windows",
+                        "osVersion": "10.0",
+                        "clientVersion": "2.20240530.02.00",
+                        "platform": "DESKTOP"
                     }
                 }
             }
