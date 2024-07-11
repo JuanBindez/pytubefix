@@ -488,9 +488,9 @@ class InnerTube:
 
     def _call_api(self, endpoint, query, data):
         """Make a request to a given endpoint with the provided query parameters and data."""
-        # Remove the API key if oauth is being used.
-        if self.use_oauth:
-            del query['key']
+        # When YouTube used an API key, it was necessary to remove it when using oauth
+        # if self.use_oauth:
+        #     del query['key']
 
         endpoint_url = f'{endpoint}?{parse.urlencode(query)}'
         headers = {
