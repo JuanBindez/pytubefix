@@ -48,7 +48,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '2.20240709.01.00'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'True'
+            'require_js_player': True
         },
 
         'WEB_EMBED': {
@@ -69,7 +69,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '2.20240530.02.00'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'True'
+            'require_js_player': True
         },
 
         'WEB_MUSIC': {
@@ -87,7 +87,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '1.20240403.01.00'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'True'
+            'require_js_player': True
         },
 
         'WEB_CREATOR': {
@@ -105,7 +105,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '1.20220726.00.00'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'True'
+            'require_js_player': True
         },
 
         'MWEB': {
@@ -123,7 +123,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '2.20240304.08.00'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'True'
+            'require_js_player': True
         },
 
         'ANDROID': {
@@ -146,7 +146,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '19.21.37'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'ANDROID_EMBED': {
@@ -166,7 +166,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '19.13.36'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'ANDROID_MUSIC': {
@@ -185,7 +185,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '6.40.52'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'ANDROID_CREATOR': {
@@ -204,7 +204,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '22.30.100'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'ANDROID_TESTSUITE': {
@@ -226,7 +226,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '1.9'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'IOS': {
@@ -249,7 +249,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '19.14.3'
             },
             'api_key': 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'IOS_EMBED': {
@@ -272,7 +272,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '19.16.3'
             },
             'api_key': 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'IOS_MUSIC': {
@@ -295,7 +295,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '6.42'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'IOS_CREATOR': {
@@ -314,7 +314,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '22.33.101'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'False'
+            'require_js_player': False
         },
 
         'TV_EMBED': {
@@ -334,7 +334,7 @@ _default_clients = {
                 'X-Youtube-Client-Version': '2.0'
             },
             'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-            'require_js_player': 'True'
+            'require_js_player': True
         }
 }
 _token_timeout = 1800
