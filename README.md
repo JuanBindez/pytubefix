@@ -7,7 +7,7 @@
 <a href="https://pypi.org/project/pytubefix/"><img src="https://img.shields.io/pypi/v/pytubefix" /></a>
 
 
-## A pytube fork with additional features and fixes.
+## Python3 library for downloading YouTube Videos.
 
 ----------
 ## install
