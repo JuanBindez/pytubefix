@@ -600,8 +600,10 @@ class InnerTube:
         endpoint = f'{self.base_url}/verify_age'
         data = {
             'nextEndpoint': {
-                'urlEndpoint': {
-                    'url': f'/watch?v={video_id}'
+                'watchEndpoint': {
+                    'racyCheckOk': True,
+                    'contentCheckOk': True,
+                    'videoId': video_id
                 }
             },
             'setControvercy': True
