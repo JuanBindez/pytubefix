@@ -69,6 +69,35 @@ class AgeRestrictedError(VideoUnavailable):
         return f"{c.RED}Video ID = {self.video_id}: is age restricted, and can't be accessed without logging in.{c.RESET}"
 
 
+class AgeCheckRequiredError(VideoUnavailable):
+    def __init__(self, video_id: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        """
+        self.video_id = video_id
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f"{c.RED}Video ID = {self.video_id}: it has age restrictions and cannot be accessed without confirmation.{c.RESET}"
+
+
+class AgeCheckRequiredAccountError(VideoUnavailable):
+    def __init__(self, video_id: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        """
+        self.video_id = video_id
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return (f"{c.RED}Video ID = {self.video_id}: Sorry, something is wrong. This video may be inappropriate for "
+                f"some users. Sign in to your primary account to confirm your age.{c.RESET}")
+
+
 class LiveStreamError(VideoUnavailable):
     """Video is a live stream."""
     def __init__(self, video_id: str):

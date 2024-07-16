@@ -257,7 +257,7 @@ class YouTube:
         Raises different exceptions based on why the video is unavailable,
         otherwise does nothing.
         """
-        status, messages = extract.playability_status(self.watch_html)
+        status, messages = extract.playability_status(self.vid_info)
 
         for reason in messages:
             if status == 'UNPLAYABLE':
@@ -266,20 +266,32 @@ class YouTube:
                         'like this video, and other exclusive perks.'
                 ):
                     raise exceptions.MembersOnly(video_id=self.video_id)
+
                 elif reason == 'This live stream recording is not available.':
                     raise exceptions.RecordingUnavailable(video_id=self.video_id)
+
+                elif reason == (
+                        'Sorry, something is wrong. This video may be inappropriate for some users. '
+                        'Sign in to your primary account to confirm your age.'
+                ):
+                    raise exceptions.AgeCheckRequiredAccountError(video_id=self.video_id)
                 else:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
+
             elif status == 'LOGIN_REQUIRED':
                 if reason == (
-                        'This is a private video. '
-                        'Please sign in to verify that you may see it.'
-                ):
-                    raise exceptions.VideoPrivate(video_id=self.video_id)
-                elif reason == (
                         'Sign in to confirm your age'
                 ):
                     raise exceptions.AgeRestrictedError(video_id=self.video_id)
+                else:
+                    raise exceptions.VideoPrivate(video_id=self.video_id)
+
+            elif status == 'AGE_CHECK_REQUIRED':
+                if self.use_oauth:
+                    self.age_check()
+                else:
+                    raise exceptions.AgeCheckRequiredError(video_id=self.video_id)
+
             elif status == 'ERROR':
                 if reason == 'Video unavailable':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
@@ -320,6 +332,36 @@ class YouTube:
         innertube_response = innertube.player(self.video_id)
         self._vid_info = innertube_response
         return self._vid_info
+
+    def age_check(self):
+        """If the video has any age restrictions, you must confirm that you wish to continue.
+
+        Here the WEB client is used to have better stability.
+
+        """
+        innertube = InnerTube(
+            client='WEB',
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache
+        )
+
+        if innertube.require_js_player:
+            innertube.innertube_context.update(self.signature_timestamp)
+
+        innertube.verify_age(self.video_id)
+
+        innertube_response = innertube.player(self.video_id)
+
+        playability_status = innertube_response['playabilityStatus'].get('status', None)
+
+        # If we still can't access the video, raise an exception
+        if playability_status != 'OK':
+            if playability_status == 'UNPLAYABLE':
+                raise exceptions.AgeCheckRequiredAccountError(self.video_id)
+            else:
+                raise exceptions.AgeCheckRequiredError(self.video_id)
+
+        self._vid_info = innertube_response
 
     def try_another_client(self):
         """If the default client does not have streamData, try using another client.
