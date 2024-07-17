@@ -89,7 +89,7 @@ def is_age_restricted(watch_html: str) -> bool:
     return True
 
 
-def playability_status(watch_html: str) -> Tuple[Any, Any]:
+def playability_status(player_response: dict) -> Tuple[Any, Any]:
     """Return the playability status and status explanation of a video.
 
     For example, a video may have a status of LOGIN_REQUIRED, and an explanation
@@ -97,16 +97,20 @@ def playability_status(watch_html: str) -> Tuple[Any, Any]:
 
     This explanation is what gets incorporated into the media player overlay.
 
-    :param str watch_html:
-        The html contents of the watch page.
+    :param str player_response:
+        Content of the player's response.
     :rtype: bool
     :returns:
         Playability status and reason of the video.
     """
-    player_response = initial_player_response(watch_html)
     status_dict = player_response.get('playabilityStatus', {})
     if 'liveStreamability' in status_dict:
         return 'LIVE_STREAM', 'Video is a live stream.'
+
+    # Some clients do not have 'liveStreamability', so we check in videoDetails.
+    if player_response['videoDetails']['isLiveContent']:
+        return 'LIVE_STREAM', 'Video is a live stream.'
+
     if 'status' in status_dict:
         if 'reason' in status_dict:
             return status_dict['status'], [status_dict['reason']]
