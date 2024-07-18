@@ -233,6 +233,9 @@ class YouTube:
                     f'Original client: {original_client}'
                 )
                 logger.warning(
+                    f'Fallback clients: {self.fallback_clients}'
+                )
+                logger.warning(
                     f'Video ID: {self.video_id}'
                 )
                 logger.warning(
