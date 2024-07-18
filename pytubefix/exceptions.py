@@ -140,6 +140,19 @@ class RecordingUnavailable(VideoUnavailable):
     def error_string(self):
         return f'{c.RED}{self.video_id} does not have a live stream recording available{c.RESET}'
 
+class StreamingDataMissing(VideoUnavailable):
+    def __init__(self, video_id: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        """
+        self.video_id = video_id
+        super().__init__(self.video_id)
+    
+    @property
+    def error_string(self):
+        return f'{c.RED}{self.video_id} does not have streaming data{c.RESET}'
+
 
 class MembersOnly(VideoUnavailable):
     """Video is members-only.

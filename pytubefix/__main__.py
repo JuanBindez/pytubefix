@@ -114,6 +114,8 @@ class YouTube:
 
         self.client = client
 
+        self.fallback_clients = ['WEB']
+
         self._signature_timestamp: dict = {}
 
         # Shared between all instances of `Stream` (Borg pattern).
@@ -197,16 +199,48 @@ class YouTube:
     @property
     def streaming_data(self):
         """Return streamingData from video info."""
-        if 'streamingData' in self.vid_info:
 
-            # List of YouTube error video IDs
-            invalid_id_list = ['aQvGIIdgFDM']
-            video_id = self.vid_info['videoDetails']['videoId']
 
-            if video_id in invalid_id_list:
-                self.try_another_client()
-        else:
-            self.try_another_client()
+        # List of YouTube error video IDs
+        invalid_id_list = ['aQvGIIdgFDM']   
+
+        # If my previously valid video_info doesn't have the streamingData,
+        #   or it is an invalid video, 
+        #   try to get a new video_info with a different client.
+        if 'streamingData' not in self.vid_info or self.vid_info['videoDetails']['videoId'] in invalid_id_list:
+            original_client = self.client
+
+            # for each fallback client set, revert videodata, and run check_availability, which     
+            #   will try to get a new video_info with a different client.
+            #   if it fails try the next fallback client, and so on.
+            # If none of the cleints have valid streamingData, raise an exception.
+            for client in self.fallback_clients:
+                self.client = client
+                self.vid_info = None
+                try:
+                    self.check_availability()
+                except Exception as e:
+                    continue
+                if 'streamingData' in self.vid_info:
+                    break
+            if 'streamingData' not in self.vid_info:
+                
+                
+                logger.warning(
+                    f'Streaming data is missing'
+                )
+                logger.warning(
+                    f'Original client: {original_client}'
+                )
+                logger.warning(
+                    f'Video ID: {self.video_id}'
+                )
+                logger.warning(
+                    'Please open an issue at '
+                    'https://github.com/JuanBindez/pytubefix/issues '
+                    'and provide the above log output.'
+                )
+                raise exceptions.StreamingDataMissing(video_id=self.video_id)
 
         return self.vid_info['streamingData']
 
@@ -295,6 +329,27 @@ class YouTube:
             elif status == 'ERROR':
                 if reason == 'Video unavailable':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
+                elif reason == 'This video is private':
+                    raise exceptions.VideoPrivate(video_id=self.video_id)
+                else:
+                    logger.warning(
+                        f'Encountered unknown availibity error.'
+                    )
+                    logger.warning(
+                        f'Video ID: {self.video_id}'
+                    )
+                    logger.warning(
+                        f'Status: {status}'
+                    )
+                    logger.warning(
+                        f'Reason: {reason}'
+                    )
+                    logger.warning(
+                        'Please open an issue at '
+                        'https://github.com/JuanBindez/pytubefix/issues '
+                        'and provide the above log output.'
+                    )
+                    raise exceptions.VideoUnavailable(video_id=self.video_id)
             elif status == 'LIVE_STREAM':
                 raise exceptions.LiveStreamError(video_id=self.video_id)
 
@@ -360,47 +415,6 @@ class YouTube:
                 raise exceptions.AgeCheckRequiredAccountError(self.video_id)
             else:
                 raise exceptions.AgeCheckRequiredError(self.video_id)
-
-        self._vid_info = innertube_response
-
-    def try_another_client(self):
-        """If the default client does not have streamData, try using another client.
-
-        We use the WEB client, as it is the most stable so far.
-
-        Previously, this function was used to bypass age gate by trying to use EMBED clients,
-        but it is no longer effective.
-
-        """
-
-        logger.warning(
-            f'The {self.client} client did not get a valid response, trying to use the WEB client.'
-        )
-        logger.warning(
-            f'Video ID: {self.video_id}'
-        )
-        logger.warning(
-            'Please open an issue at '
-            'https://github.com/JuanBindez/pytubefix/issues '
-            'and provide this log output.'
-        )
-
-        innertube = InnerTube(
-            client='WEB',
-            use_oauth=self.use_oauth,
-            allow_cache=self.allow_oauth_cache
-        )
-
-        if innertube.require_js_player:
-            innertube.innertube_context.update(self.signature_timestamp)
-
-        innertube_response = innertube.player(self.video_id)
-
-        playability_status = innertube_response['playabilityStatus'].get('status', None)
-
-        # If we still can't access the video, raise an exception
-        if playability_status == 'UNPLAYABLE':
-            raise exceptions.VideoUnavailable(self.video_id)
 
         self._vid_info = innertube_response
 
