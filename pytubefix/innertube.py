@@ -344,7 +344,7 @@ _token_file = os.path.join(_cache_dir, 'tokens.json')
 
 class InnerTube:
     """Object for interacting with the innertube API."""
-    def __init__(self, client='ANDROID_TESTSUITE', use_oauth=False, allow_cache=True):
+    def __init__(self, client='ANDROID_TESTSUITE', use_oauth=False, allow_cache=True, token_file=None):
         """Initialize an InnerTube object.
 
         :param str client:
@@ -369,8 +369,9 @@ class InnerTube:
         self.expires = None
 
         # Try to load from file if specified
-        if self.use_oauth and self.allow_cache and os.path.exists(_token_file):
-            with open(_token_file) as f:
+        self.token_file = token_file or _token_file
+        if self.use_oauth and self.allow_cache and os.path.exists(token_file):
+            with open(self.token_file) as f:
                 data = json.load(f)
                 self.access_token = data['access_token']
                 self.refresh_token = data['refresh_token']
@@ -389,7 +390,7 @@ class InnerTube:
         }
         if not os.path.exists(_cache_dir):
             os.mkdir(_cache_dir)
-        with open(_token_file, 'w') as f:
+        with open(self.token_file, 'w') as f:
             json.dump(data, f)
 
     def refresh_bearer_token(self, force=False):

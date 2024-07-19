@@ -56,7 +56,8 @@ class YouTube:
             on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
-            allow_oauth_cache: bool = True
+            allow_oauth_cache: bool = True,
+            token_file: str | None = None,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
@@ -83,6 +84,9 @@ class YouTube:
         :param bool allow_oauth_cache:
             (Optional) Cache OAuth tokens locally on the machine. Defaults to True.
             These tokens are only generated if use_oauth is set to True as well.
+        :param str token_file:
+            (Optional) Path to the file where the OAuth tokens will be stored.
+            Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
         """
         # js fetched by js_url
         self._js: Optional[str] = None
@@ -132,6 +136,7 @@ class YouTube:
 
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
+        self.token_file = token_file
 
     def __repr__(self):
         return f'<pytubefix.__main__.YouTube object: videoId={self.video_id}>'
@@ -200,17 +205,16 @@ class YouTube:
     def streaming_data(self):
         """Return streamingData from video info."""
 
-
         # List of YouTube error video IDs
-        invalid_id_list = ['aQvGIIdgFDM']   
+        invalid_id_list = ['aQvGIIdgFDM']
 
         # If my previously valid video_info doesn't have the streamingData,
-        #   or it is an invalid video, 
+        #   or it is an invalid video,
         #   try to get a new video_info with a different client.
         if 'streamingData' not in self.vid_info or self.vid_info['videoDetails']['videoId'] in invalid_id_list:
             original_client = self.client
 
-            # for each fallback client set, revert videodata, and run check_availability, which     
+            # for each fallback client set, revert videodata, and run check_availability, which
             #   will try to get a new video_info with a different client.
             #   if it fails try the next fallback client, and so on.
             # If none of the cleints have valid streamingData, raise an exception.
@@ -224,8 +228,6 @@ class YouTube:
                 if 'streamingData' in self.vid_info:
                     break
             if 'streamingData' not in self.vid_info:
-                
-                
                 logger.warning(
                     f'Streaming data is missing'
                 )
@@ -387,7 +389,12 @@ class YouTube:
         if self._vid_info:
             return self._vid_info
 
-        innertube = InnerTube(client=self.client, use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache)
+        innertube = InnerTube(
+            client=self.client,
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache,
+            token_file=self.token_file,
+        )
         if innertube.require_js_player:
             innertube.innertube_context.update(self.signature_timestamp)
 
@@ -404,7 +411,8 @@ class YouTube:
         innertube = InnerTube(
             client='WEB',
             use_oauth=self.use_oauth,
-            allow_cache=self.allow_oauth_cache
+            allow_cache=self.allow_oauth_cache,
+            token_file=self.token_file,
         )
 
         if innertube.require_js_player:
@@ -479,7 +487,7 @@ class YouTube:
             result.append(pytubefix.Chapter(chapter_data, chapter_end - chapter_start))
 
         return result
-    
+
     @property
     def key_moments(self) -> List[pytubefix.KeyMoment]:
         """Get a list of :class:`KeyMoment <KeyMoment>`.
@@ -490,7 +498,8 @@ class YouTube:
             mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
             found = False
             for mutation in mutations:
-                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get('markerType') == "MARKER_TYPE_TIMESTAMPS":
+                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get(
+                        'markerType') == "MARKER_TYPE_TIMESTAMPS":
                     key_moments_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
                     found = True
                     break
@@ -517,7 +526,7 @@ class YouTube:
             result.append(pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start))
 
         return result
-    
+
     @property
     def replayed_heatmap(self) -> List[Dict[str, float]]:
         """Get a list of : `Dict<str, float>`.
@@ -528,7 +537,8 @@ class YouTube:
             mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
             found = False
             for mutation in mutations:
-                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get('markerType') == "MARKER_TYPE_HEATMAP":
+                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get(
+                        'markerType') == "MARKER_TYPE_HEATMAP":
                     heatmaps_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
                     found = True
                     break
@@ -543,7 +553,6 @@ class YouTube:
         for i, heatmap_data in enumerate(heatmaps_data):
             heatmap_start = int(heatmap_data['startMillis']) / 1000
             duration = int(heatmap_data['durationMillis']) / 1000
-
 
             norm_intensity = float(heatmap_data['intensityScoreNormalized'])
 
@@ -608,13 +617,13 @@ class YouTube:
         )
 
         translation_table = str.maketrans({
-                '/': '',
-                ':': '',
-                '*': '',
-                '"': '',
-                '<': '',
-                '>': '',
-                '|': '',
+            '/': '',
+            ':': '',
+            '*': '',
+            '"': '',
+            '<': '',
+            '>': '',
+            '|': '',
         })
 
         if self._title:
