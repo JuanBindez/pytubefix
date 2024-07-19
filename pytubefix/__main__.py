@@ -228,24 +228,7 @@ class YouTube:
                 if 'streamingData' in self.vid_info:
                     break
             if 'streamingData' not in self.vid_info:
-                logger.warning(
-                    f'Streaming data is missing'
-                )
-                logger.warning(
-                    f'Original client: {original_client}'
-                )
-                logger.warning(
-                    f'Fallback clients: {self.fallback_clients}'
-                )
-                logger.warning(
-                    f'Video ID: {self.video_id}'
-                )
-                logger.warning(
-                    'Please open an issue at '
-                    'https://github.com/JuanBindez/pytubefix/issues '
-                    'and provide the above log output.'
-                )
-                raise exceptions.StreamingDataMissing(video_id=self.video_id)
+                raise exceptions.UnknownVideoError(video_id=self.video_id,developer_message=f'Streaming data is missing, original client: {original_client}, fallback clients: {self.fallback_clients}')
 
         return self.vid_info['streamingData']
 
@@ -323,7 +306,7 @@ class YouTube:
                 ):
                     raise exceptions.AgeRestrictedError(video_id=self.video_id)
                 else:
-                    raise exceptions.VideoPrivate(video_id=self.video_id)
+                    raise exceptions.LoginRequired(video_id=self.video_id)
 
             elif status == 'AGE_CHECK_REQUIRED':
                 if self.use_oauth:
@@ -338,29 +321,18 @@ class YouTube:
                     raise exceptions.VideoPrivate(video_id=self.video_id)
                 elif reason == 'This video is unavailable':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
-                elif reason == 'This video is no longer available because the YouTube account associated with this video has been terminated.':
-                    raise exceptions.VideoOwnerDeleted(video_id=self.video_id)
-                else:
-                    logger.warning(
-                        f'Encountered unknown availibity error.'
-                    )
-                    logger.warning(
-                        f'Video ID: {self.video_id}'
-                    )
-                    logger.warning(
-                        f'Status: {status}'
-                    )
-                    logger.warning(
-                        f'Reason: {reason}'
-                    )
-                    logger.warning(
-                        'Please open an issue at '
-                        'https://github.com/JuanBindez/pytubefix/issues '
-                        'and provide the above log output.'
-                    )
+                elif reason == 'This video has been removed by the uploader':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
+                elif reason == 'This video is no longer available because the YouTube account associated with this video has been terminated.':
+                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                else:
+                    raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown reason type for Error status')
             elif status == 'LIVE_STREAM':
                 raise exceptions.LiveStreamError(video_id=self.video_id)
+            elif status == None:
+                pass
+            else:
+                raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown video status')
 
     @property
     def signature_timestamp(self) -> dict:
