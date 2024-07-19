@@ -370,7 +370,7 @@ class InnerTube:
 
         # Try to load from file if specified
         self.token_file = token_file or _token_file
-        if self.use_oauth and self.allow_cache and os.path.exists(token_file):
+        if self.use_oauth and self.allow_cache and os.path.exists(self.token_file):
             with open(self.token_file) as f:
                 data = json.load(f)
                 self.access_token = data['access_token']
