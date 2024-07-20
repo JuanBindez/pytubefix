@@ -247,17 +247,18 @@ class YouTube:
 
         stream_manifest = extract.apply_descrambler(self.streaming_data)
 
-        # If the cached js doesn't work, try fetching a new js file
-        # https://github.com/pytube/pytube/issues/1054
-        try:
-            extract.apply_signature(stream_manifest, self.vid_info, self.js)
-        except exceptions.ExtractError:
-            # To force an update to the js file, we clear the cache and retry
-            self._js = None
-            self._js_url = None
-            pytubefix.__js__ = None
-            pytubefix.__js_url__ = None
-            extract.apply_signature(stream_manifest, self.vid_info, self.js)
+        if InnerTube(self.client).require_js_player:
+            # If the cached js doesn't work, try fetching a new js file
+            # https://github.com/pytube/pytube/issues/1054
+            try:
+                extract.apply_signature(stream_manifest, self.vid_info, self.js)
+            except exceptions.ExtractError:
+                # To force an update to the js file, we clear the cache and retry
+                self._js = None
+                self._js_url = None
+                pytubefix.__js__ = None
+                pytubefix.__js_url__ = None
+                extract.apply_signature(stream_manifest, self.vid_info, self.js)
 
         # build instances of :class:`Stream <Stream>`
         # Initialize stream objects
@@ -378,10 +379,11 @@ class YouTube:
         """If the video has any age restrictions, you must confirm that you wish to continue.
 
         Here the WEB client is used to have better stability.
-
         """
+
+        self.client = 'WEB'
         innertube = InnerTube(
-            client='WEB',
+            client=self.client,
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
