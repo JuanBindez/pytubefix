@@ -395,15 +395,17 @@ def _ffmpeg_downloader(audio_stream: Stream,
         "audio",
         target=target,
     )
-    _download(stream=video_stream, target=target, filename=video_unique_name)
+    video_filename = f"{video_unique_name}.{video_stream.subtype}"
+    _download(stream=video_stream, target=target, filename=video_filename)
     print("Loading audio...")
-    _download(stream=audio_stream, target=target, filename=audio_unique_name)
+    audio_filename = f"{audio_unique_name}.{audio_stream.subtype}"
+    _download(stream=audio_stream, target=target, filename=audio_filename)
 
     video_path = os.path.join(
-        target, f"{video_unique_name}.{video_stream.subtype}"
+        target, video_filename
     )
     audio_path = os.path.join(
-        target, f"{audio_unique_name}.{audio_stream.subtype}"
+        target, audio_filename
     )
     final_path = os.path.join(
         target, f"{safe_filename(video_stream.title)}.{video_stream.subtype}"
