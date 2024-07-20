@@ -1,9 +1,9 @@
 #!/bin/bash
 
 git add .
-git commit -m 'cli -> dev -> v6.4-rc3'
-git push -u origin dev
-git tag v6.4-rc3
+git commit -m 'pytubefix 6.4.2 -> #120 #121'
+git push -u origin main
+git tag v6.4.2
 git push --tag
 make clean
 make upload
