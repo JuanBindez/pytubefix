@@ -57,7 +57,7 @@ class YouTube:
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
-            token_file: str | None = None,
+            token_file: Optional[str] = None,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
