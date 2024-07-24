@@ -438,9 +438,13 @@ class YouTube:
         :rtype: List[Chapter]
         """
         try:
-            chapters_data = self.initial_data['playerOverlays']['playerOverlayRenderer'][
+            markers_map = self.initial_data['playerOverlays']['playerOverlayRenderer'][
                 'decoratedPlayerBarRenderer']['decoratedPlayerBarRenderer']['playerBar'][
-                'multiMarkersPlayerBarRenderer']['markersMap'][0]['value']['chapters']
+                'multiMarkersPlayerBarRenderer']['markersMap']
+            for marker in markers_map:
+                if marker['key'].upper() == 'DESCRIPTION_CHAPTERS':
+                    chapters_data = marker['value']['chapters']
+                    break
         except (KeyError, IndexError):
             return []
 
