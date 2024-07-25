@@ -110,8 +110,17 @@ def get_throttling_function_name(js: str) -> str:
         # https://github.com/yt-dlp/yt-dlp/pull/10390/files
         # In this example we can find the name of the function at index "0" of "IRa"
         # a.D && (b = String.fromCharCode(110), c = a.get(b)) && (c = IRa[0](c), a.set(b,c), IRa.length || Ima(""))
-        r'(?:\.get\(\"n\"\)\)&&\(b=|b=String\.fromCharCode\(\d+\),c=a\.get\(b\)\)&&\(c=)([a-zA-Z0-9$]+)(?:\[('
-        r'\d+)\])?\([a-zA-Z0-9]\)'
+        # r'(?:\.get\(\"n\"\)\)&&\(b=|b=String\.fromCharCode\(\d+\),c=a\.get\(b\)\)&&\(c=)([a-zA-Z0-9$]+)(?:\[('r'\d+)\])?\([a-zA-Z0-9]\)'
+
+        # New pattern added on July 23, 2024
+        # https://github.com/yt-dlp/yt-dlp/pull/10542
+        # a.D&&(b="nn"[+a.D],c=a.get(b))&&(c=rDa[0](c),a.set(b,c),rDa.length||rma(""))
+        r'(?:\.get\("n"\)\)&&\(b=|'
+        r'(?:b=String\.fromCharCode\(110\)|'
+        r'([a-zA-Z0-9$.]+)&&\(b="nn"\[\+\1\]'
+        r'),c=a\.get\('
+        r'b\)\)&&\(c=)'
+        r'(?P<nfunc>[a-zA-Z0-9$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z0-9]\)'
     ]
     logger.debug('Finding throttling function name')
     for pattern in function_patterns:
@@ -121,12 +130,12 @@ def get_throttling_function_name(js: str) -> str:
             logger.debug("finished regex search, matched: %s", pattern)
             if len(function_match.groups()) == 1:
                 return function_match.group(1)
-            idx = function_match.group(2)
+            idx = function_match.group('idx')
             if idx:
                 idx = idx.strip("[]")
                 array = re.search(
                     r'var {nfunc}\s*=\s*(\[.+?\]);'.format(
-                        nfunc=re.escape(function_match.group(1))),
+                        nfunc=re.escape(function_match.group('nfunc'))),
                     js
                 )
                 if array:
