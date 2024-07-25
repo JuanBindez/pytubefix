@@ -456,15 +456,32 @@ class Channel(Playlist):
         self.html_url = self.channel_url
         return self.initial_data['metadata']['channelMetadataRenderer']['description']
 
+    def find_videos_info(self, data):
+        """Recursively search for 'videos' in the text content of the JSON."""
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if key == 'content' and isinstance(value, str) and 'videos' in value:
+                    return value
+                if isinstance(value, (dict, list)):
+                    result = self.find_videos_info(value)
+                    if result:
+                        return result
+        elif isinstance(data, list):
+            for item in data:
+                result = self.find_videos_info(item)
+                if result:
+                    return result
+        return None
+
     @property
     def length(self):
-        """Extracts the approximate amount of videos from the channel.
-
-        :return: Channel videos count
-        :rtype: str
-        """
-        self.html_url = self.channel_url
-        return self.initial_data['header']['c4TabbedHeaderRenderer']['videosCountText']['runs'][0]['text']
+        """Extracts the approximate amount of videos from the channel."""
+        try:
+            result = self.find_videos_info(self.initial_data)
+            return result if result else 'Unknown'
+        except Exception as e:
+            print(f"Exception: {e}")
+            return 'Unknown'
 
     @property
     def last_updated(self) -> str:
