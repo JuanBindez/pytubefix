@@ -1,9 +1,9 @@
 #!/bin/bash
 
 git add .
-git commit -m 'merge Alfa -> Release_Candidate'
-git push -u origin Release_Candidate
-git tag v6.5.3-rc1
+git commit -m ' Pytubefix 6.5.3 -> (#134) '
+git push -u origin main
+git tag v6.5.3
 git push --tag
 make clean
 make upload
