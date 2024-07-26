@@ -438,6 +438,7 @@ class YouTube:
         :rtype: List[Chapter]
         """
         try:
+            chapters_data = []
             markers_map = self.initial_data['playerOverlays']['playerOverlayRenderer'][
                 'decoratedPlayerBarRenderer']['decoratedPlayerBarRenderer']['playerBar'][
                 'multiMarkersPlayerBarRenderer']['markersMap']
