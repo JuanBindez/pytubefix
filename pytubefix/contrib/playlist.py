@@ -308,7 +308,11 @@ class Playlist(Sequence):
 
     def videos_generator(self):
         for url in self.video_urls:
-            yield YouTube(url, use_oauth=self.use_oauth, allow_oauth_cache=self.allow_oauth_cache)
+            yield YouTube(
+                url,
+                use_oauth=self.use_oauth,
+                allow_oauth_cache=self.allow_oauth_cache
+            )
 
     @property
     def videos(self) -> Iterable[YouTube]:
