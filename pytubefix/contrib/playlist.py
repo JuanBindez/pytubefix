@@ -14,12 +14,20 @@ logger = logging.getLogger(__name__)
 class Playlist(Sequence):
     """Load a YouTube playlist with URL"""
 
-    def __init__(self, url: str, proxies: Optional[Dict[str, str]] = None):
+    def __init__(
+            self,
+            url: str,
+            proxies: Optional[Dict[str, str]] = None,
+            use_oauth: bool = False,
+            allow_oauth_cache: bool = True,
+        ):
         if proxies:
             install_proxy(proxies)
 
         self._input_url = url
 
+        self.use_oauth = use_oauth
+        self.allow_oauth_cache = allow_oauth_cache
         # These need to be initialized as None for the properties.
         self._html = None
         self._ytcfg = None
@@ -300,7 +308,7 @@ class Playlist(Sequence):
 
     def videos_generator(self):
         for url in self.video_urls:
-            yield YouTube(url)
+            yield YouTube(url, use_oauth=self.use_oauth, allow_oauth_cache=self.allow_oauth_cache)
 
     @property
     def videos(self) -> Iterable[YouTube]:
