@@ -1,9 +1,9 @@
 #!/bin/bash
 
 git add .
-git commit -m 'Pytubefix 6.6.3 -> (#137)'
-git push -u origin main
-git tag v6.6.3
+git commit -m 'merge -> playlist_oauth_feature -> Alfa'
+git push -u origin Alfa
+git tag v6.7-a1
 git push --tag
 make clean
 make upload
