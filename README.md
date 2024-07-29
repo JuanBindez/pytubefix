@@ -14,7 +14,7 @@
 
 Special thanks to our sponsors:
 
-[![Sponsor dvaldivia](https://img.shields.io/badge/sponsor-dvaldivia-blue)](https://github.com/dvaldivia)
+[![Sponsors dvaldivia](https://img.shields.io/badge/sponsors-dvaldivia-blue)](https://github.com/dvaldivia)
 
 ----------
 ## install
