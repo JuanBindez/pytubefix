@@ -46,6 +46,17 @@ class Search:
             self._completion_suggestions = self._initial_results['refinements']
         return self._completion_suggestions
 
+    def _get_results(self):
+        """Search results and filter them
+
+        """
+        results, continuation = self.fetch_and_parse()
+        self._current_continuation = continuation
+        self._results['videos'] = results['videos']
+        self._results['shorts'] = results['shorts']
+        self._results['playlist'] = results['playlist']
+        self._results['channel'] = results['channel']
+
     @property
     def videos(self) -> List[YouTube]:
         """Returns the search result videos.
@@ -58,12 +69,7 @@ class Search:
             A list of YouTube objects.
         """
         if not self._results:
-            results, continuation = self.fetch_and_parse()
-            self._current_continuation = continuation
-            self._results['videos'] = results['videos']
-            self._results['shorts'] = results['shorts']
-            self._results['playlist'] = results['playlist']
-            self._results['channel'] = results['channel']
+            self._get_results()
 
         return [items for items in self._results['videos']]
 
@@ -79,12 +85,7 @@ class Search:
             A list of YouTube objects.
         """
         if not self._results:
-            results, continuation = self.fetch_and_parse()
-            self._current_continuation = continuation
-            self._results['videos'] = results['videos']
-            self._results['shorts'] = results['shorts']
-            self._results['playlist'] = results['playlist']
-            self._results['channel'] = results['channel']
+            self._get_results()
 
         return [items for items in self._results['shorts']]
 
@@ -100,12 +101,7 @@ class Search:
             A list of Playlist objects.
         """
         if not self._results:
-            results, continuation = self.fetch_and_parse()
-            self._current_continuation = continuation
-            self._results['videos'] = results['videos']
-            self._results['shorts'] = results['shorts']
-            self._results['playlist'] = results['playlist']
-            self._results['channel'] = results['channel']
+            self._get_results()
 
         return [items for items in self._results['playlist']]
 
@@ -121,12 +117,7 @@ class Search:
             A list of Channel objects.
         """
         if not self._results:
-            results, continuation = self.fetch_and_parse()
-            self._current_continuation = continuation
-            self._results['videos'] = results['videos']
-            self._results['shorts'] = results['shorts']
-            self._results['playlist'] = results['playlist']
-            self._results['channel'] = results['channel']
+            self._get_results()
 
         return [items for items in self._results['channel']]
 
@@ -144,13 +135,8 @@ class Search:
         """
         # Remove these comments to get the list of videos, shorts, playlist and channel
 
-        # if not self._results:
-        #     results, continuation = self.fetch_and_parse()
-        #     self._current_continuation = continuation
-        #     self._results['videos'] = results['videos']
-        #     self._results['shorts'] = results['shorts']
-        #     self._results['playlist'] = results['playlist']
-        #     self._results['channel'] = results['channel']
+        #         if not self._results:
+        #             self._get_results()
 
         #  return [items for values in self._results.values() for items in values]
         return self.videos
@@ -168,7 +154,7 @@ class Search:
             self._results['playlist'].extend(results['playlist'])
             self._results['channel'].extend(results['channel'])
         else:
-            raise IndexError
+            self._get_results()
 
     def fetch_and_parse(self, continuation=None):
         """Fetch from the innertube API and parse the results.
