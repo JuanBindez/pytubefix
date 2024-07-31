@@ -413,16 +413,18 @@ def get_ytcfg(html: str) -> str:
     )
 
 
-def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str) -> None:
+def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str) -> None:
     """Apply the decrypted signature to the stream manifest.
 
     :param dict stream_manifest:
         Details of the media streams available.
     :param str js:
         The contents of the base.js asset file.
+    :param str url_js:
+        Full base.js url
 
     """
-    cipher = Cipher(js=js)
+    cipher = Cipher(js=js, js_url=url_js)
     discovered_n = dict()
     for i, stream in enumerate(stream_manifest):
         try:
