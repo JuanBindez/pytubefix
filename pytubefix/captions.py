@@ -112,6 +112,8 @@ class Caption:
                 for s in list(child):
                     if s.tag == 's':
                         caption += f' {s.text}'
+                if not caption:
+                    continue
                 caption = unescape(caption.replace("\n", " ").replace("  ", " "),)
                 try:
                     if "d" in child.attrib:
