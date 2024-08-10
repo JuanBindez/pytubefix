@@ -2,9 +2,11 @@
 from typing import Pattern, Union
 from .colors import Color
 import logging
+
 logger = logging.getLogger(__name__)
 
 c = Color()
+
 
 class PytubeFixError(Exception):
     """Base pytube exception that all others inherit.
@@ -64,6 +66,7 @@ class VideoUnavailable(PytubeFixError):
 
     Call this if you can't group the error by known error type and it is not important to the developer.
     """
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -101,6 +104,7 @@ class MembersOnly(VideoUnavailable):
     subscribed to a content creator.
     ref: https://support.google.com/youtube/answer/7544492?hl=en
     """
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -127,7 +131,8 @@ class VideoRegionBlocked(VideoUnavailable):
     def error_string(self):
         return f'{c.RED}{self.video_id} is not available in your region{c.RESET}'
 
-class LoginRequired(VideoUnavailable):
+
+class BotDetection(VideoUnavailable):
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -135,10 +140,26 @@ class LoginRequired(VideoUnavailable):
         """
         self.video_id = video_id
         super().__init__(self.video_id)
-    
+
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} requires login to view{c.RESET}'
+        return f'{c.RED}{self.video_id} This request has been detected as a bot, please try again or log in to view{c.RESET}'
+
+
+class LoginRequired(VideoUnavailable):
+    def __init__(self, video_id: str, reason: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        """
+        self.video_id = video_id
+        self.reason = reason
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f'{c.RED}{self.video_id} requires login to view, reason: {self.reason}{c.RESET}'
+
 
 # legacy livestream error types still supported
 
@@ -158,6 +179,7 @@ class RecordingUnavailable(VideoUnavailable):
 
 class LiveStreamError(VideoUnavailable):
     """Video is a live stream."""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -175,6 +197,7 @@ class LiveStreamError(VideoUnavailable):
 
 class AgeRestrictedError(VideoUnavailable):
     """Video is age restricted, and cannot be accessed without OAuth."""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -222,7 +245,8 @@ class AgeCheckRequiredAccountError(VideoUnavailable):
 
 class UnknownVideoError(VideoUnavailable):
     """Unknown video error."""
-    def __init__(self, video_id: str, status: str=None, reason: str=None, developer_message: str=None):
+
+    def __init__(self, video_id: str, status: str = None, reason: str = None, developer_message: str = None):
         """
         :param str video_id:
             A YouTube video identifier.

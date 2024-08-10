@@ -217,7 +217,7 @@ class YouTube:
             # for each fallback client set, revert videodata, and run check_availability, which
             #   will try to get a new video_info with a different client.
             #   if it fails try the next fallback client, and so on.
-            # If none of the cleints have valid streamingData, raise an exception.
+            # If none of the clients have valid streamingData, raise an exception.
             for client in self.fallback_clients:
                 self.client = client
                 self.vid_info = None
@@ -228,7 +228,10 @@ class YouTube:
                 if 'streamingData' in self.vid_info:
                     break
             if 'streamingData' not in self.vid_info:
-                raise exceptions.UnknownVideoError(video_id=self.video_id,developer_message=f'Streaming data is missing, original client: {original_client}, fallback clients: {self.fallback_clients}')
+                raise exceptions.UnknownVideoError(video_id=self.video_id,
+                                                   developer_message=f'Streaming data is missing, '
+                                                                     f'original client: {original_client}, '
+                                                                     f'fallback clients: {self.fallback_clients}')
 
         return self.vid_info['streamingData']
 
@@ -306,8 +309,12 @@ class YouTube:
                         'Sign in to confirm your age'
                 ):
                     raise exceptions.AgeRestrictedError(video_id=self.video_id)
+                elif reason == (
+                        'Sign in to confirm you’re not a bot'
+                ):
+                    raise exceptions.BotDetection(video_id=self.video_id)
                 else:
-                    raise exceptions.LoginRequired(video_id=self.video_id)
+                    raise exceptions.LoginRequired(video_id=self.video_id, reason=reason)
 
             elif status == 'AGE_CHECK_REQUIRED':
                 if self.use_oauth:
@@ -374,6 +381,10 @@ class YouTube:
         innertube_response = innertube.player(self.video_id)
         self._vid_info = innertube_response
         return self._vid_info
+
+    @vid_info.setter
+    def vid_info(self, value):
+        self._vid_info = value
 
     def age_check(self):
         """If the video has any age restrictions, you must confirm that you wish to continue.
