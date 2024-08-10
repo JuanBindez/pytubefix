@@ -436,14 +436,16 @@ class YouTube:
         :rtype: List[Caption]
         """
 
-        innertube_response = InnerTube(client="WEB").player(self.video_id)
+        innertube_response = InnerTube(client="WEB", proxies=self.proxies).player(
+            self.video_id
+        )
 
         raw_tracks = (
             innertube_response.get("captions", {})
             .get("playerCaptionsTracklistRenderer", {})
             .get("captionTracks", [])
         )
-        return [pytubefix.Caption(track) for track in raw_tracks]
+        return [pytubefix.Caption(track, proxies=self.proxies) for track in raw_tracks]
 
     @property
     def captions(self) -> pytubefix.CaptionQuery:

@@ -10,6 +10,7 @@ from urllib import parse
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 import requests
+import time
 
 from pytubefix.exceptions import RegexMatchError, MaxRetriesExceeded
 from pytubefix.helpers import regex_search
@@ -36,7 +37,6 @@ def _execute_request_requests(
     else:
         json_data = None  # Ensure no JSON data is sent with GET requests
         data = None  # Ensure no data is sent with GET requests
-
     response = requests.request(
         method,
         url,
@@ -63,6 +63,7 @@ def _execute_request_urllib(
         request = Request(url, headers=base_headers, method=method, data=data)
     else:
         raise ValueError("Invalid URL")
+
     return urlopen(request, timeout=timeout)  # nosec
 
 
@@ -79,11 +80,11 @@ def get(url, extra_headers=None, proxies=None, timeout=20):
     """
     if extra_headers is None:
         extra_headers = {}
-
-    response_requests_one = _execute_request_requests(
+    response_requests = _execute_request_requests(
         url, method="GET", headers=extra_headers, proxies=proxies, timeout=timeout
     )
-    return response_requests_one.text
+    response_requests_final = response_requests.text
+    return response_requests_final
 
 
 def post(url, extra_headers=None, data=None, proxies=None, timeout=20):

@@ -13,46 +13,47 @@ from pytubefix.helpers import safe_filename, target_directory
 class Caption:
     """Container for caption tracks."""
 
-    def __init__(self, caption_track: Dict):
+    def __init__(self, caption_track: Dict, proxies=None):
         """Construct a :class:`Caption <Caption>`.
 
         :param dict caption_track:
             Caption track data extracted from ``watch_html``.
         """
         self.url = caption_track.get("baseUrl")
+        self.proxies = proxies
 
         # Certain videos have runs instead of simpleText
         #  this handles that edge case
-        name_dict = caption_track['name']
-        if 'simpleText' in name_dict:
-            self.name = name_dict['simpleText']
+        name_dict = caption_track["name"]
+        if "simpleText" in name_dict:
+            self.name = name_dict["simpleText"]
         else:
-            for el in name_dict['runs']:
-                if 'text' in el:
-                    self.name = el['text']
+            for el in name_dict["runs"]:
+                if "text" in el:
+                    self.name = el["text"]
 
         # Use "vssId" instead of "languageCode", fix issue #779
         self.code = caption_track["vssId"]
         # Remove preceding '.' for backwards compatibility, e.g.:
         # English -> vssId: .en, languageCode: en
         # English (auto-generated) -> vssId: a.en, languageCode: en
-        self.code = self.code.strip('.')
+        self.code = self.code.strip(".")
 
     @property
     def xml_captions(self) -> str:
         """Download the xml caption tracks."""
-        return request.get(self.url)
+        return request.get(self.url, proxies=self.proxies)
 
     @property
     def json_captions(self) -> dict:
         """Download and parse the json caption tracks."""
-        if 'ftm=' in self.url:
-            json_captions_url = self.url.replace('fmt=srv3', 'fmt=json3')
+        if "ftm=" in self.url:
+            json_captions_url = self.url.replace("fmt=srv3", "fmt=json3")
         else:
-            json_captions_url = self.url + '&fmt=json3'
-        text = request.get(json_captions_url)
+            json_captions_url = self.url + "&fmt=json3"
+        text = request.get(json_captions_url, proxies=self.proxies)
         parsed = json.loads(text)
-        assert parsed['wireMagic'] == 'pb3', 'Unexpected captions format'
+        assert parsed["wireMagic"] == "pb3", "Unexpected captions format"
         return parsed
 
     def generate_srt_captions(self) -> str:
@@ -73,7 +74,7 @@ class Caption:
         """
         srt_captions = self.xml_caption_to_srt(self.xml_captions)
 
-        with open(filename, 'w', encoding='utf-8') as file:
+        with open(filename, "w", encoding="utf-8") as file:
             file.write(srt_captions)
 
     @staticmethod
@@ -102,19 +103,21 @@ class Caption:
 
         i = 0
         for child in list(root.iter(root.tag))[0]:
-            if child.tag == 'p' or child.tag == 'text':
-                caption = ''
+            if child.tag == "p" or child.tag == "text":
+                caption = ""
 
                 # I think it will be faster than `len(list(child)) == 0`
                 if not list(child):
                     # instead of 'continue'
                     caption = child.text
                 for s in list(child):
-                    if s.tag == 's':
-                        caption += f' {s.text}'
+                    if s.tag == "s":
+                        caption += f" {s.text}"
                 if not caption:
                     continue
-                caption = unescape(caption.replace("\n", " ").replace("  ", " "),)
+                caption = unescape(
+                    caption.replace("\n", " ").replace("  ", " "),
+                )
                 try:
                     if "d" in child.attrib:
                         duration = float(child.attrib["d"]) / 1000.0
