@@ -147,3 +147,6 @@ env/
 __cache__/
 
 debug.py
+
+
+.envrc

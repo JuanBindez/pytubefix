@@ -49,15 +49,15 @@ class YouTube:
     """Core developer interface for pytubefix."""
 
     def __init__(
-            self,
-            url: str,
-            client: str = 'ANDROID_TESTSUITE',
-            on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
-            on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
-            proxies: Optional[Dict[str, str]] = None,
-            use_oauth: bool = False,
-            allow_oauth_cache: bool = True,
-            token_file: Optional[str] = None,
+        self,
+        url: str,
+        client: str = "ANDROID_TESTSUITE",
+        on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
+        on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
+        proxies: Optional[Dict[str, str]] = None,
+        use_oauth: bool = False,
+        allow_oauth_cache: bool = True,
+        token_file: Optional[str] = None,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
@@ -118,7 +118,7 @@ class YouTube:
 
         self.client = client
 
-        self.fallback_clients = ['WEB']
+        self.fallback_clients = ["WEB"]
 
         self._signature_timestamp: dict = {}
 
@@ -127,9 +127,6 @@ class YouTube:
             on_progress=on_progress_callback, on_complete=on_complete_callback
         )
 
-        if proxies:
-            install_proxy(proxies)
-
         self._author = None
         self._title = None
         self._publish_date = None
@@ -137,9 +134,10 @@ class YouTube:
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
+        self.proxies = proxies
 
     def __repr__(self):
-        return f'<pytubefix.__main__.YouTube object: videoId={self.video_id}>'
+        return f"<pytubefix.__main__.YouTube object: videoId={self.video_id}>"
 
     def __eq__(self, o: object) -> bool:
         # Compare types and urls, if they're same return true, else return false.
@@ -149,14 +147,14 @@ class YouTube:
     def watch_html(self):
         if self._watch_html:
             return self._watch_html
-        self._watch_html = request.get(url=self.watch_url)
+        self._watch_html = request.get(url=self.watch_url, proxies=self.proxies)
         return self._watch_html
 
     @property
     def embed_html(self):
         if self._embed_html:
             return self._embed_html
-        self._embed_html = request.get(url=self.embed_url)
+        self._embed_html = request.get(url=self.embed_url, proxies=self.proxies)
         return self._embed_html
 
     @property
@@ -186,7 +184,7 @@ class YouTube:
         # If the js_url doesn't match the cached url, fetch the new js and update
         #  the cache; otherwise, load the cache.
         if pytubefix.__js_url__ != self.js_url:
-            self._js = request.get(self.js_url)
+            self._js = request.get(self.js_url, proxies=self.proxies)
             pytubefix.__js__ = self._js
             pytubefix.__js_url__ = self.js_url
         else:
@@ -206,12 +204,15 @@ class YouTube:
         """Return streamingData from video info."""
 
         # List of YouTube error video IDs
-        invalid_id_list = ['aQvGIIdgFDM']
+        invalid_id_list = ["aQvGIIdgFDM"]
 
         # If my previously valid video_info doesn't have the streamingData,
         #   or it is an invalid video,
         #   try to get a new video_info with a different client.
-        if 'streamingData' not in self.vid_info or self.vid_info['videoDetails']['videoId'] in invalid_id_list:
+        if (
+            "streamingData" not in self.vid_info
+            or self.vid_info["videoDetails"]["videoId"] in invalid_id_list
+        ):
             original_client = self.client
 
             # for each fallback client set, revert videodata, and run check_availability, which
@@ -225,12 +226,15 @@ class YouTube:
                     self.check_availability()
                 except Exception as e:
                     continue
-                if 'streamingData' in self.vid_info:
+                if "streamingData" in self.vid_info:
                     break
-            if 'streamingData' not in self.vid_info:
-                raise exceptions.UnknownVideoError(video_id=self.video_id,developer_message=f'Streaming data is missing, original client: {original_client}, fallback clients: {self.fallback_clients}')
+            if "streamingData" not in self.vid_info:
+                raise exceptions.UnknownVideoError(
+                    video_id=self.video_id,
+                    developer_message=f"Streaming data is missing, original client: {original_client}, fallback clients: {self.fallback_clients}",
+                )
 
-        return self.vid_info['streamingData']
+        return self.vid_info["streamingData"]
 
     @property
     def fmt_streams(self):
@@ -251,21 +255,24 @@ class YouTube:
             # If the cached js doesn't work, try fetching a new js file
             # https://github.com/pytube/pytube/issues/1054
             try:
-                extract.apply_signature(stream_manifest, self.vid_info, self.js, self.js_url)
+                extract.apply_signature(
+                    stream_manifest, self.vid_info, self.js, self.js_url
+                )
             except exceptions.ExtractError:
                 # To force an update to the js file, we clear the cache and retry
                 self._js = None
                 self._js_url = None
                 pytubefix.__js__ = None
                 pytubefix.__js_url__ = None
-                extract.apply_signature(stream_manifest, self.vid_info, self.js, self.js_url)
+                extract.apply_signature(
+                    stream_manifest, self.vid_info, self.js, self.js_url
+                )
 
         # build instances of :class:`Stream <Stream>`
         # Initialize stream objects
         for stream in stream_manifest:
             video = Stream(
-                stream=stream,
-                monostate=self.stream_monostate,
+                stream=stream, monostate=self.stream_monostate, proxies=self.proxies
             )
             self._fmt_streams.append(video)
 
@@ -283,57 +290,70 @@ class YouTube:
         status, messages = extract.playability_status(self.vid_info)
 
         for reason in messages:
-            if status == 'UNPLAYABLE':
+            if status == "UNPLAYABLE":
                 if reason == (
-                        'Join this channel to get access to members-only content '
-                        'like this video, and other exclusive perks.'
+                    "Join this channel to get access to members-only content "
+                    "like this video, and other exclusive perks."
                 ):
                     raise exceptions.MembersOnly(video_id=self.video_id)
 
-                elif reason == 'This live stream recording is not available.':
+                elif reason == "This live stream recording is not available.":
                     raise exceptions.RecordingUnavailable(video_id=self.video_id)
 
                 elif reason == (
-                        'Sorry, something is wrong. This video may be inappropriate for some users. '
-                        'Sign in to your primary account to confirm your age.'
+                    "Sorry, something is wrong. This video may be inappropriate for some users. "
+                    "Sign in to your primary account to confirm your age."
                 ):
-                    raise exceptions.AgeCheckRequiredAccountError(video_id=self.video_id)
+                    raise exceptions.AgeCheckRequiredAccountError(
+                        video_id=self.video_id
+                    )
                 else:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
 
-            elif status == 'LOGIN_REQUIRED':
-                if reason == (
-                        'Sign in to confirm your age'
-                ):
+            elif status == "LOGIN_REQUIRED":
+                if reason == ("Sign in to confirm your age"):
                     raise exceptions.AgeRestrictedError(video_id=self.video_id)
                 else:
                     raise exceptions.LoginRequired(video_id=self.video_id)
 
-            elif status == 'AGE_CHECK_REQUIRED':
+            elif status == "AGE_CHECK_REQUIRED":
                 if self.use_oauth:
                     self.age_check()
                 else:
                     raise exceptions.AgeCheckRequiredError(video_id=self.video_id)
 
-            elif status == 'ERROR':
-                if reason == 'Video unavailable':
+            elif status == "ERROR":
+                if reason == "Video unavailable":
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
-                elif reason == 'This video is private':
+                elif reason == "This video is private":
                     raise exceptions.VideoPrivate(video_id=self.video_id)
-                elif reason == 'This video is unavailable':
+                elif reason == "This video is unavailable":
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
-                elif reason == 'This video has been removed by the uploader':
+                elif reason == "This video has been removed by the uploader":
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
-                elif reason == 'This video is no longer available because the YouTube account associated with this video has been terminated.':
+                elif (
+                    reason
+                    == "This video is no longer available because the YouTube account associated with this video has been terminated."
+                ):
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
                 else:
-                    raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown reason type for Error status')
-            elif status == 'LIVE_STREAM':
+                    raise exceptions.UnknownVideoError(
+                        video_id=self.video_id,
+                        status=status,
+                        reason=reason,
+                        developer_message=f"Unknown reason type for Error status",
+                    )
+            elif status == "LIVE_STREAM":
                 raise exceptions.LiveStreamError(video_id=self.video_id)
             elif status == None:
                 pass
             else:
-                raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown video status')
+                raise exceptions.UnknownVideoError(
+                    video_id=self.video_id,
+                    status=status,
+                    reason=reason,
+                    developer_message=f"Unknown video status",
+                )
 
     @property
     def signature_timestamp(self) -> dict:
@@ -345,9 +365,9 @@ class YouTube:
         """
         if not self._signature_timestamp:
             self._signature_timestamp = {
-                'playbackContext': {
-                    'contentPlaybackContext': {
-                        'signatureTimestamp': extract.signature_timestamp(self.js)
+                "playbackContext": {
+                    "contentPlaybackContext": {
+                        "signatureTimestamp": extract.signature_timestamp(self.js)
                     }
                 }
             }
@@ -367,6 +387,7 @@ class YouTube:
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
+            proxies=self.proxies,
         )
         if innertube.require_js_player:
             innertube.innertube_context.update(self.signature_timestamp)
@@ -381,12 +402,13 @@ class YouTube:
         Here the WEB client is used to have better stability.
         """
 
-        self.client = 'WEB'
+        self.client = "WEB"
         innertube = InnerTube(
             client=self.client,
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
+            proxies=self.proxies,
         )
 
         if innertube.require_js_player:
@@ -396,11 +418,11 @@ class YouTube:
 
         innertube_response = innertube.player(self.video_id)
 
-        playability_status = innertube_response['playabilityStatus'].get('status', None)
+        playability_status = innertube_response["playabilityStatus"].get("status", None)
 
         # If we still can't access the video, raise an exception
-        if playability_status != 'OK':
-            if playability_status == 'UNPLAYABLE':
+        if playability_status != "OK":
+            if playability_status == "UNPLAYABLE":
                 raise exceptions.AgeCheckRequiredAccountError(self.video_id)
             else:
                 raise exceptions.AgeCheckRequiredError(self.video_id)
@@ -414,7 +436,7 @@ class YouTube:
         :rtype: List[Caption]
         """
 
-        innertube_response = InnerTube(client='WEB').player(self.video_id)
+        innertube_response = InnerTube(client="WEB").player(self.video_id)
 
         raw_tracks = (
             innertube_response.get("captions", {})
@@ -439,12 +461,16 @@ class YouTube:
         """
         try:
             chapters_data = []
-            markers_map = self.initial_data['playerOverlays']['playerOverlayRenderer'][
-                'decoratedPlayerBarRenderer']['decoratedPlayerBarRenderer']['playerBar'][
-                'multiMarkersPlayerBarRenderer']['markersMap']
+            markers_map = self.initial_data["playerOverlays"]["playerOverlayRenderer"][
+                "decoratedPlayerBarRenderer"
+            ]["decoratedPlayerBarRenderer"]["playerBar"][
+                "multiMarkersPlayerBarRenderer"
+            ][
+                "markersMap"
+            ]
             for marker in markers_map:
-                if marker['key'].upper() == 'DESCRIPTION_CHAPTERS':
-                    chapters_data = marker['value']['chapters']
+                if marker["key"].upper() == "DESCRIPTION_CHAPTERS":
+                    chapters_data = marker["value"]["chapters"]
                     break
         except (KeyError, IndexError):
             return []
@@ -453,14 +479,15 @@ class YouTube:
 
         for i, chapter_data in enumerate(chapters_data):
             chapter_start = int(
-                chapter_data['chapterRenderer']['timeRangeStartMillis'] / 1000
+                chapter_data["chapterRenderer"]["timeRangeStartMillis"] / 1000
             )
 
             if i == len(chapters_data) - 1:
                 chapter_end = self.length
             else:
                 chapter_end = int(
-                    chapters_data[i + 1]['chapterRenderer']['timeRangeStartMillis'] / 1000
+                    chapters_data[i + 1]["chapterRenderer"]["timeRangeStartMillis"]
+                    / 1000
                 )
 
             result.append(pytubefix.Chapter(chapter_data, chapter_end - chapter_start))
@@ -474,12 +501,21 @@ class YouTube:
         :rtype: List[KeyMoment]
         """
         try:
-            mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
+            mutations = self.initial_data["frameworkUpdates"]["entityBatchUpdate"][
+                "mutations"
+            ]
             found = False
             for mutation in mutations:
-                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get(
-                        'markerType') == "MARKER_TYPE_TIMESTAMPS":
-                    key_moments_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
+                if (
+                    mutation.get("payload", {})
+                    .get("macroMarkersListEntity", {})
+                    .get("markersList", {})
+                    .get("markerType")
+                    == "MARKER_TYPE_TIMESTAMPS"
+                ):
+                    key_moments_data = mutation["payload"]["macroMarkersListEntity"][
+                        "markersList"
+                    ]["markers"]
                     found = True
                     break
 
@@ -491,18 +527,16 @@ class YouTube:
         result: List[pytubefix.KeyMoment] = []
 
         for i, key_moment_data in enumerate(key_moments_data):
-            key_moment_start = int(
-                int(key_moment_data['startMillis']) / 1000
-            )
+            key_moment_start = int(int(key_moment_data["startMillis"]) / 1000)
 
             if i == len(key_moments_data) - 1:
                 key_moment_end = self.length
             else:
-                key_moment_end = int(
-                    int(key_moments_data[i + 1]['startMillis']) / 1000
-                )
+                key_moment_end = int(int(key_moments_data[i + 1]["startMillis"]) / 1000)
 
-            result.append(pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start))
+            result.append(
+                pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start)
+            )
 
         return result
 
@@ -513,12 +547,21 @@ class YouTube:
         :rtype: List[Dict[str, float]]
         """
         try:
-            mutations = self.initial_data['frameworkUpdates']['entityBatchUpdate']['mutations']
+            mutations = self.initial_data["frameworkUpdates"]["entityBatchUpdate"][
+                "mutations"
+            ]
             found = False
             for mutation in mutations:
-                if mutation.get('payload', {}).get('macroMarkersListEntity', {}).get('markersList', {}).get(
-                        'markerType') == "MARKER_TYPE_HEATMAP":
-                    heatmaps_data = mutation['payload']['macroMarkersListEntity']['markersList']['markers']
+                if (
+                    mutation.get("payload", {})
+                    .get("macroMarkersListEntity", {})
+                    .get("markersList", {})
+                    .get("markerType")
+                    == "MARKER_TYPE_HEATMAP"
+                ):
+                    heatmaps_data = mutation["payload"]["macroMarkersListEntity"][
+                        "markersList"
+                    ]["markers"]
                     found = True
                     break
 
@@ -530,16 +573,18 @@ class YouTube:
         result: List[Dict[str, float]] = []
 
         for i, heatmap_data in enumerate(heatmaps_data):
-            heatmap_start = int(heatmap_data['startMillis']) / 1000
-            duration = int(heatmap_data['durationMillis']) / 1000
+            heatmap_start = int(heatmap_data["startMillis"]) / 1000
+            duration = int(heatmap_data["durationMillis"]) / 1000
 
-            norm_intensity = float(heatmap_data['intensityScoreNormalized'])
+            norm_intensity = float(heatmap_data["intensityScoreNormalized"])
 
-            result.append({
-                "start_seconds": heatmap_start,
-                "duration": duration,
-                "norm_intensity": norm_intensity
-            })
+            result.append(
+                {
+                    "start_seconds": heatmap_start,
+                    "duration": duration,
+                    "norm_intensity": norm_intensity,
+                }
+            )
 
         return result
 
@@ -559,9 +604,7 @@ class YouTube:
         :rtype: str
         """
         thumbnail_details = (
-            self.vid_info.get("videoDetails", {})
-            .get("thumbnail", {})
-            .get("thumbnails")
+            self.vid_info.get("videoDetails", {}).get("thumbnail", {}).get("thumbnails")
         )
         if thumbnail_details:
             thumbnail_details = thumbnail_details[-1]  # last item has max size
@@ -591,33 +634,33 @@ class YouTube:
 
         :rtype: str
         """
-        self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
-        )
+        self._author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
 
-        translation_table = str.maketrans({
-            '/': '',
-            ':': '',
-            '*': '',
-            '"': '',
-            '<': '',
-            '>': '',
-            '|': '',
-        })
+        translation_table = str.maketrans(
+            {
+                "/": "",
+                ":": "",
+                "*": "",
+                '"': "",
+                "<": "",
+                ">": "",
+                "|": "",
+            }
+        )
 
         if self._title:
             return self._title.translate(translation_table)
 
         try:
-            self._title = self.vid_info['videoDetails']['title']
+            self._title = self.vid_info["videoDetails"]["title"]
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
             raise exceptions.PytubeFixError(
                 (
-                    f'Exception while accessing title of {self.watch_url}. '
-                    'Please file a bug report at https://github.com/JuanBindez/pytubefix'
+                    f"Exception while accessing title of {self.watch_url}. "
+                    "Please file a bug report at https://github.com/JuanBindez/pytubefix"
                 )
             ) from e
 
@@ -651,7 +694,7 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
+        return int(self.vid_info.get("videoDetails", {}).get("lengthSeconds"))
 
     @property
     def views(self) -> int:
@@ -668,9 +711,7 @@ class YouTube:
         """
         if self._author:
             return self._author
-        self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
-        )
+        self._author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
         return self._author
 
     @author.setter
@@ -684,7 +725,7 @@ class YouTube:
 
         :rtype: List[str]
         """
-        return self.vid_info.get('videoDetails', {}).get('keywords', [])
+        return self.vid_info.get("videoDetails", {}).get("keywords", [])
 
     @property
     def channel_id(self) -> str:
@@ -692,7 +733,7 @@ class YouTube:
 
         :rtype: str
         """
-        return self.vid_info.get('videoDetails', {}).get('channelId', None)
+        return self.vid_info.get("videoDetails", {}).get("channelId", None)
 
     @property
     def channel_url(self) -> str:
@@ -700,7 +741,7 @@ class YouTube:
 
         :rtype: str
         """
-        return f'https://www.youtube.com/channel/{self.channel_id}'
+        return f"https://www.youtube.com/channel/{self.channel_id}"
 
     @property
     def metadata(self) -> Optional[YouTubeMetadata]:
@@ -710,7 +751,8 @@ class YouTube:
         """
         if not self._metadata:
             self._metadata = extract.metadata(
-                self.initial_data)  # Creating the metadata
+                self.initial_data
+            )  # Creating the metadata
         return self._metadata
 
     def register_on_progress_callback(self, func: Callable[[Any, bytes, int], None]):
