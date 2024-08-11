@@ -14,4 +14,4 @@ Problematic Character
         print(yt.title)
         
         ys = yt.streams.get_audio_only()
-        ys.download(mp3=True, problematic_characters="?")
+        ys.download(mp3=True, remove_problematic_character="?")
