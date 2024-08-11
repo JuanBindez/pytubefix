@@ -277,7 +277,8 @@ class Stream:
                 skip_existing: bool = True,
                 timeout: Optional[int] = None,
                 max_retries: Optional[int] = 0,
-                mp3: bool = False) -> str:
+                mp3: bool = False,
+                problematic_characters: str = None) -> str:
         
         """
         Download the file from the URL provided by `self.url`.
@@ -290,6 +291,7 @@ class Stream:
             timeout (Optional[int]): Timeout for the download request.
             max_retries (Optional[int]): Maximum number of retries for the download.
             mp3 (bool): Whether the file to be downloaded is an MP3 audio file.
+            problematic_characters (str): Characters to be removed from the filename, exemple (problematic_character="?").
 
         Returns:
             str: File path of the downloaded file.
@@ -301,9 +303,13 @@ class Stream:
             If `mp3` is set to True, the downloaded file will be assumed to be an MP3 audio file.
             If `filename` is not provided and `mp3` is True, the title of the resource will be used as the filename with '.mp3' extension.
             If `filename` is provided and `mp3` is True, '.mp3' extension will be appended to the filename.
+            If `problematic_characters` is specified, these characters will be removed from the filename to avoid issues with file naming.
             The progress of the download is tracked using the `on_progress` callback.
             The `on_complete` callback is triggered after the download is completed.
         """
+
+        if problematic_characters:
+            filename = self.title.replace(problematic_characters, "")
         
         if mp3:
             if filename is None:
