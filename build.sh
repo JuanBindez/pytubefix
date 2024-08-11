@@ -1,9 +1,9 @@
 #!/bin/bash
 
 git add .
-git commit -m 'Pytubefix 6.9.2 (#159)'
-git push -u origin main
-git tag v6.9.2
+git commit -m 'pypi -> (#169 #170)'
+git push -u origin dev
+git tag v6.10-a1
 git push --tag
 make clean
 make upload
