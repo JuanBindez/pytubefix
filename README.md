@@ -51,7 +51,7 @@ yt = YouTube(url, on_progress_callback = on_progress)
 print(yt.title)
  
 ys = yt.streams.get_audio_only()
-ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
+ys.download(mp3=True)
 ```
 
 #### if you want to download complete playlists:
@@ -67,7 +67,7 @@ pl = Playlist(url)
 
 for video in pl.videos:
     ys = video.streams.get_audio_only()
-    ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
+    ys.download(mp3=True)
 
 ```
 
@@ -82,9 +82,9 @@ url = "url"
 
 yt = YouTube(url, use_oauth=True, allow_oauth_cache=True, on_progress_callback = on_progress)
            
-ys = yt.streams.get_audio_only()
+ys = yt.streams.get_highest_resolution()
 
-ys.download(mp3=True) # you will only get the request to authenticate once you download
+ys.download() # you will only get the request to authenticate once you download
 
 ```
 
