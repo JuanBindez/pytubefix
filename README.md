@@ -161,3 +161,41 @@ for video in c.videos:
 
 ```
 
+### Search:
+
+```python
+>>> from pytubefix import Search
+>>> 
+>>> results = Search('Github Issue Best Practices')
+>>> 
+>>> for video in results.videos:
+...     print(f'Title: {video.title}')
+...     print(f'URL: {video.watch_url}')
+...     print(f'Duration: {video.length} seg')
+...     print('---')
+... 
+Title: Good Practices with GitHub Issues
+URL: https://youtube.com/watch?v=v1AeHaopAYE
+Duration: 406 seg
+---
+Title: GitHub Issues Tips and Guidelines
+URL: https://youtube.com/watch?v=kezinXSoV5A
+Duration: 852 seg
+---
+Title: 13 Advanced (but useful) Git Techniques and Shortcuts
+URL: https://youtube.com/watch?v=ecK3EnyGD8o
+Duration: 486 seg
+---
+Title: Managing a GitHub Organization Tools, Tips, and Best Practices - Mark Matyas
+URL: https://youtube.com/watch?v=1T4HAPBFbb0
+Duration: 1525 seg
+---
+Title: Do you know the best way to manage GitHub Issues?
+URL: https://youtube.com/watch?v=OccRyzAS4Vc
+Duration: 534 seg
+---
+>>>
+
+
+```
+
