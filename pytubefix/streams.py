@@ -12,7 +12,7 @@ import os
 from math import ceil
 
 from datetime import datetime
-from typing import BinaryIO, Dict, Optional, Tuple
+from typing import BinaryIO, Dict, Optional, Tuple, Iterator
 from urllib.error import HTTPError
 from urllib.parse import parse_qs
 from pathlib import Path
@@ -460,3 +460,32 @@ class Stream:
             parts.extend(['abr="{s.abr}"', 'acodec="{s.audio_codec}"'])
         parts.extend(['progressive="{s.is_progressive}"', 'type="{s.type}"'])
         return f"<Stream: {' '.join(parts).format(s=self)}>"
+
+    def on_progress_for_chunks(self, chunk: bytes, bytes_remaining: int):
+        logger.debug("download remaining: %s", bytes_remaining)
+        if self._monostate.on_progress:
+            self._monostate.on_progress(self, chunk, bytes_remaining)
+
+    def iter_chunks(self, chunk_size: int | None = None) -> Iterator[bytes]:
+        bytes_remaining = self.filesize
+
+        if chunk_size:
+            request.default_range_size = chunk_size
+
+        logger.info(
+            "downloading (%s total bytes) file to buffer",
+            self.filesize,
+        )
+        try:
+            stream = request.stream(self.url)
+        except HTTPError as e:
+            if e.code != 404:
+                raise
+            stream = request.seq_stream(self.url)
+
+        for chunk in stream:
+            bytes_remaining -= len(chunk)
+            self.on_progress_for_chunks(chunk, bytes_remaining)
+            yield chunk
+
+        self.on_complete(None)
