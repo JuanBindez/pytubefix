@@ -51,7 +51,7 @@ yt = YouTube(url, on_progress_callback = on_progress)
 print(yt.title)
  
 ys = yt.streams.get_audio_only()
-ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
+ys.download(mp3=True)
 ```
 
 #### if you want to download complete playlists:
@@ -67,7 +67,7 @@ pl = Playlist(url)
 
 for video in pl.videos:
     ys = video.streams.get_audio_only()
-    ys.download(mp3=True) # pass the parameter mp3=True to save in .mp3
+    ys.download(mp3=True)
 
 ```
 
@@ -82,9 +82,9 @@ url = "url"
 
 yt = YouTube(url, use_oauth=True, allow_oauth_cache=True, on_progress_callback = on_progress)
            
-ys = yt.streams.get_audio_only()
+ys = yt.streams.get_highest_resolution()
 
-ys.download(mp3=True) # you will only get the request to authenticate once you download
+ys.download() # you will only get the request to authenticate once you download
 
 ```
 
@@ -158,6 +158,44 @@ print(f'Downloading videos by: {c.channel_name}')
 
 for video in c.videos:
     download = video.streams.get_highest_resolution().download()
+
+```
+
+### Search:
+
+```python
+>>> from pytubefix import Search
+>>> 
+>>> results = Search('Github Issue Best Practices')
+>>> 
+>>> for video in results.videos:
+...     print(f'Title: {video.title}')
+...     print(f'URL: {video.watch_url}')
+...     print(f'Duration: {video.length} seg')
+...     print('---')
+... 
+Title: Good Practices with GitHub Issues
+URL: https://youtube.com/watch?v=v1AeHaopAYE
+Duration: 406 seg
+---
+Title: GitHub Issues Tips and Guidelines
+URL: https://youtube.com/watch?v=kezinXSoV5A
+Duration: 852 seg
+---
+Title: 13 Advanced (but useful) Git Techniques and Shortcuts
+URL: https://youtube.com/watch?v=ecK3EnyGD8o
+Duration: 486 seg
+---
+Title: Managing a GitHub Organization Tools, Tips, and Best Practices - Mark Matyas
+URL: https://youtube.com/watch?v=1T4HAPBFbb0
+Duration: 1525 seg
+---
+Title: Do you know the best way to manage GitHub Issues?
+URL: https://youtube.com/watch?v=OccRyzAS4Vc
+Duration: 534 seg
+---
+>>>
+
 
 ```
 

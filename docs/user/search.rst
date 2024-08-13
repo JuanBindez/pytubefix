@@ -9,6 +9,42 @@ The integration into pytubefix means that we can directly provide you with
 YouTube objects that can be inspected and dowloaded, instead of needing to do
 additional processing.
 
+
+This example illustrates how the library can be used to automate YouTube searches and extract relevant data from videos::
+    
+    >>> from pytubefix import Search
+    >>> 
+    >>> results = Search('Github Issue Best Practices')
+    >>> 
+    >>> for video in results.videos:
+    ...     print(f'Title: {video.title}')
+    ...     print(f'URL: {video.watch_url}')
+    ...     print(f'Duration: {video.length} seg')
+    ...     print('---')
+    ... 
+    Title: Good Practices with GitHub Issues
+    URL: https://youtube.com/watch?v=v1AeHaopAYE
+    Duration: 406 seg
+    ---
+    Title: GitHub Issues Tips and Guidelines
+    URL: https://youtube.com/watch?v=kezinXSoV5A
+    Duration: 852 seg
+    ---
+    Title: 13 Advanced (but useful) Git Techniques and Shortcuts
+    URL: https://youtube.com/watch?v=ecK3EnyGD8o
+    Duration: 486 seg
+    ---
+    Title: Managing a GitHub Organization Tools, Tips, and Best Practices - Mark Matyas
+    URL: https://youtube.com/watch?v=1T4HAPBFbb0
+    Duration: 1525 seg
+    ---
+    Title: Do you know the best way to manage GitHub Issues?
+    URL: https://youtube.com/watch?v=OccRyzAS4Vc
+    Duration: 534 seg
+    ---
+    >>>
+
+
 Using the Search object is really easy::
 
     >>> from pytubefix import Search
@@ -22,6 +58,7 @@ Using the Search object is really easy::
         ...\
     ]
     >>> 
+
 
 Due to the potential for an endless stream of results, and in order to prevent
 a user from accidentally entering an infinite loop of requesting additional
