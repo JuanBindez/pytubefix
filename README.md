@@ -13,6 +13,7 @@
 #### Thanks to sponsors:
 
 [![Sponsors dvaldivia](https://img.shields.io/badge/sponsors-dvaldivia-blue)](https://github.com/dvaldivia)
+[![Sponsors J0E-E](https://img.shields.io/badge/sponsors-J0E-E-blue)](https://github.com/J0E-E)
 
 ----------
 ## install
