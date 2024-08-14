@@ -490,9 +490,8 @@ class Stream:
             out_file.writelines(stream.iter_chunks(512))
 
             # Another way
-
             # for chunk in stream.iter_chunks(512):
-            # out_file.write(chunk)
+            #   out_file.write(chunk)
 
         # Or give it external api
         external_api.write_media(stream.iter_chunks(512))
