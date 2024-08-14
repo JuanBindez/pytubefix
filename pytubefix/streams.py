@@ -481,7 +481,7 @@ class Stream:
         if self._monostate.on_progress:
             self._monostate.on_progress(self, chunk, bytes_remaining)
 
-    def iter_chunks(self, chunk_size: int | None = None) -> Iterator[bytes]:
+    def iter_chunks(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
         """Get the chunks directly
 
         Example:
