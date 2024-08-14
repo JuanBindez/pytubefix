@@ -462,11 +462,46 @@ class Stream:
         return f"<Stream: {' '.join(parts).format(s=self)}>"
 
     def on_progress_for_chunks(self, chunk: bytes, bytes_remaining: int):
+        """On progress callback function.
+
+        This function checks if an additional callback is defined in the monostate.
+        This is exposed to allow things like displaying a progress bar.
+
+        :param bytes chunk:
+        Segment of media file binary data, not yet written to disk.
+        :py:class:`io.BufferedWriter`
+        :param int bytes_remaining:
+        The delta between the total file size in bytes and amount already
+        downloaded.
+
+        :rtype: None
+        """
+
         logger.debug("download remaining: %s", bytes_remaining)
         if self._monostate.on_progress:
             self._monostate.on_progress(self, chunk, bytes_remaining)
 
     def iter_chunks(self, chunk_size: int | None = None) -> Iterator[bytes]:
+        """Get the chunks directly
+
+        Example:
+        # Write the chunk by yourself
+        with open("somefile.mp4") as out_file:
+            out_file.writelines(stream.iter_chunks(512))
+
+            # Another way
+
+            # for chunk in stream.iter_chunks(512):
+            # out_file.write(chunk)
+
+        # Or give it external api
+        external_api.write_media(stream.iter_chunks(512))
+
+        :param int chunk size:
+        The size in the bytes
+        :rtype: Iterator[bytes]
+        """
+
         bytes_remaining = self.filesize
 
         if chunk_size:
