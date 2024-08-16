@@ -17,17 +17,35 @@ class Playlist(Sequence):
     def __init__(
             self,
             url: str,
+            client: str = 'WEB',
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
-        ):
+            token_file: Optional[str] = None
+    ):
+        """
+        :param dict proxies:
+            (Optional) A dict mapping protocol to proxy address which will be used by pytube.
+        :param bool use_oauth:
+            (Optional) Prompt the user to authenticate to YouTube.
+            If allow_oauth_cache is set to True, the user should only be prompted once.
+        :param bool allow_oauth_cache:
+            (Optional) Cache OAuth tokens locally on the machine. Defaults to True.
+            These tokens are only generated if use_oauth is set to True as well.
+        :param str token_file:
+            (Optional) Path to the file where the OAuth tokens will be stored.
+            Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
+        """
         if proxies:
             install_proxy(proxies)
 
         self._input_url = url
 
+        self.client = client
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
+        self.token_file = token_file
+
         # These need to be initialized as None for the properties.
         self._html = None
         self._ytcfg = None
@@ -311,7 +329,8 @@ class Playlist(Sequence):
             yield YouTube(
                 url,
                 use_oauth=self.use_oauth,
-                allow_oauth_cache=self.allow_oauth_cache
+                allow_oauth_cache=self.allow_oauth_cache,
+                token_file=self.token_file
             )
 
     @property
