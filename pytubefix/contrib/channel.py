@@ -11,16 +11,37 @@ logger = logging.getLogger(__name__)
 
 
 class Channel(Playlist):
-    def __init__(self, url: str, proxies: Optional[Dict[str, str]] = None):
+    def __init__(self,
+                 url: str,
+                 client: str = 'WEB',
+                 proxies: Optional[Dict[str, str]] = None,
+                 use_oauth: bool = False,
+                 allow_oauth_cache: bool = True,
+                 token_file: Optional[str] = None
+                 ):
         """Construct a :class:`Channel <Channel>`.
         :param str url:
             A valid YouTube channel URL.
-        :param proxies:
-            (Optional) A dictionary of proxies to use for web requests.
+         :param dict proxies:
+            (Optional) A dict mapping protocol to proxy address which will be used by pytube.
+        :param bool use_oauth:
+            (Optional) Prompt the user to authenticate to YouTube.
+            If allow_oauth_cache is set to True, the user should only be prompted once.
+        :param bool allow_oauth_cache:
+            (Optional) Cache OAuth tokens locally on the machine. Defaults to True.
+            These tokens are only generated if use_oauth is set to True as well.
+        :param str token_file:
+            (Optional) Path to the file where the OAuth tokens will be stored.
+            Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
         """
         super().__init__(url, proxies)
 
         self.channel_uri = extract.channel_name(url)
+
+        self.client = client
+        self.use_oauth = use_oauth
+        self.allow_oauth_cache = allow_oauth_cache
+        self.token_file = token_file
 
         self.channel_url = (
             f"https://www.youtube.com{self.channel_uri}"
@@ -351,7 +372,11 @@ class Channel(Playlist):
         """
         try:
             return YouTube(f"/watch?v="
-                           f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}")
+                           f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}",
+                           use_oauth=self.use_oauth,
+                           allow_oauth_cache=self.allow_oauth_cache,
+                           token_file=self.token_file
+                           )
         except (KeyError, IndexError, TypeError):
             return self._extract_shorts_id(x)
 
@@ -362,7 +387,11 @@ class Channel(Playlist):
         """
         try:
             return YouTube(f"/watch?v="
-                           f"{x['richItemRenderer']['content']['reelItemRenderer']['videoId']}")
+                           f"{x['richItemRenderer']['content']['reelItemRenderer']['videoId']}",
+                           use_oauth=self.use_oauth,
+                           allow_oauth_cache=self.allow_oauth_cache,
+                           token_file=self.token_file
+                           )
         except (KeyError, IndexError, TypeError):
             return self._extract_release_id(x)
 
@@ -373,7 +402,11 @@ class Channel(Playlist):
         """
         try:
             return Playlist(f"/playlist?list="
-                            f"{x['richItemRenderer']['content']['playlistRenderer']['playlistId']}")
+                            f"{x['richItemRenderer']['content']['playlistRenderer']['playlistId']}",
+                            use_oauth=self.use_oauth,
+                            allow_oauth_cache=self.allow_oauth_cache,
+                            token_file=self.token_file
+                            )
         except (KeyError, IndexError, TypeError):
             return self._extract_video_id_from_home(x)
 
@@ -385,7 +418,11 @@ class Channel(Playlist):
         """
         try:
             return YouTube(f"/watch?v="
-                           f"{x['gridVideoRenderer']['videoId']}")
+                           f"{x['gridVideoRenderer']['videoId']}",
+                           use_oauth=self.use_oauth,
+                           allow_oauth_cache=self.allow_oauth_cache,
+                           token_file=self.token_file
+                           )
         except (KeyError, IndexError, TypeError):
             return self._extract_shorts_id_from_home(x)
 
@@ -396,7 +433,11 @@ class Channel(Playlist):
         """
         try:
             return YouTube(f"/watch?v="
-                           f"{x['reelItemRenderer']['videoId']}")
+                           f"{x['reelItemRenderer']['videoId']}",
+                           use_oauth=self.use_oauth,
+                           allow_oauth_cache=self.allow_oauth_cache,
+                           token_file=self.token_file
+                           )
         except (KeyError, IndexError, TypeError):
             return self._extract_playlist_id(x)
 
@@ -407,19 +448,26 @@ class Channel(Playlist):
         """
         try:
             return Playlist(f"/playlist?list="
-                            f"{x['gridPlaylistRenderer']['playlistId']}")
+                            f"{x['gridPlaylistRenderer']['playlistId']}",
+                            use_oauth=self.use_oauth,
+                            allow_oauth_cache=self.allow_oauth_cache,
+                            token_file=self.token_file
+                            )
         except (KeyError, IndexError, TypeError):
             return self._extract_channel_id_from_home(x)
 
-    @staticmethod
-    def _extract_channel_id_from_home(x: dict):
+    def _extract_channel_id_from_home(self, x: dict):
         """ Try extracting the channel IDs from the home page, if that fails, return nothing.
 
         :returns: List of YouTube, Playlist or Channel objects.
         """
         try:
             return Channel(f"/channel/"
-                           f"{x['gridChannelRenderer']['channelId']}")
+                           f"{x['gridChannelRenderer']['channelId']}",
+                           use_oauth=self.use_oauth,
+                           allow_oauth_cache=self.allow_oauth_cache,
+                           token_file=self.token_file
+                           )
         except (KeyError, IndexError, TypeError):
             return ''
 

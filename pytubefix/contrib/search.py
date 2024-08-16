@@ -1,25 +1,52 @@
 """Module for interacting with YouTube search."""
 # Native python imports
 import logging
-from typing import List
+from typing import List, Optional, Dict
 
 # Local imports
 from pytubefix import YouTube, Channel, Playlist
-from pytubefix.helpers import deprecated
+from pytubefix.helpers import deprecated, install_proxy
 from pytubefix.innertube import InnerTube
 
 logger = logging.getLogger(__name__)
 
 
 class Search:
-    def __init__(self, query):
+    def __init__(self, query: str,
+                 client: str = 'WEB',
+                 proxies: Optional[Dict[str, str]] = None,
+                 use_oauth: bool = False,
+                 allow_oauth_cache: bool = True,
+                 token_file: Optional[str] = None
+                 ):
         """Initialize Search object.
 
         :param str query:
             Search query provided by the user.
+        :param dict proxies:
+            (Optional) A dict mapping protocol to proxy address which will be used by pytube.
+        :param bool use_oauth:
+            (Optional) Prompt the user to authenticate to YouTube.
+            If allow_oauth_cache is set to True, the user should only be prompted once.
+        :param bool allow_oauth_cache:
+            (Optional) Cache OAuth tokens locally on the machine. Defaults to True.
+            These tokens are only generated if use_oauth is set to True as well.
+        :param str token_file:
+            (Optional) Path to the file where the OAuth tokens will be stored.
+            Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
         """
         self.query = query
-        self._innertube_client = InnerTube(client='WEB')
+        self.client = client
+        self.use_oauth = use_oauth
+        self.allow_oauth_cache = allow_oauth_cache
+        self.token_file = token_file
+
+        self._innertube_client = InnerTube(
+            client=self.client,
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache,
+            token_file=self.token_file,
+        )
 
         # The first search, without a continuation, is structured differently
         #  and contains completion suggestions, so we must store this separately
@@ -31,6 +58,9 @@ class Search:
         # Used for keeping track of query continuations so that new results
         #  are always returned when get_next_results() is called
         self._current_continuation = None
+
+        if proxies:
+            install_proxy(proxies)
 
     @property
     def completion_suggestions(self):
@@ -228,23 +258,39 @@ class Search:
                 # Get playlist results
                 if 'playlistRenderer' in video_details:
                     playlist.append(Playlist(f"https://www.youtube.com/playlist?list="
-                                             f"{video_details['playlistRenderer']['playlistId']}"))
+                                             f"{video_details['playlistRenderer']['playlistId']}",
+                                             use_oauth=self.use_oauth,
+                                             allow_oauth_cache=self.allow_oauth_cache,
+                                             token_file=self.token_file
+                                             ))
 
                 # Get channel results
                 if 'channelRenderer' in video_details:
                     channel.append(Channel(f"https://www.youtube.com/channel/"
-                                           f"{video_details['channelRenderer']['channelId']}"))
+                                           f"{video_details['channelRenderer']['channelId']}",
+                                           use_oauth=self.use_oauth,
+                                           allow_oauth_cache=self.allow_oauth_cache,
+                                           token_file=self.token_file
+                                           ))
 
                 # Get shorts results
                 if 'reelShelfRenderer' in video_details:
                     for items in video_details['reelShelfRenderer']['items']:
                         shorts.append(YouTube(f"https://www.youtube.com/watch?v="
-                                              f"{items['reelItemRenderer']['videoId']}"))
+                                              f"{items['reelItemRenderer']['videoId']}",
+                                              use_oauth=self.use_oauth,
+                                              allow_oauth_cache=self.allow_oauth_cache,
+                                              token_file=self.token_file
+                                              ))
 
                 # Get videos results
                 if 'videoRenderer' in video_details:
                     videos.append(YouTube(f"https://www.youtube.com/watch?v="
-                                          f"{video_details['videoRenderer']['videoId']}"))
+                                          f"{video_details['videoRenderer']['videoId']}",
+                                          use_oauth=self.use_oauth,
+                                          allow_oauth_cache=self.allow_oauth_cache,
+                                          token_file=self.token_file
+                                          ))
 
             results['videos'] = videos
             results['shorts'] = shorts
