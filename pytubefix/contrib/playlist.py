@@ -3,7 +3,7 @@ import json
 import logging
 from collections.abc import Sequence
 from datetime import date, datetime
-from typing import Dict, Iterable, List, Optional, Tuple, Union, Any
+from typing import Dict, Iterable, List, Optional, Tuple, Union, Any, Callable
 
 from pytubefix import extract, request, YouTube
 from pytubefix.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
@@ -21,7 +21,8 @@ class Playlist(Sequence):
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
-            token_file: Optional[str] = None
+            token_file: Optional[str] = None,
+            oauth_verifier: Optional[Callable[[str, str], None]] = None
     ):
         """
         :param dict proxies:
@@ -35,6 +36,10 @@ class Playlist(Sequence):
         :param str token_file:
             (Optional) Path to the file where the OAuth tokens will be stored.
             Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
+        :param Callable oauth_verifier:
+            (optional) Verifier to be used for getting outh tokens. 
+            Verification URL and User-Code will be passed to it respectively.
+            (if passed, else default verifier will be used)
         """
         if proxies:
             install_proxy(proxies)
@@ -45,6 +50,7 @@ class Playlist(Sequence):
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
+        self.oauth_verifier = oauth_verifier
 
         # These need to be initialized as None for the properties.
         self._html = None

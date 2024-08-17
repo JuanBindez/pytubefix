@@ -1,7 +1,7 @@
 """Module for interacting with YouTube search."""
 # Native python imports
 import logging
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Callable
 
 # Local imports
 from pytubefix import YouTube, Channel, Playlist
@@ -17,7 +17,8 @@ class Search:
                  proxies: Optional[Dict[str, str]] = None,
                  use_oauth: bool = False,
                  allow_oauth_cache: bool = True,
-                 token_file: Optional[str] = None
+                 token_file: Optional[str] = None,
+                 oauth_verifier: Optional[Callable[[str, str], None]] = None
                  ):
         """Initialize Search object.
 
@@ -34,18 +35,24 @@ class Search:
         :param str token_file:
             (Optional) Path to the file where the OAuth tokens will be stored.
             Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
+        :param Callable oauth_verifier:
+            (optional) Verifier to be used for getting outh tokens. 
+            Verification URL and User-Code will be passed to it respectively.
+            (if passed, else default verifier will be used)
         """
         self.query = query
         self.client = client
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
+        self.oauth_verifier = oauth_verifier
 
         self._innertube_client = InnerTube(
             client=self.client,
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
+            oauth_verifier=self.oauth_verifier,
         )
 
         # The first search, without a continuation, is structured differently
@@ -261,7 +268,8 @@ class Search:
                                              f"{video_details['playlistRenderer']['playlistId']}",
                                              use_oauth=self.use_oauth,
                                              allow_oauth_cache=self.allow_oauth_cache,
-                                             token_file=self.token_file
+                                             token_file=self.token_file,
+                                             oauth_verifier=self.oauth_verifier,
                                              ))
 
                 # Get channel results
@@ -270,7 +278,8 @@ class Search:
                                            f"{video_details['channelRenderer']['channelId']}",
                                            use_oauth=self.use_oauth,
                                            allow_oauth_cache=self.allow_oauth_cache,
-                                           token_file=self.token_file
+                                           token_file=self.token_file,
+                                           oauth_verifier=self.oauth_verifier,
                                            ))
 
                 # Get shorts results
@@ -280,7 +289,8 @@ class Search:
                                               f"{items['reelItemRenderer']['videoId']}",
                                               use_oauth=self.use_oauth,
                                               allow_oauth_cache=self.allow_oauth_cache,
-                                              token_file=self.token_file
+                                              token_file=self.token_file,
+                                              oauth_verifier=self.oauth_verifier,
                                               ))
 
                 # Get videos results
@@ -289,7 +299,8 @@ class Search:
                                           f"{video_details['videoRenderer']['videoId']}",
                                           use_oauth=self.use_oauth,
                                           allow_oauth_cache=self.allow_oauth_cache,
-                                          token_file=self.token_file
+                                          token_file=self.token_file,
+                                          oauth_verifier=self.oauth_verifier,
                                           ))
 
             results['videos'] = videos

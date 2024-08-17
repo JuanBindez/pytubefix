@@ -2,7 +2,7 @@
 """Module for interacting with a user's youtube channel."""
 import json
 import logging
-from typing import Dict, List, Optional, Tuple, Iterable, Any
+from typing import Dict, List, Optional, Tuple, Iterable, Any, Callable
 
 from pytubefix import extract, YouTube, Playlist, request
 from pytubefix.helpers import cache, uniqueify, DeferredGeneratorList
@@ -17,7 +17,8 @@ class Channel(Playlist):
                  proxies: Optional[Dict[str, str]] = None,
                  use_oauth: bool = False,
                  allow_oauth_cache: bool = True,
-                 token_file: Optional[str] = None
+                 token_file: Optional[str] = None,
+                 oauth_verifier: Optional[Callable[[str, str], None]] = None
                  ):
         """Construct a :class:`Channel <Channel>`.
         :param str url:
@@ -33,6 +34,10 @@ class Channel(Playlist):
         :param str token_file:
             (Optional) Path to the file where the OAuth tokens will be stored.
             Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
+        :param Callable oauth_verifier:
+            (optional) Verifier to be used for getting outh tokens. 
+            Verification URL and User-Code will be passed to it respectively.
+            (if passed, else default verifier will be used)
         """
         super().__init__(url, proxies)
 
@@ -42,6 +47,7 @@ class Channel(Playlist):
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
+        self.oauth_verifier = oauth_verifier
 
         self.channel_url = (
             f"https://www.youtube.com{self.channel_uri}"
