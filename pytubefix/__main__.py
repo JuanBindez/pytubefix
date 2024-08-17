@@ -58,6 +58,7 @@ class YouTube:
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
             token_file: Optional[str] = None,
+            outh_verifier: Callable[[str, str], None]|None=None
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
@@ -87,6 +88,10 @@ class YouTube:
         :param str token_file:
             (Optional) Path to the file where the OAuth tokens will be stored.
             Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
+        :param Callable outh_verifier:
+            (optional) Verifier to be used for getting outh tokens. 
+            Verification URL and User-Code will be passed to it respectively.
+            (if passed, else default verifier will be used)
         """
         # js fetched by js_url
         self._js: Optional[str] = None
@@ -137,6 +142,7 @@ class YouTube:
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
+        self.outh_verifier = outh_verifier
 
     def __repr__(self):
         return f'<pytubefix.__main__.YouTube object: videoId={self.video_id}>'
@@ -374,6 +380,7 @@ class YouTube:
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
+            outh_verifier=self.outh_verifier
         )
         if innertube.require_js_player:
             innertube.innertube_context.update(self.signature_timestamp)
@@ -398,6 +405,7 @@ class YouTube:
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
+            outh_verifier=self.outh_verifier
         )
 
         if innertube.require_js_player:
