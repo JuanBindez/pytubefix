@@ -35,7 +35,7 @@ class Channel(Playlist):
             (Optional) Path to the file where the OAuth tokens will be stored.
             Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
         :param Callable oauth_verifier:
-            (optional) Verifier to be used for getting outh tokens. 
+            (optional) Verifier to be used for getting OAuth tokens. 
             Verification URL and User-Code will be passed to it respectively.
             (if passed, else default verifier will be used)
         """
