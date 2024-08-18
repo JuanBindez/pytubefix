@@ -336,8 +336,8 @@ class Playlist(Sequence):
                 url,
                 use_oauth=self.use_oauth,
                 allow_oauth_cache=self.allow_oauth_cache,
-                token_file=self.token_file
-                oauth_verifier=self.oauth_verifier
+                token_file=self.token_file,
+                oauth_verifier=self.oauth_verifier,
             )
 
     @property

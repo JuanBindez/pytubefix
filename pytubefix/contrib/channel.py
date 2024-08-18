@@ -381,7 +381,8 @@ class Channel(Playlist):
                            f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}",
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
-                           token_file=self.token_file
+                           token_file=self.token_file,
+                           oauth_verifier=self.oauth_verifier,
                            )
         except (KeyError, IndexError, TypeError):
             return self._extract_shorts_id(x)
@@ -396,7 +397,8 @@ class Channel(Playlist):
                            f"{x['richItemRenderer']['content']['reelItemRenderer']['videoId']}",
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
-                           token_file=self.token_file
+                           token_file=self.token_file,
+                           oauth_verifier=self.oauth_verifier,
                            )
         except (KeyError, IndexError, TypeError):
             return self._extract_release_id(x)
@@ -411,7 +413,8 @@ class Channel(Playlist):
                             f"{x['richItemRenderer']['content']['playlistRenderer']['playlistId']}",
                             use_oauth=self.use_oauth,
                             allow_oauth_cache=self.allow_oauth_cache,
-                            token_file=self.token_file
+                            token_file=self.token_file,
+                            oauth_verifier=self.oauth_verifier,
                             )
         except (KeyError, IndexError, TypeError):
             return self._extract_video_id_from_home(x)
@@ -427,7 +430,8 @@ class Channel(Playlist):
                            f"{x['gridVideoRenderer']['videoId']}",
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
-                           token_file=self.token_file
+                           token_file=self.token_file,
+                           oauth_verifier=self.oauth_verifier,
                            )
         except (KeyError, IndexError, TypeError):
             return self._extract_shorts_id_from_home(x)
@@ -442,7 +446,8 @@ class Channel(Playlist):
                            f"{x['reelItemRenderer']['videoId']}",
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
-                           token_file=self.token_file
+                           token_file=self.token_file,
+                           oauth_verifier=self.oauth_verifier,
                            )
         except (KeyError, IndexError, TypeError):
             return self._extract_playlist_id(x)
@@ -457,7 +462,8 @@ class Channel(Playlist):
                             f"{x['gridPlaylistRenderer']['playlistId']}",
                             use_oauth=self.use_oauth,
                             allow_oauth_cache=self.allow_oauth_cache,
-                            token_file=self.token_file
+                            token_file=self.token_file,
+                            oauth_verifier=self.oauth_verifier,
                             )
         except (KeyError, IndexError, TypeError):
             return self._extract_channel_id_from_home(x)
@@ -472,7 +478,8 @@ class Channel(Playlist):
                            f"{x['gridChannelRenderer']['channelId']}",
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
-                           token_file=self.token_file
+                           token_file=self.token_file,
+                           oauth_verifier=self.oauth_verifier,
                            )
         except (KeyError, IndexError, TypeError):
             return ''
