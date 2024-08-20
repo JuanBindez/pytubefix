@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+**:exclamation:  DO NOT REMOVE OR SKIP THE ISSUE TEMPLATE :exclamation:**
+
+lack of information will lead to closure of the issue
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
