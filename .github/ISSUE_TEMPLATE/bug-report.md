@@ -14,12 +14,16 @@ lack of information will lead to closure of the issue
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+
+**code that was used that resulted in the bug**
+
+```python
+from pytubefix import YouTube
+
+# put your code here
+
+```
+
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
