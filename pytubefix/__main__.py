@@ -405,7 +405,7 @@ class YouTube:
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
-            outh_verifier=self.outh_verifier
+            oauth_verifier=self.oauth_verifier
         )
 
         if innertube.require_js_player:
