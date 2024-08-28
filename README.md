@@ -12,7 +12,7 @@
 
 #### Thanks to sponsors:
 
-[![Sponsors dvaldivia](https://img.shields.io/badge/sponsors-dvaldivia-blue)](https://github.com/dvaldivia)
+[![Sponsors ](https://img.shields.io/badge/sponsors--blue)](https://github.com/)
 [![J0E-E](https://img.shields.io/badge/Joey-blue)](https://github.com/J0E-E)
 
 ----------
