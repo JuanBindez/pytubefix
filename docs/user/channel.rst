@@ -52,7 +52,7 @@ If, for example, we wanted to download all of the videos created by a channel, w
 Or, if we're only interested in the URLs for the videos, we can look at those as well::
 
     >>> for url in c.video_urls[:3]:
-    >>>     print(url)
+    >>>     print(url.watch_url)
     ['https://www.youtube.com/watch?v=tMqMU1U2MCU',
     'https://www.youtube.com/watch?v=YBfInrtWq8Y',
     'https://www.youtube.com/watch?v=EP9WrMw6Gzg']
