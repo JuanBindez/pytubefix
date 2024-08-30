@@ -307,6 +307,10 @@ class YouTube:
                         'Sign in to your primary account to confirm your age.'
                 ):
                     raise exceptions.AgeCheckRequiredAccountError(video_id=self.video_id)
+                elif reason == (
+                        'The uploader has not made this video available in your country'
+                ):
+                    raise exceptions.VideoRegionBlocked(video_id=self.video_id)
                 else:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
 
