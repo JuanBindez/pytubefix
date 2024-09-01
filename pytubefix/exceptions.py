@@ -143,7 +143,7 @@ class BotDetection(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} This request has been detected as a bot, please try again or log in to view{c.RESET}'
+        return f'{c.RED}{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view{c.RESET}'
 
 
 class LoginRequired(VideoUnavailable):
