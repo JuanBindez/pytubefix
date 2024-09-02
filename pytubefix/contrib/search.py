@@ -12,14 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 class Search:
-    def __init__(self, query: str,
-                 client: str = 'WEB',
-                 proxies: Optional[Dict[str, str]] = None,
-                 use_oauth: bool = False,
-                 allow_oauth_cache: bool = True,
-                 token_file: Optional[str] = None,
-                 oauth_verifier: Optional[Callable[[str, str], None]] = None
-                 ):
+    def __init__(
+            self, query: str,
+            client: str = 'WEB',
+            proxies: Optional[Dict[str, str]] = None,
+            use_oauth: bool = False,
+            allow_oauth_cache: bool = True,
+            token_file: Optional[str] = None,
+            oauth_verifier: Optional[Callable[[str, str], None]] = None,
+            use_po_token: Optional[bool] = False,
+            po_token_verifier: Optional[Callable[[None], tuple[str, str]]] = None,
+    ):
         """Initialize Search object.
 
         :param str query:
@@ -39,6 +42,15 @@ class Search:
             (optional) Verifier to be used for getting OAuth tokens. 
             Verification URL and User-Code will be passed to it respectively.
             (if passed, else default verifier will be used)
+        :param bool use_po_token:
+            (Optional) Prompt the user to use the proof of origin token on YouTube.
+            It must be sent with the API along with the linked visitorData and
+            then passed as a `po_token` query parameter to affected clients.
+            If allow_oauth_cache is set to True, the user should only be prompted once.
+        :param Callable po_token_verifier:
+            (Optional) Verified used to obtain the visitorData and po_tokenoken.
+            The verifier will return the visitorData and po_tokenoken respectively.
+            (if passed, else default verifier will be used)
         """
         self.query = query
         self.client = client
@@ -47,12 +59,17 @@ class Search:
         self.token_file = token_file
         self.oauth_verifier = oauth_verifier
 
+        self.use_po_token = use_po_token
+        self.po_token_verifier = po_token_verifier
+
         self._innertube_client = InnerTube(
             client=self.client,
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
             oauth_verifier=self.oauth_verifier,
+            use_po_token=self.use_po_token,
+            po_token_verifier=self.po_token_verifier
         )
 
         # The first search, without a continuation, is structured differently
@@ -270,6 +287,8 @@ class Search:
                                              allow_oauth_cache=self.allow_oauth_cache,
                                              token_file=self.token_file,
                                              oauth_verifier=self.oauth_verifier,
+                                             use_po_token=self.use_po_token,
+                                             po_token_verifier=self.po_token_verifier
                                              ))
 
                 # Get channel results
@@ -280,6 +299,8 @@ class Search:
                                            allow_oauth_cache=self.allow_oauth_cache,
                                            token_file=self.token_file,
                                            oauth_verifier=self.oauth_verifier,
+                                           use_po_token=self.use_po_token,
+                                           po_token_verifier=self.po_token_verifier
                                            ))
 
                 # Get shorts results
@@ -291,6 +312,8 @@ class Search:
                                               allow_oauth_cache=self.allow_oauth_cache,
                                               token_file=self.token_file,
                                               oauth_verifier=self.oauth_verifier,
+                                              use_po_token=self.use_po_token,
+                                              po_token_verifier=self.po_token_verifier
                                               ))
 
                 # Get videos results
@@ -301,6 +324,8 @@ class Search:
                                           allow_oauth_cache=self.allow_oauth_cache,
                                           token_file=self.token_file,
                                           oauth_verifier=self.oauth_verifier,
+                                          use_po_token=self.use_po_token,
+                                          po_token_verifier=self.po_token_verifier
                                           ))
 
             results['videos'] = videos

@@ -413,6 +413,41 @@ def get_ytcfg(html: str) -> str:
     )
 
 
+def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None:
+    """Apply the proof of origin token to the stream manifest
+
+    :param dict stream_manifest:
+        Details of the media streams available.
+    :param str po_token:
+        Proof of Origin Token.
+    """
+    for i, stream in enumerate(stream_manifest):
+        try:
+            url: str = stream["url"]
+        except KeyError:
+            live_stream = (
+                vid_info.get("playabilityStatus", {}, )
+                .get("liveStreamability")
+            )
+            if live_stream:
+                raise LiveStreamError("UNKNOWN")
+
+        parsed_url = urlparse(url)
+
+        # Convert query params off url to dict
+        query_params = parse_qs(urlparse(url).query)
+        query_params = {
+            k: v[0] for k, v in query_params.items()
+        }
+
+        logger.debug(f'Applying po_token to itag={stream['itag']}')
+        query_params['pot'] = po_token
+
+        url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'
+
+        stream_manifest[i]["url"] = url
+
+
 def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str) -> None:
     """Apply the decrypted signature to the stream manifest.
 
@@ -468,13 +503,17 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
             # To decipher the value of "n", we must interpret the player's JavaScript.
 
             initial_n = query_params['n']
+            logger.debug(f'Parameter n is: {initial_n}')
 
             # Check if any previous stream decrypted the parameter
             if initial_n not in discovered_n:
                 discovered_n[initial_n] = cipher.get_throttling(initial_n)
+            else:
+                logger.debug('Parameter n found skipping decryption')
 
             new_n = discovered_n[initial_n]
             query_params['n'] = new_n
+            logger.debug(f'Parameter n deciphered: {new_n}')
 
         url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'  # noqa:E501
 

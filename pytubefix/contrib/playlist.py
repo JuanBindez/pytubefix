@@ -22,7 +22,9 @@ class Playlist(Sequence):
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
             token_file: Optional[str] = None,
-            oauth_verifier: Optional[Callable[[str, str], None]] = None
+            oauth_verifier: Optional[Callable[[str, str], None]] = None,
+            use_po_token: Optional[bool] = False,
+            po_token_verifier: Optional[Callable[[None], tuple[str, str]]] = None,
     ):
         """
         :param dict proxies:
@@ -40,6 +42,15 @@ class Playlist(Sequence):
             (optional) Verifier to be used for getting OAuth tokens. 
             Verification URL and User-Code will be passed to it respectively.
             (if passed, else default verifier will be used)
+        :param bool use_po_token:
+            (Optional) Prompt the user to use the proof of origin token on YouTube.
+            It must be sent with the API along with the linked visitorData and
+            then passed as a `po_token` query parameter to affected clients.
+            If allow_oauth_cache is set to True, the user should only be prompted once.
+        :param Callable po_token_verifier:
+            (Optional) Verified used to obtain the visitorData and po_tokenoken.
+            The verifier will return the visitorData and po_tokenoken respectively.
+            (if passed, else default verifier will be used)
         """
         if proxies:
             install_proxy(proxies)
@@ -51,6 +62,9 @@ class Playlist(Sequence):
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
         self.oauth_verifier = oauth_verifier
+
+        self.use_po_token = use_po_token
+        self.po_token_verifier = po_token_verifier
 
         # These need to be initialized as None for the properties.
         self._html = None
@@ -135,8 +149,8 @@ class Playlist(Sequence):
         return self.ytcfg['INNERTUBE_API_KEY']
 
     def _paginate(
-        self, initial_html: str, context: Optional[Any] = None,
-        until_watch_id: Optional[str] = None
+            self, initial_html: str, context: Optional[Any] = None,
+            until_watch_id: Optional[str] = None
     ) -> Iterable[List[str]]:
         """Parse the video links from the page source, yields the /watch?v=
         part from video link
@@ -338,6 +352,8 @@ class Playlist(Sequence):
                 allow_oauth_cache=self.allow_oauth_cache,
                 token_file=self.token_file,
                 oauth_verifier=self.oauth_verifier,
+                use_po_token=self.use_po_token,
+                po_token_verifier=self.po_token_verifier
             )
 
     @property
@@ -409,7 +425,7 @@ class Playlist(Sequence):
         """
         count_text = self.sidebar_info[0]['playlistSidebarPrimaryInfoRenderer'][
             'stats'][0]['runs'][0]['text']
-        count_text = count_text.replace(',','')
+        count_text = count_text.replace(',', '')
         return int(count_text)
 
     @property

@@ -58,7 +58,9 @@ class YouTube:
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
             token_file: Optional[str] = None,
-            oauth_verifier: Optional[Callable[[str, str], None]] = None
+            oauth_verifier: Optional[Callable[[str, str], None]] = None,
+            use_po_token: Optional[bool] = False,
+            po_token_verifier: Optional[Callable[[None], tuple[str, str]]] = None,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
@@ -83,14 +85,23 @@ class YouTube:
             (Optional) Prompt the user to authenticate to YouTube.
             If allow_oauth_cache is set to True, the user should only be prompted once.
         :param bool allow_oauth_cache:
-            (Optional) Cache OAuth tokens locally on the machine. Defaults to True.
+            (Optional) Cache OAuth and Po tokens locally on the machine. Defaults to True.
             These tokens are only generated if use_oauth is set to True as well.
         :param str token_file:
-            (Optional) Path to the file where the OAuth tokens will be stored.
+            (Optional) Path to the file where the OAuth and Po tokens will be stored.
             Defaults to None, which means the tokens will be stored in the pytubefix/__cache__ directory.
         :param Callable oauth_verifier:
             (optional) Verifier to be used for getting oauth tokens. 
             Verification URL and User-Code will be passed to it respectively.
+            (if passed, else default verifier will be used)
+        :param bool use_po_token:
+            (Optional) Prompt the user to use the proof of origin token on YouTube.
+            It must be sent with the API along with the linked visitorData and
+            then passed as a `po_token` query parameter to affected clients.
+            If allow_oauth_cache is set to True, the user should only be prompted once.
+        :param Callable po_token_verifier:
+            (Optional) Verified used to obtain the visitorData and po_tokenoken.
+            The verifier will return the visitorData and po_tokenoken respectively.
             (if passed, else default verifier will be used)
         """
         # js fetched by js_url
@@ -121,9 +132,9 @@ class YouTube:
         self.watch_url = f"https://youtube.com/watch?v={self.video_id}"
         self.embed_url = f"https://www.youtube.com/embed/{self.video_id}"
 
-        self.client = client
+        self.client = 'WEB' if use_po_token else client
 
-        self.fallback_clients = ['WEB']
+        self.fallback_clients = ['WEB_EMBED', 'IOS', 'WEB']
 
         self._signature_timestamp: dict = {}
 
@@ -143,6 +154,11 @@ class YouTube:
         self.allow_oauth_cache = allow_oauth_cache
         self.token_file = token_file
         self.oauth_verifier = oauth_verifier
+
+        self.use_po_token = use_po_token
+        self.po_token_verifier = po_token_verifier
+
+        self.po_token = None
 
     def __repr__(self):
         return f'<pytubefix.__main__.YouTube object: videoId={self.video_id}>'
@@ -255,6 +271,9 @@ class YouTube:
         self._fmt_streams = []
 
         stream_manifest = extract.apply_descrambler(self.streaming_data)
+
+        if self.use_po_token:
+            extract.apply_po_token(stream_manifest, self.vid_info, self.po_token)
 
         if InnerTube(self.client).require_js_player:
             # If the cached js doesn't work, try fetching a new js file
@@ -384,12 +403,16 @@ class YouTube:
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
-            oauth_verifier=self.oauth_verifier
+            oauth_verifier=self.oauth_verifier,
+            use_po_token=self.use_po_token,
+            po_token_verifier=self.po_token_verifier
         )
         if innertube.require_js_player:
             innertube.innertube_context.update(self.signature_timestamp)
 
         innertube_response = innertube.player(self.video_id)
+        if self.use_po_token:
+            self.po_token = innertube.access_po_token
         self._vid_info = innertube_response
         return self._vid_info
 
@@ -409,7 +432,9 @@ class YouTube:
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
-            oauth_verifier=self.oauth_verifier
+            oauth_verifier=self.oauth_verifier,
+            use_po_token=self.use_po_token,
+            po_token_verifier=self.po_token_verifier
         )
 
         if innertube.require_js_player:
