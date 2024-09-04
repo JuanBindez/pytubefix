@@ -69,6 +69,7 @@ of pytubefix.
    user/dubbed_streams
    user/keymoments
    user/problematic_characters
+   user/po_token
 
 The API Documentation
 -----------------------------
