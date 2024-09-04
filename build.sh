@@ -1,9 +1,9 @@
 #!/bin/bash
 
 git add .
-git commit -m '6.15rc1 Released'
-git push -u origin rc
-git tag v6.15-rc1
+git commit -m 'Pytubefix 6.15.0 (#209)'
+git push -u origin main
+git tag v6.15.0
 git push --tag
 make clean
 make upload
