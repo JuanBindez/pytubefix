@@ -440,7 +440,7 @@ def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None
             k: v[0] for k, v in query_params.items()
         }
 
-        logger.debug(f'Applying po_token to itag={stream['itag']}')
+        logger.debug(f'Applying po_token to itag={stream["itag"]}')
         query_params['pot'] = po_token
 
         url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'
