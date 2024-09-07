@@ -1,7 +1,7 @@
 """Module for interacting with YouTube search."""
 # Native python imports
 import logging
-from typing import List, Optional, Dict, Callable
+from typing import List, Optional, Dict, Callable, Tuple
 
 # Local imports
 from pytubefix import YouTube, Channel, Playlist
@@ -21,7 +21,7 @@ class Search:
             token_file: Optional[str] = None,
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
-            po_token_verifier: Optional[Callable[[None], tuple[str, str]]] = None,
+            po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
     ):
         """Initialize Search object.
 

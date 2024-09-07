@@ -21,7 +21,7 @@ class Channel(Playlist):
             token_file: Optional[str] = None,
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
-            po_token_verifier: Optional[Callable[[None], tuple[str, str]]] = None,
+            po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
     ):
         """Construct a :class:`Channel <Channel>`.
         :param str url:

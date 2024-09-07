@@ -31,7 +31,7 @@ smaller peripheral modules and functions.
 """
 
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pytubefix
 import pytubefix.exceptions as exceptions
@@ -60,7 +60,7 @@ class YouTube:
             token_file: Optional[str] = None,
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
-            po_token_verifier: Optional[Callable[[None], tuple[str, str]]] = None,
+            po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
