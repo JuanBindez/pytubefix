@@ -9,6 +9,7 @@ import json
 import os
 import pathlib
 import time
+from typing import Tuple
 from urllib import parse
 
 # Local imports
@@ -420,7 +421,7 @@ def _default_oauth_verifier(verification_url: str, user_code: str):
     input('Press enter when you have completed this step.')
 
 
-def _default_po_token_verifier() -> tuple[str, str]:
+def _default_po_token_verifier() -> Tuple[str, str]:
     """
     Requests the visitorData and po_token with an input and returns a tuple[visitorData: str, po_token: str]
     """
