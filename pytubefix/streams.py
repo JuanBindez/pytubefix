@@ -85,10 +85,10 @@ class Stream:
         self.resolution = itag_profile[
             "resolution"
         ]  # resolution (e.g.: "480p")
-        if 'width' in stream:
-            self.width = stream["width"]
-        if 'height' in stream:
-            self.width = stream["height"]
+
+        self._width = stream["width"] if 'width' in stream else None
+        self._height = stream["height"] if 'height' in stream else None
+
         self.is_3d = itag_profile["is_3d"]
         self.is_hdr = itag_profile["is_hdr"]
         self.is_live = itag_profile["is_live"]
@@ -157,6 +157,26 @@ class Stream:
         elif self.includes_audio_track:
             audio = self.codecs[0]
         return video, audio
+
+    @property
+    def width(self) -> int:
+        """Video width. Returns None if it does not have the value.
+
+        :rtype: int
+        :returns:
+            Returns an int of the video width
+        """
+        return self._width
+
+    @property
+    def height(self) -> int:
+        """Video height. Returns None if it does not have the value.
+
+        :rtype: int
+        :returns:
+            Returns an int of the video height
+        """
+        return self._height
 
     @property
     def filesize(self) -> int:
