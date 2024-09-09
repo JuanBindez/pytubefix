@@ -10,11 +10,6 @@
 
 ## Python3 library for downloading YouTube Videos.
 
-#### Thanks to sponsors:
-
-[![Sponsors ](https://img.shields.io/badge/sponsors--blue)](https://github.com/)
-[![J0E-E](https://img.shields.io/badge/Joey-blue)](https://github.com/J0E-E)
-
 ----------
 ## install
 
