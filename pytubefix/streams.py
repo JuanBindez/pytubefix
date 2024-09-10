@@ -301,7 +301,7 @@ class Stream:
         mp3: bool = False,
         remove_problematic_character: Optional[str] = None,
         interrupt_checker: Optional[Callable[[], bool]] = None
-    ) -> str|None:
+    ) -> Optional[str]:
         
         """
         Download the file from the URL provided by `self.url`.
