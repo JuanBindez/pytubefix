@@ -6,6 +6,7 @@ from datetime import date, datetime
 from typing import Dict, Iterable, List, Optional, Tuple, Union, Any, Callable
 
 from pytubefix import extract, request, YouTube
+from pytubefix.innertube import InnerTube
 from pytubefix.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
 
 logger = logging.getLogger(__name__)
@@ -48,14 +49,15 @@ class Playlist(Sequence):
             then passed as a `po_token` query parameter to affected clients.
             If allow_oauth_cache is set to True, the user should only be prompted once.
         :param Callable po_token_verifier:
-            (Optional) Verified used to obtain the visitorData and po_tokenoken.
-            The verifier will return the visitorData and po_tokenoken respectively.
+            (Optional) Verified used to obtain the visitorData and po_token.
+            The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
         """
         if proxies:
             install_proxy(proxies)
 
         self._input_url = url
+        self._visitor_data = None
 
         self.client = client
         self.use_oauth = use_oauth
@@ -179,16 +181,11 @@ class Playlist(Sequence):
         # if self._extract_videos returns a continuation there are more
         # than 100 songs inside a playlist, so we need to add further requests
         # to gather all of them
-        if continuation:
-            load_more_url, headers, data = self._build_continuation_url(continuation)
-        else:
-            load_more_url, headers, data = None, None, None
 
-        while load_more_url and headers and data:  # there is an url found
-            logger.debug("load more url: %s", load_more_url)
+        while continuation:  # there is an url found
             # requesting the next page of videos with the url generated from the
             # previous page, needs to be a post
-            req = request.post(load_more_url, extra_headers=headers, data=data)
+            req = InnerTube(self.client).browse(continuation=continuation, visitor_data=self._visitor_data)
             # extract up to 100 songs from the page loaded
             # returns another continuation if more videos are available
             videos_urls, continuation = self._extract_videos(req, context)
@@ -201,50 +198,7 @@ class Playlist(Sequence):
                     pass
             yield videos_urls
 
-            if continuation:
-                load_more_url, headers, data = self._build_continuation_url(
-                    continuation
-                )
-            else:
-                load_more_url, headers, data = None, None, None
-
-    def _build_continuation_url(self, continuation: str) -> Tuple[str, dict, dict]:
-        """Helper method to build the url and headers required to request
-        the next page of videos
-
-        :param str continuation: Continuation extracted from the json response
-            of the last page
-        :rtype: Tuple[str, dict, dict]
-        :returns: Tuple of an url and required headers for the next http
-            request
-        """
-        return (
-            (
-                # was changed to this format (and post requests)
-                # around the day 2024.04.16
-                "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
-            ),
-            {
-                "X-YouTube-Client-Name": "1",
-                "X-YouTube-Client-Version": "2.20240530.02.00",
-            },
-            # extra data required for post request
-            {
-                "continuation": continuation,
-                "context": {
-                    "client": {
-                        "clientName": "WEB",
-                        "osName": "Windows",
-                        "osVersion": "10.0",
-                        "clientVersion": "2.20240530.02.00",
-                        "platform": "DESKTOP"
-                    }
-                }
-            }
-        )
-
-    @staticmethod
-    def _extract_videos(raw_json: str, context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
+    def _extract_videos(self, raw_json: str, context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
         """Extracts videos from a raw json page
 
         :param str raw_json: Input json extracted from the page or the last
@@ -254,7 +208,10 @@ class Playlist(Sequence):
         :returns: Tuple containing a list of up to 100 video watch ids and
             a continuation token, if more videos are available
         """
-        initial_data = json.loads(raw_json)
+        if isinstance(raw_json, dict):
+            initial_data = raw_json
+        else:
+            initial_data = json.loads(raw_json)
         try:
             # this is the json tree structure, if the json was extracted from
             # html
@@ -263,16 +220,22 @@ class Playlist(Sequence):
                 "tabs"][0]["tabRenderer"]["content"][
                 "sectionListRenderer"]["contents"]
             try:
-                # Playlist without submenus
-                important_content = section_contents[
-                    0]["itemSectionRenderer"][
-                    "contents"][0]["playlistVideoListRenderer"]
+                renderer = section_contents[0]["itemSectionRenderer"]["contents"][0]
+
+                if 'richGridRenderer' in renderer:
+                    important_content = renderer["richGridRenderer"]
+                else:
+                    important_content = renderer["playlistVideoListRenderer"]
+
             except (KeyError, IndexError, TypeError):
                 # Playlist with submenus
                 important_content = section_contents[
                     1]["itemSectionRenderer"][
                     "contents"][0]["playlistVideoListRenderer"]
             videos = important_content["contents"]
+
+            self._visitor_data = initial_data["responseContext"]["webResponseContextExtensionData"][
+                "ytConfigData"]["visitorData"]
         except (KeyError, IndexError, TypeError):
             try:
                 # this is the json tree structure, if the json was directly sent
@@ -286,6 +249,8 @@ class Playlist(Sequence):
                 return [], None
 
         try:
+            # For some reason YouTube only returns the first 100 shorts of a playlist
+            # token provided by the API doesn't seem to work even in the official player
             continuation = videos[-1]['continuationItemRenderer'][
                 'continuationEndpoint'
             ]['continuationCommand']['token']
@@ -294,22 +259,49 @@ class Playlist(Sequence):
             # if there is an error, no continuation is available
             continuation = None
 
+        items_obj = self._extract_ids(videos)
+
         # remove duplicates
-        return (
-            uniqueify(
-                list(
-                    # only extract the video ids from the video data
-                    map(
-                        lambda x: (
-                            f"/watch?v="
-                            f"{x['playlistVideoRenderer']['videoId']}"
-                        ),
-                        videos
-                    )
-                ),
-            ),
-            continuation,
-        )
+        return uniqueify(items_obj), continuation
+
+    def _extract_ids(self, items: list) -> list:
+        """ Iterate over the extracted urls.
+
+        :returns: List with extracted ids.
+        """
+        items_obj = []
+        for x in items:
+            items_obj.append(self._extract_video_id(x))
+        return items_obj
+
+    def _extract_video_id(self, x: dict):
+        """ Try extracting video ids, if it fails, try extracting shorts ids.
+
+        :returns: List with extracted ids.
+        """
+        try:
+            return f"/watch?v={x['playlistVideoRenderer']['videoId']}"
+        except (KeyError, IndexError, TypeError):
+            return self._extract_shorts_id(x)
+
+    def _extract_shorts_id(self, x: dict):
+        """ Try extracting shorts ids.
+
+        :returns: List with extracted ids.
+        """
+        try:
+            content = x['richItemRenderer']['content']
+
+            # New json tree added on 09/12/2024
+            if 'shortsLockupViewModel' in content:
+                video_id = content['shortsLockupViewModel']['onTap']['innertubeCommand']['reelWatchEndpoint']['videoId']
+            else:
+                video_id = content['reelItemRenderer']['videoId']
+
+            return f"/watch?v={video_id}"
+
+        except (KeyError, IndexError, TypeError):
+            return []
 
     def trimmed(self, video_id: str) -> Iterable[str]:
         """Retrieve a list of YouTube video URLs trimmed at the given video ID

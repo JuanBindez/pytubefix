@@ -463,12 +463,12 @@ class InnerTube:
             Verification URL and User-Code will be passed to it respectively. 
             (if passed, else default verifier will be used)
         :param bool use_po_token:
-            (Optional) Whether or not to use po_tokenoken to bypass YouTube bot detector.
+            (Optional) Whether or not to use po_token to bypass YouTube bot detector.
             It must be sent with the API along with the linked visitorData and
             then passed as a `po_token` query parameter to affected clients.
         :param Callable po_token_verifier:
-            (Optional) Verified used to obtain the visitorData and po_tokenoken.
-            The verifier will return the visitorData and po_tokenoken respectively.
+            (Optional) Verified used to obtain the visitorData and po_token.
+            The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
         """
         self.innertube_context = _default_clients[client]['innertube_context']
@@ -677,12 +677,34 @@ class InnerTube:
         )
         return json.loads(response.read())
 
-    def browse(self):
+    def browse(self, continuation=None, visitor_data=None):
         """Make a request to the browse endpoint.
+
+        :param str continuation:
+            Continuation token if there is pagination
+        :param str visitor_data:
+            Visitor Data, required to get YouTube Shorts
+        :rtype: dict
+        :returns:
+            Raw browse info results.
+        """
+        endpoint = f'{self.base_url}/browse'
+
+        query = self.base_params
+
+        if continuation:
+            self.base_data.update({"continuation": continuation})
+        if visitor_data:
+            self.base_data['context']['client'].update({"visitorData": visitor_data})
+
+        return self._call_api(endpoint, query, self.base_data)
+
+    def reel(self):
+        """Make a request to the reel endpoint.
 
         TODO: Figure out how we can use this
         """
-        # endpoint = f'{self.base_url}/browse'  # noqa:E800
+        # endpoint = f'{self.base_url}/reel'  # noqa:E800
         ...
         # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
 
