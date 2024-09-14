@@ -309,8 +309,8 @@ class Search:
                         if 'reelItemRenderer' in items:
                             video_id = items['reelItemRenderer']['videoId']
                         else:
-                            video_id = items['shortsLockupViewModel']['inlinePlayerData']['onVisible'][
-                                'innertubeCommand']['watchEndpoint']['videoId']
+                            video_id = items['shortsLockupViewModel']['onTap']['innertubeCommand'][
+                                'reelWatchEndpoint']['videoId']
 
                         shorts.append(YouTube(f"https://www.youtube.com/watch?v={video_id}",
                                               use_oauth=self.use_oauth,
