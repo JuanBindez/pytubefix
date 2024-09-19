@@ -520,8 +520,9 @@ class InnerTube:
             'visitorData': self.access_visitorData,
             'po_token': self.access_po_token
         }
-        if not os.path.exists(_cache_dir):
-            os.mkdir(_cache_dir)
+        cacheDir = os.path.dirname(self.token_file)
+        if not os.path.exists(cacheDir):
+            os.makedirs(cacheDir, exist_ok=True)
         with open(self.token_file, 'w') as f:
             json.dump(data, f)
 
