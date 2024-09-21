@@ -727,14 +727,28 @@ class InnerTube:
         ...
         # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
 
-    def next(self):
+    def next(self, video_id: str = None, continuation: str = None):
         """Make a request to the next endpoint.
 
-        TODO: Figure out how we can use this
+        :param str video_id:
+            The video id to get player details for.
+        :param str continuation:
+            Continuation token if there is pagination
+        :rtype: dict
+        :returns:
+            Raw player details results.
         """
-        # endpoint = f'{self.base_url}/next'  # noqa:E800
-        ...
-        # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
+
+        if continuation:
+            self.base_data.update({"continuation": continuation})
+
+        if video_id:
+            self.base_data.update({'videoId': video_id, 'contentCheckOk': "true"})
+
+        endpoint = f'{self.base_url}/next'
+        query = self.base_params
+
+        return self._call_api(endpoint, query, self.base_data)
 
     def player(self, video_id):
         """Make a request to the player endpoint.
