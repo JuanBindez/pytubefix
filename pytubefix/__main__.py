@@ -100,8 +100,8 @@ class YouTube:
             then passed as a `po_token` query parameter to affected clients.
             If allow_oauth_cache is set to True, the user should only be prompted once.
         :param Callable po_token_verifier:
-            (Optional) Verified used to obtain the visitorData and po_tokenoken.
-            The verifier will return the visitorData and po_tokenoken respectively.
+            (Optional) Verified used to obtain the visitorData and po_token.
+            The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
         """
         # js fetched by js_url
@@ -112,6 +112,7 @@ class YouTube:
 
         # content fetched from innertube/player
         self._vid_info: Optional[Dict] = None
+        self._vid_details: Optional[Dict] = None
 
         # the html of /watch?v=<video_id>
         self._watch_html: Optional[str] = None
@@ -419,6 +420,34 @@ class YouTube:
     @vid_info.setter
     def vid_info(self, value):
         self._vid_info = value
+
+    @property
+    def vid_details(self):
+        """Parse the raw vid details and return the parsed result.
+
+        The official player sends a request to the `next` endpoint to obtain some details of the video.
+
+        :rtype: Dict[Any, Any]
+        """
+        if self._vid_details:
+            return self._vid_details
+
+        innertube = InnerTube(
+            client='WEB',
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache,
+            token_file=self.token_file,
+            oauth_verifier=self.oauth_verifier,
+            use_po_token=self.use_po_token,
+            po_token_verifier=self.po_token_verifier
+        )
+        innertube_response = innertube.next(self.video_id)
+        self._vid_details = innertube_response
+        return self._vid_details
+
+    @vid_details.setter
+    def vid_details(self, value):
+        self._vid_details = value
 
     def age_check(self):
         """If the video has any age restrictions, you must confirm that you wish to continue.
@@ -749,6 +778,31 @@ class YouTube:
         :rtype: str
         """
         return f'https://www.youtube.com/channel/{self.channel_id}'
+
+    @property
+    def likes(self):
+        """Get the video likes
+
+        :rtype: str
+        """
+        try:
+            return self.vid_details[
+                'contents'][
+                'twoColumnWatchNextResults'][
+                'results'][
+                'results'][
+                'contents'][
+                0][
+                'videoPrimaryInfoRenderer'][
+                'videoActions'][
+                'menuRenderer'][
+                'topLevelButtons'][
+                0][
+                'segmentedLikeDislikeButtonViewModel'][
+                'likeCountEntity'][
+                'likeCountIfLikedNumber']
+        except (KeyError, IndexError):
+            return None
 
     @property
     def metadata(self) -> Optional[YouTubeMetadata]:
