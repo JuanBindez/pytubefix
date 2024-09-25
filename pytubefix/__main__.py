@@ -456,10 +456,10 @@ class YouTube:
     def age_check(self):
         """If the video has any age restrictions, you must confirm that you wish to continue.
 
-        Here the WEB client is used to have better stability.
+        Originally the WEB client was used, but with the implementation of PoToken we switched to MWEB.
         """
 
-        self.client = 'WEB'
+        self.client = 'MWEB'
         innertube = InnerTube(
             client=self.client,
             use_oauth=self.use_oauth,
