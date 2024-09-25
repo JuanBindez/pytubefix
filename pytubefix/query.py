@@ -243,7 +243,7 @@ class StreamQuery(Sequence):
         """
         return self
 
-    def get_by_itag(self, itag: int) -> Optional[Stream]:
+    def get_by_itag(self, itag: Union[int, str]) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given itag.
 
         :param int itag:
@@ -254,8 +254,10 @@ class StreamQuery(Sequence):
             not found.
 
         """
-        # TODO: You need to make sure itag is an int or str, if it is a int remove casting.
-        return self.itag_index.get(int(itag))
+        if isinstance(itag, int):
+            return self.itag_index.get(itag)
+        elif isinstance(itag, str) and itag.isdigit():
+            return self.itag_index.get(int(itag))
 
     def get_by_resolution(self, resolution: str) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given resolution.
