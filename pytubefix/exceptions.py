@@ -143,7 +143,26 @@ class BotDetection(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view{c.RESET}'
+        return (f'{c.RED}{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view. '
+                f'See more details at https://github.com/JuanBindez/pytubefix/pull/209{c.RESET}')
+
+
+class PoTokenRequired(VideoUnavailable):
+    def __init__(self, video_id: str, client_name: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str client_name:
+            A YouTube client identifier.
+        """
+        self.video_id = video_id
+        self.client_name = client_name
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return (f'{c.RED}{self.video_id} The {self.client_name} client requires PoToken to obtain functional streams, '
+                f'See more details at https://github.com/JuanBindez/pytubefix/pull/209{c.RESET}')
 
 
 class LoginRequired(VideoUnavailable):
@@ -158,7 +177,7 @@ class LoginRequired(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} requires login to view, reason: {self.reason}{c.RESET}'
+        return f'{c.RED}{self.video_id} requires login to view, YouTube reason: {self.reason}{c.RESET}'
 
 
 # legacy livestream error types still supported
