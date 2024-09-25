@@ -572,16 +572,12 @@ class YouTube:
         result: List[pytubefix.KeyMoment] = []
 
         for i, key_moment_data in enumerate(key_moments_data):
-            key_moment_start = int(
-                int(key_moment_data['startMillis']) / 1000
-            )
+            key_moment_start = int(key_moment_data['startMillis']) // 1000
 
             if i == len(key_moments_data) - 1:
                 key_moment_end = self.length
             else:
-                key_moment_end = int(
-                    int(key_moments_data[i + 1]['startMillis']) / 1000
-                )
+                key_moment_end = int(key_moments_data[i + 1]['startMillis']) // 1000
 
             result.append(pytubefix.KeyMoment(key_moment_data, key_moment_end - key_moment_start))
 
@@ -610,7 +606,7 @@ class YouTube:
 
         result: List[Dict[str, float]] = []
 
-        for i, heatmap_data in enumerate(heatmaps_data):
+        for heatmap_data in heatmaps_data:
             heatmap_start = int(heatmap_data['startMillis']) / 1000
             duration = int(heatmap_data['durationMillis']) / 1000
 

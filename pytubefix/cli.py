@@ -38,7 +38,7 @@ def main():
     if args.verbose:
         log_filename = args.logfile or None
         setup_logger(logging.DEBUG, log_filename=log_filename)
-        logger.debug(f'Pytube version: {__version__}')
+        logger.debug(f'Pytubefix version: {__version__}')
 
     if not args.url or "youtu" not in args.url:
         parser.print_help()
@@ -121,7 +121,7 @@ def _parse_args(
         "--list",
         action="store_true",
         help=(
-            "The list option causes pytube cli to return a list of streams "
+            "The list option causes pytubefix cli to return a list of streams "
             "available to download"
         ),
     )

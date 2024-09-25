@@ -9,7 +9,7 @@ c = Color()
 
 
 class PytubeFixError(Exception):
-    """Base pytube exception that all others inherit.
+    """Base pytubefix exception that all others inherit.
 
     This is done to not pollute the built-in exceptions, which *could* result
     in unintended errors being unexpectedly and incorrectly handled within
@@ -281,7 +281,7 @@ class UnknownVideoError(VideoUnavailable):
         self.reason = reason
         self.developer_message = developer_message
 
-        logger.warning(f'Unknown Video Error')
+        logger.warning('Unknown Video Error')
         logger.warning(f'Video ID: {self.video_id}')
         logger.warning(f'Status: {self.status}')
         logger.warning(f'Reason: {self.reason}')
