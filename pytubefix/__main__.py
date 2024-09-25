@@ -311,6 +311,10 @@ class YouTube:
         """
         status, messages = extract.playability_status(self.vid_info)
 
+        if InnerTube(self.client).require_po_token and not self.po_token:
+            logger.warning(f"The {self.client} client requires PoToken to obtain functional streams, "
+                           f"See more details at https://github.com/JuanBindez/pytubefix/pull/209")
+
         for reason in messages:
             if status == 'UNPLAYABLE':
                 if reason == (
@@ -367,7 +371,7 @@ class YouTube:
                     raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown reason type for Error status')
             elif status == 'LIVE_STREAM':
                 raise exceptions.LiveStreamError(video_id=self.video_id)
-            elif status == None:
+            elif status is None:
                 pass
             else:
                 raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown video status')
