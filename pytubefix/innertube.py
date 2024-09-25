@@ -453,7 +453,7 @@ class InnerTube:
 
     def __init__(
             self,
-            client='ANDROID_TESTSUITE',
+            client='ANDROID_VR',
             use_oauth=False,
             allow_cache=True,
             token_file=None,

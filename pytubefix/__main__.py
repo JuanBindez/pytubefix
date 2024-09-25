@@ -51,7 +51,7 @@ class YouTube:
     def __init__(
             self,
             url: str,
-            client: str = 'ANDROID_TESTSUITE',
+            client: str = 'ANDROID_VR',
             on_progress_callback: Optional[Callable[[Any, bytes, int], None]] = None,
             on_complete_callback: Optional[Callable[[Any, Optional[str]], None]] = None,
             proxies: Optional[Dict[str, str]] = None,
