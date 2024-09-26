@@ -27,7 +27,7 @@ class KeyMoment:
         data = keymoment_data
 
         self.title = data["title"]["simpleText"]
-        self.start_seconds = int(int(data["startMillis"]) / 1000)
+        self.start_seconds = int(data["startMillis"]) // 1000
         self.duration = duration
 
         thumbnails_data = data.get("thumbnailDetails", {}).get("thumbnails", [])
