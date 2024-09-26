@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple, Iterable, Any, Callable
 
 from pytubefix import extract, YouTube, Playlist, request
 from pytubefix.helpers import cache, uniqueify, DeferredGeneratorList
+from pytubefix.innertube import InnerTube
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class Channel(Playlist):
     def __init__(
             self,
             url: str,
-            client: str = 'WEB',
+            client: str = InnerTube().client_name,
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
@@ -351,6 +352,7 @@ class Channel(Playlist):
         try:
             return YouTube(f"/watch?v="
                            f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}",
+                           client=self.client,
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
                            token_file=self.token_file,
@@ -376,6 +378,7 @@ class Channel(Playlist):
                 video_id = content['reelItemRenderer']['videoId']
 
             return YouTube(f"/watch?v={video_id}",
+                           client=self.client,
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
                            token_file=self.token_file,
@@ -394,6 +397,7 @@ class Channel(Playlist):
         try:
             return Playlist(f"/playlist?list="
                             f"{x['richItemRenderer']['content']['playlistRenderer']['playlistId']}",
+                            client=self.client,
                             use_oauth=self.use_oauth,
                             allow_oauth_cache=self.allow_oauth_cache,
                             token_file=self.token_file,
@@ -413,6 +417,7 @@ class Channel(Playlist):
         try:
             return YouTube(f"/watch?v="
                            f"{x['gridVideoRenderer']['videoId']}",
+                           client=self.client,
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
                            token_file=self.token_file,
@@ -431,6 +436,7 @@ class Channel(Playlist):
         try:
             return YouTube(f"/watch?v="
                            f"{x['reelItemRenderer']['videoId']}",
+                           client=self.client,
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
                            token_file=self.token_file,
@@ -449,6 +455,7 @@ class Channel(Playlist):
         try:
             return Playlist(f"/playlist?list="
                             f"{x['gridPlaylistRenderer']['playlistId']}",
+                            client=self.client,
                             use_oauth=self.use_oauth,
                             allow_oauth_cache=self.allow_oauth_cache,
                             token_file=self.token_file,
@@ -467,6 +474,7 @@ class Channel(Playlist):
         try:
             return Channel(f"/channel/"
                            f"{x['gridChannelRenderer']['channelId']}",
+                           client=self.client,
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
                            token_file=self.token_file,
