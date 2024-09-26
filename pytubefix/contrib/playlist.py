@@ -18,7 +18,7 @@ class Playlist(Sequence):
     def __init__(
             self,
             url: str,
-            client: str = 'WEB',
+            client: str = InnerTube().client_name,
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
@@ -185,7 +185,7 @@ class Playlist(Sequence):
         while continuation:  # there is an url found
             # requesting the next page of videos with the url generated from the
             # previous page, needs to be a post
-            req = InnerTube(self.client).browse(continuation=continuation, visitor_data=self._visitor_data)
+            req = InnerTube('WEB').browse(continuation=continuation, visitor_data=self._visitor_data)
             # extract up to 100 songs from the page loaded
             # returns another continuation if more videos are available
             videos_urls, continuation = self._extract_videos(req, context)
@@ -340,6 +340,7 @@ class Playlist(Sequence):
         for url in self.video_urls:
             yield YouTube(
                 url,
+                client=self.client,
                 use_oauth=self.use_oauth,
                 allow_oauth_cache=self.allow_oauth_cache,
                 token_file=self.token_file,

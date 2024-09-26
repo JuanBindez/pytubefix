@@ -496,6 +496,8 @@ class InnerTube:
         self.access_token = None
         self.refresh_token = None
 
+        self.client_name = client
+
         self.access_po_token = None
         self.access_visitorData = None
 

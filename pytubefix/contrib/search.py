@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class Search:
     def __init__(
             self, query: str,
-            client: str = 'WEB',
+            client: str = InnerTube().client_name,
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
@@ -63,7 +63,7 @@ class Search:
         self.po_token_verifier = po_token_verifier
 
         self._innertube_client = InnerTube(
-            client=self.client,
+            client='WEB',
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
@@ -283,6 +283,7 @@ class Search:
                 if 'playlistRenderer' in video_details:
                     playlist.append(Playlist(f"https://www.youtube.com/playlist?list="
                                              f"{video_details['playlistRenderer']['playlistId']}",
+                                             client=self.client,
                                              use_oauth=self.use_oauth,
                                              allow_oauth_cache=self.allow_oauth_cache,
                                              token_file=self.token_file,
@@ -295,6 +296,7 @@ class Search:
                 if 'channelRenderer' in video_details:
                     channel.append(Channel(f"https://www.youtube.com/channel/"
                                            f"{video_details['channelRenderer']['channelId']}",
+                                           client=self.client,
                                            use_oauth=self.use_oauth,
                                            allow_oauth_cache=self.allow_oauth_cache,
                                            token_file=self.token_file,
@@ -313,6 +315,7 @@ class Search:
                                 'reelWatchEndpoint']['videoId']
 
                         shorts.append(YouTube(f"https://www.youtube.com/watch?v={video_id}",
+                                              client=self.client,
                                               use_oauth=self.use_oauth,
                                               allow_oauth_cache=self.allow_oauth_cache,
                                               token_file=self.token_file,
@@ -325,6 +328,7 @@ class Search:
                 if 'videoRenderer' in video_details:
                     videos.append(YouTube(f"https://www.youtube.com/watch?v="
                                           f"{video_details['videoRenderer']['videoId']}",
+                                          client=self.client,
                                           use_oauth=self.use_oauth,
                                           allow_oauth_cache=self.allow_oauth_cache,
                                           token_file=self.token_file,
