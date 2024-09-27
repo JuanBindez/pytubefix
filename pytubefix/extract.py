@@ -104,18 +104,11 @@ def playability_status(player_response: dict) -> Tuple[Any, Any]:
         Playability status and reason of the video.
     """
     status_dict = player_response.get('playabilityStatus', {})
-    if 'liveStreamability' in status_dict:
+    # if 'liveStreamability' in status_dict:
+    # We used liveStreamability to know if the video was live,
+    # however some clients still return this parameter even if the video is already available
+    if 'isLive' in player_response['videoDetails']:
         return 'LIVE_STREAM', 'Video is a live stream.'
-
-    ## removed bc videos have livecontent set even if they are not live, IE old livestreams
-    # if we have videoDetails we check for certain values.
-    # but if it is not playable, it usually does not have videodetails.
-    # So this is only for very particular cases
-    # if 'videoDetails' in player_response:
-    #     # Some clients do not have 'liveStreamability' in playabilityStatus, so we check in videoDetails.
-    #     if player_response['videoDetails']['isLiveContent']:
-    #         return 'LIVE_STREAM', 'Video is a live stream.'
-
 
     if 'status' in status_dict:
         if 'reason' in status_dict:
