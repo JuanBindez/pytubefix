@@ -1,9 +1,9 @@
 #!/bin/bash
 
 git add .
-git commit -m '7.1-rc3 (#246 #249 #253 #254)'
-git push -u origin dev
-git tag v7.1-rc3
+git commit -m 'Pytubefix 7.1.3 (#246 #249 #253 #254)'
+git push -u origin main
+git tag v7.1.3
 git push --tag
 make clean
 make upload
