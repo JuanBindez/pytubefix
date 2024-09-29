@@ -488,6 +488,7 @@ class InnerTube:
             The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
         """
+        self.client_name = client
         self.innertube_context = _default_clients[client]['innertube_context']
         self.header = _default_clients[client]['header']
         self.api_key = _default_clients[client]['api_key']
