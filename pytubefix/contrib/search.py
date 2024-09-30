@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 class Search:
     def __init__(
             self, query: str,
-            client: str = InnerTube().client_name,
+            params: Optional[Dict[str, str]] = None,
+            client: str = 'WEB',
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
@@ -27,6 +28,8 @@ class Search:
 
         :param str query:
             Search query provided by the user.
+        :param dict params:
+            (Optional) A dict mapping query parameters to their values.
         :param dict proxies:
             (Optional) A dict mapping protocol to proxy address which will be used by pytube.
         :param bool use_oauth:
@@ -53,6 +56,7 @@ class Search:
             (if passed, else default verifier will be used)
         """
         self.query = query
+        self.params = params
         self.client = client
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
@@ -63,7 +67,7 @@ class Search:
         self.po_token_verifier = po_token_verifier
 
         self._innertube_client = InnerTube(
-            client='WEB',
+            client=self.client,
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
@@ -283,7 +287,6 @@ class Search:
                 if 'playlistRenderer' in video_details:
                     playlist.append(Playlist(f"https://www.youtube.com/playlist?list="
                                              f"{video_details['playlistRenderer']['playlistId']}",
-                                             client=self.client,
                                              use_oauth=self.use_oauth,
                                              allow_oauth_cache=self.allow_oauth_cache,
                                              token_file=self.token_file,
@@ -296,7 +299,6 @@ class Search:
                 if 'channelRenderer' in video_details:
                     channel.append(Channel(f"https://www.youtube.com/channel/"
                                            f"{video_details['channelRenderer']['channelId']}",
-                                           client=self.client,
                                            use_oauth=self.use_oauth,
                                            allow_oauth_cache=self.allow_oauth_cache,
                                            token_file=self.token_file,
@@ -315,7 +317,6 @@ class Search:
                                 'reelWatchEndpoint']['videoId']
 
                         shorts.append(YouTube(f"https://www.youtube.com/watch?v={video_id}",
-                                              client=self.client,
                                               use_oauth=self.use_oauth,
                                               allow_oauth_cache=self.allow_oauth_cache,
                                               token_file=self.token_file,
@@ -328,7 +329,6 @@ class Search:
                 if 'videoRenderer' in video_details:
                     videos.append(YouTube(f"https://www.youtube.com/watch?v="
                                           f"{video_details['videoRenderer']['videoId']}",
-                                          client=self.client,
                                           use_oauth=self.use_oauth,
                                           allow_oauth_cache=self.allow_oauth_cache,
                                           token_file=self.token_file,
@@ -353,7 +353,7 @@ class Search:
         :returns:
             The raw json object returned by the innertube API.
         """
-        query_results = self._innertube_client.search(self.query, continuation)
+        query_results = self._innertube_client.search(self.query, continuation, data=self.params)
         if not self._initial_results:
             self._initial_results = query_results
         return query_results  # noqa:R504

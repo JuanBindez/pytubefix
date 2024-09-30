@@ -488,6 +488,7 @@ class InnerTube:
             The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
         """
+        self.client_name = client
         self.innertube_context = _default_clients[client]['innertube_context']
         self.header = _default_clients[client]['header']
         self.api_key = _default_clients[client]['api_key']
@@ -495,8 +496,6 @@ class InnerTube:
         self.require_po_token = _default_clients[client]['require_po_token']
         self.access_token = None
         self.refresh_token = None
-
-        self.client_name = client
 
         self.access_po_token = None
         self.access_visitorData = None
@@ -785,18 +784,23 @@ class InnerTube:
         self.base_data.update({'videoId': video_id, 'contentCheckOk': "true"})
         return self._call_api(endpoint, query, self.base_data)
 
-    def search(self, search_query, continuation=None):
+    def search(self, search_query, continuation=None, data=None):
         """Make a request to the search endpoint.
 
         :param str search_query:
             The query to search.
+        :param str continuation:
+            Continuation token if there is pagination
+        :param dict data:
+            Additional data to send with the request.
         :rtype: dict
         :returns:
             Raw search query results.
         """
         endpoint = f'{self.base_url}/search'
         query = self.base_params
-        data = {}
+        data = data if data else {}
+   
         self.base_data.update({'query': search_query})
         if continuation:
             data['continuation'] = continuation
