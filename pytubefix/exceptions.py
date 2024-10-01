@@ -1,11 +1,8 @@
 """Library specific exception definitions."""
 from typing import Pattern, Union
-from .colors import Color
 import logging
 
 logger = logging.getLogger(__name__)
-
-c = Color()
 
 
 class PytubeFixError(Exception):
@@ -16,9 +13,7 @@ class PytubeFixError(Exception):
     implementers code.
     """
 
-
 ### MISC Errors ###
-
 
 class MaxRetriesExceeded(PytubeFixError):
     """Maximum number of retries exceeded."""
@@ -42,7 +37,7 @@ class RegexMatchError(ExtractError):
         :param str pattern:
             Pattern that failed to match
         """
-        super().__init__(f"{c.RED}{caller}: could not find match for {pattern}{c.RESET}")
+        super().__init__(f"{caller}: could not find match for {pattern}")
         self.caller = caller
         self.pattern = pattern
 
@@ -77,7 +72,7 @@ class VideoUnavailable(PytubeFixError):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} is unavailable{c.RESET}'
+        return f'{self.video_id} is unavailable'
 
 
 ## 2. Known Error Type, Extra info useful for user ##
@@ -94,7 +89,7 @@ class VideoPrivate(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} is a private video{c.RESET}'
+        return f'{self.video_id} is a private video'
 
 
 class MembersOnly(VideoUnavailable):
@@ -115,7 +110,7 @@ class MembersOnly(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} is a members-only video{c.RESET}'
+        return f'{self.video_id} is a members-only video'
 
 
 class VideoRegionBlocked(VideoUnavailable):
@@ -129,7 +124,7 @@ class VideoRegionBlocked(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} is not available in your region{c.RESET}'
+        return f'{self.video_id} is not available in your region'
 
 
 class BotDetection(VideoUnavailable):
@@ -143,8 +138,8 @@ class BotDetection(VideoUnavailable):
 
     @property
     def error_string(self):
-        return (f'{c.RED}{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view. '
-                f'See more details at https://github.com/JuanBindez/pytubefix/pull/209{c.RESET}')
+        return (f'{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view. '
+                f'See more details at https://github.com/JuanBindez/pytubefix/pull/209')
 
 
 class PoTokenRequired(VideoUnavailable):
@@ -161,8 +156,8 @@ class PoTokenRequired(VideoUnavailable):
 
     @property
     def error_string(self):
-        return (f'{c.RED}{self.video_id} The {self.client_name} client requires PoToken to obtain functional streams, '
-                f'See more details at https://github.com/JuanBindez/pytubefix/pull/209{c.RESET}')
+        return (f'{self.video_id} The {self.client_name} client requires PoToken to obtain functional streams, '
+                f'See more details at https://github.com/JuanBindez/pytubefix/pull/209 ')
 
 
 class LoginRequired(VideoUnavailable):
@@ -177,7 +172,7 @@ class LoginRequired(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} requires login to view, YouTube reason: {self.reason}{c.RESET}'
+        return f'{self.video_id} requires login to view, YouTube reason: {self.reason}'
 
 
 # legacy livestream error types still supported
@@ -193,7 +188,7 @@ class RecordingUnavailable(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} does not have a live stream recording available{c.RESET}'
+        return f'{self.video_id} does not have a live stream recording available'
 
 
 class LiveStreamError(VideoUnavailable):
@@ -209,7 +204,7 @@ class LiveStreamError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} is streaming live and cannot be loaded{c.RESET}'
+        return f'{self.video_id} is streaming live and cannot be loaded'
 
 
 # legacy age restricted error types still supported
@@ -227,7 +222,7 @@ class AgeRestrictedError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f"{c.RED}{self.video_id} is age restricted, and can't be accessed without logging in.{c.RESET}"
+        return f"{self.video_id} is age restricted, and can't be accessed without logging in."
 
 
 class AgeCheckRequiredError(VideoUnavailable):
@@ -241,7 +236,7 @@ class AgeCheckRequiredError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f"{c.RED}{self.video_id} has age restrictions and cannot be accessed without confirmation.{c.RESET}"
+        return f"{self.video_id} has age restrictions and cannot be accessed without confirmation."
 
 
 class AgeCheckRequiredAccountError(VideoUnavailable):
@@ -255,8 +250,8 @@ class AgeCheckRequiredAccountError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return (f"{c.RED}{self.video_id} may be inappropriate for "
-                f"some users. Sign in to your primary account to confirm your age.{c.RESET}")
+        return (f"{self.video_id} may be inappropriate for "
+                f"some users. Sign in to your primary account to confirm your age.")
 
 
 ## 3. Unknown Error Type, Important to Developer ##
@@ -296,4 +291,4 @@ class UnknownVideoError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{c.RED}{self.video_id} has an unknown error, check logs for more info{c.RESET}'
+        return f'{self.video_id} has an unknown error, check logs for more info'
