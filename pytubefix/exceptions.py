@@ -2,8 +2,8 @@
 from typing import Pattern, Union
 import logging
 
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 class PytubeFixError(Exception):
     """Base pytubefix exception that all others inherit.
@@ -12,7 +12,6 @@ class PytubeFixError(Exception):
     in unintended errors being unexpectedly and incorrectly handled within
     implementers code.
     """
-
 ### MISC Errors ###
 
 class MaxRetriesExceeded(PytubeFixError):
@@ -49,9 +48,7 @@ class RegexMatchError(ExtractError):
 # 2. Known Error Type, Extra info useful for user
 # 3. Unknown Error Type, Important to Developer
 
-
 ## 1. VideoUnavailable ##
-
 
 class VideoUnavailable(PytubeFixError):
     """
@@ -74,9 +71,7 @@ class VideoUnavailable(PytubeFixError):
     def error_string(self):
         return f'{self.video_id} is unavailable'
 
-
 ## 2. Known Error Type, Extra info useful for user ##
-
 
 class VideoPrivate(VideoUnavailable):
     def __init__(self, video_id: str):
@@ -126,7 +121,6 @@ class VideoRegionBlocked(VideoUnavailable):
     def error_string(self):
         return f'{self.video_id} is not available in your region'
 
-
 class BotDetection(VideoUnavailable):
     def __init__(self, video_id: str):
         """
@@ -173,7 +167,6 @@ class LoginRequired(VideoUnavailable):
     @property
     def error_string(self):
         return f'{self.video_id} requires login to view, YouTube reason: {self.reason}'
-
 
 # legacy livestream error types still supported
 
@@ -224,7 +217,6 @@ class LiveStreamOffline(VideoUnavailable):
     @property
     def error_string(self):
         return f'{self.video_id} {self.reason}'
-
 
 # legacy age restricted error types still supported
 
