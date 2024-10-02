@@ -207,6 +207,25 @@ class LiveStreamError(VideoUnavailable):
         return f'{self.video_id} is streaming live and cannot be loaded'
 
 
+class LiveStreamOffline(VideoUnavailable):
+    """The live will start soon"""
+
+    def __init__(self, video_id: str, reason: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str reason:
+            reason for the error
+        """
+        self.video_id = video_id
+        self.reason = reason
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f'{self.video_id} {self.reason}'
+
+
 # legacy age restricted error types still supported
 
 class AgeRestrictedError(VideoUnavailable):
