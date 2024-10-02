@@ -356,6 +356,9 @@ class YouTube:
                 else:
                     raise exceptions.AgeCheckRequiredError(video_id=self.video_id)
 
+            elif status == 'LIVE_STREAM_OFFLINE':
+                raise exceptions.LiveStreamOffline(video_id=self.video_id, reason=reason)
+
             elif status == 'ERROR':
                 if reason == 'Video unavailable':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
