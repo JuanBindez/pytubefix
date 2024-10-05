@@ -7,6 +7,7 @@ from typing import List, Optional, Dict, Callable, Tuple
 from pytubefix import YouTube, Channel, Playlist
 from pytubefix.helpers import deprecated, install_proxy
 from pytubefix.innertube import InnerTube
+from pytubefix.protobuf import encode_protobuf
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +15,7 @@ logger = logging.getLogger(__name__)
 class Search:
     def __init__(
             self, query: str,
-            params: Optional[Dict[str, str]] = None,
-            client: str = 'WEB',
+            client: str = InnerTube().client_name,
             proxies: Optional[Dict[str, str]] = None,
             use_oauth: bool = False,
             allow_oauth_cache: bool = True,
@@ -23,13 +23,12 @@ class Search:
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
             po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
+            filters: Optional[dict] = None
     ):
         """Initialize Search object.
 
         :param str query:
             Search query provided by the user.
-        :param dict params:
-            (Optional) A dict mapping query parameters to their values.
         :param dict proxies:
             (Optional) A dict mapping protocol to proxy address which will be used by pytube.
         :param bool use_oauth:
@@ -54,9 +53,12 @@ class Search:
             (Optional) Verified used to obtain the visitorData and po_token.
             The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
+        :param dict filters:
+            (Optional) Apply filters when searching.
+            Can be used: `upload_data`, `type`, `duration`, `features`, `sort_by`.
+            features can be combined into a list with other parameters of the same type.
         """
         self.query = query
-        self.params = params
         self.client = client
         self.use_oauth = use_oauth
         self.allow_oauth_cache = allow_oauth_cache
@@ -67,7 +69,7 @@ class Search:
         self.po_token_verifier = po_token_verifier
 
         self._innertube_client = InnerTube(
-            client=self.client,
+            client='WEB',
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
@@ -89,6 +91,15 @@ class Search:
 
         if proxies:
             install_proxy(proxies)
+
+        self.filter = None
+        if filters:
+            logger.debug("Filters found, starting combination")
+            filter_protobuf = Filter()
+
+            filter_protobuf.set_filters(filters)
+
+            self.filter = filter_protobuf.get_filters_params()
 
     @property
     def completion_suggestions(self):
@@ -199,6 +210,16 @@ class Search:
         #  return [items for values in self._results.values() for items in values]
         return self.videos
 
+    @property
+    def all(self) -> list:
+        """
+        Return all objects found in the search
+        """
+        if not self._results:
+            self._get_results()
+
+        return [items for values in self._results.values() for items in values]
+
     def get_next_results(self):
         """Use the stored continuation string to fetch the next set of results.
 
@@ -225,7 +246,11 @@ class Search:
         """
         # Begin by executing the query and identifying the relevant sections
         #  of the results
-        raw_results = self.fetch_query(continuation)
+        raw_results = self.fetch_query(continuation,
+                                       # The filter parameter must only be passed in the first API call
+                                       # After the first call, the continuation token already contains the filter
+                                       {'params': self.filter} if self.filter and not continuation else None
+                                       )
 
         # Initial result is handled by try block, continuations by except block
         try:
@@ -287,6 +312,7 @@ class Search:
                 if 'playlistRenderer' in video_details:
                     playlist.append(Playlist(f"https://www.youtube.com/playlist?list="
                                              f"{video_details['playlistRenderer']['playlistId']}",
+                                             client=self.client,
                                              use_oauth=self.use_oauth,
                                              allow_oauth_cache=self.allow_oauth_cache,
                                              token_file=self.token_file,
@@ -299,6 +325,7 @@ class Search:
                 if 'channelRenderer' in video_details:
                     channel.append(Channel(f"https://www.youtube.com/channel/"
                                            f"{video_details['channelRenderer']['channelId']}",
+                                           client=self.client,
                                            use_oauth=self.use_oauth,
                                            allow_oauth_cache=self.allow_oauth_cache,
                                            token_file=self.token_file,
@@ -317,6 +344,7 @@ class Search:
                                 'reelWatchEndpoint']['videoId']
 
                         shorts.append(YouTube(f"https://www.youtube.com/watch?v={video_id}",
+                                              client=self.client,
                                               use_oauth=self.use_oauth,
                                               allow_oauth_cache=self.allow_oauth_cache,
                                               token_file=self.token_file,
@@ -329,6 +357,7 @@ class Search:
                 if 'videoRenderer' in video_details:
                     videos.append(YouTube(f"https://www.youtube.com/watch?v="
                                           f"{video_details['videoRenderer']['videoId']}",
+                                          client=self.client,
                                           use_oauth=self.use_oauth,
                                           allow_oauth_cache=self.allow_oauth_cache,
                                           token_file=self.token_file,
@@ -344,16 +373,185 @@ class Search:
 
         return results, next_continuation
 
-    def fetch_query(self, continuation=None):
+    def fetch_query(self, continuation: str = None, filters: dict = None):
         """Fetch raw results from the innertube API.
 
         :param str continuation:
             Continuation string for fetching results.
+        :param dict filters:
+            Parameter encoded in protobuf that contains the search filters.
         :rtype: dict
         :returns:
             The raw json object returned by the innertube API.
         """
-        query_results = self._innertube_client.search(self.query, continuation, data=self.params)
+        query_results = self._innertube_client.search(self.query, continuation=continuation, data=filters)
         if not self._initial_results:
             self._initial_results = query_results
         return query_results  # noqa:R504
+
+
+class Filter:
+    """
+    Build filters for YouTube search in protobuf format
+    """
+
+    def __init__(self):
+        self.filters = {
+            'upload_data': None,
+            'type': None,
+            'duration': None,
+            'features': [],
+            'sort_by': None
+        }
+
+    def set_filters(self, filter_dict):
+        """
+        Applies multiple filters at once using a dictionary.
+        """
+        for category, value in filter_dict.items():
+            if category == 'features':
+                if isinstance(value, list):
+                    logger.debug("Filter features is a list")
+                    self.filters['features'].extend(value)
+                else:
+                    self.filters['features'].append(value)
+            else:
+                self.filters[category] = value
+
+    def clear_filters(self):
+        """
+        Clear all filters
+        """
+        for category in self.filters:
+            if category == 'features':
+                self.filters[category] = []
+            else:
+                self.filters[category] = None
+
+    def get_filters_params(self):
+        """
+        Combines selected filters into a final structure
+        """
+        combined = {}
+
+        if self.filters['sort_by']:
+            combined.update(self.filters['sort_by'])
+
+        combined[2] = {}
+
+        if self.filters['type']:
+            combined[2].update(self.filters['type'])
+
+        if self.filters['duration']:
+            combined[2].update(self.filters['duration'])
+
+        if self.filters['features']:
+            for feature in self.filters['features']:
+                combined[2].update(feature)
+
+        if self.filters['upload_data']:
+            combined[2].update(self.filters['upload_data'])
+
+        combined[2] = dict(sorted(combined.get(2, {}).items()))
+
+        logger.debug(f"Combined filters: {combined}")
+
+        encoded_filters = encode_protobuf(str(combined))
+
+        logger.debug(f"Filter encoded in protobuf: {encoded_filters}")
+
+        return encoded_filters
+
+    @staticmethod
+    def get_upload_data(option: str) -> dict:
+        """
+        Last Hour,
+        Today,
+        This Week,
+        This Month,
+        This Year
+        """
+        filters = {
+            "Last Hour": {1: 1},
+            "Today": {1: 2},
+            "This Week": {1: 3},
+            "This Month": {1: 4},
+            "This Year": {1: 5},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_type(option: str) -> dict:
+        """
+        Video,
+        Channel,
+        Playlist,
+        Movie
+        """
+        filters = {
+            "Video": {2: 1},
+            "Channel": {2: 2},
+            "Playlist": {2: 3},
+            "Movie": {2: 4},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_duration(option: str) -> dict:
+        """
+        Under 4 minutes,
+        Over 20 minutes,
+        4 - 20 minutes
+        """
+        filters = {
+            "Under 4 minutes": {3: 1},
+            "Over 20 minutes": {3: 2},
+            "4 - 20 minutes": {3: 3},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_features(option: str) -> dict:
+        """
+        Live,
+        4K,
+        HD,
+        Subtitles/CC,
+        Creative Commons,
+        360,
+        VR180,
+        3D,
+        HDR,
+        Location,
+        Purchased
+        """
+        filters = {
+            "Live": {8: 1},
+            "4K": {14: 1},
+            "HD": {4: 1},
+            "Subtitles/CC": {5: 1},
+            "Creative Commons": {6: 1},
+            "360": {15: 1},
+            "VR180": {26: 1},
+            "3D": {7: 1},
+            "HDR": {25: 1},
+            "Location": {23: 1},
+            "Purchased": {9: 1},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_sort_by(option: str) -> dict:
+        """
+        Relevance,
+        Upload date,
+        View count,
+        Rating
+        """
+        filters = {
+            "Relevance": {1: 0},
+            "Upload date": {1: 2},
+            "View count": {1: 3},
+            "Rating": {1: 1},
+        }
+        return filters.get(option)
