@@ -167,30 +167,74 @@ for video in c.videos:
 >>> for video in results.videos:
 ...     print(f'Title: {video.title}')
 ...     print(f'URL: {video.watch_url}')
-...     print(f'Duration: {video.length} seg')
+...     print(f'Duration: {video.length} sec')
 ...     print('---')
 ... 
 Title: Good Practices with GitHub Issues
 URL: https://youtube.com/watch?v=v1AeHaopAYE
-Duration: 406 seg
+Duration: 406 sec
 ---
 Title: GitHub Issues Tips and Guidelines
 URL: https://youtube.com/watch?v=kezinXSoV5A
-Duration: 852 seg
+Duration: 852 sec
 ---
 Title: 13 Advanced (but useful) Git Techniques and Shortcuts
 URL: https://youtube.com/watch?v=ecK3EnyGD8o
-Duration: 486 seg
+Duration: 486 sec
 ---
 Title: Managing a GitHub Organization Tools, Tips, and Best Practices - Mark Matyas
 URL: https://youtube.com/watch?v=1T4HAPBFbb0
-Duration: 1525 seg
+Duration: 1525 sec
 ---
 Title: Do you know the best way to manage GitHub Issues?
 URL: https://youtube.com/watch?v=OccRyzAS4Vc
-Duration: 534 seg
+Duration: 534 sec
 ---
 >>>
+
+
+```
+
+
+### Using Filters
+
+```python
+>>> from pytubefix.contrib.search import Search, Filter
+>>> 
+>>> 
+>>> f = {
+...     'upload_data': Filter.get_upload_data('Today'),
+...     'type': Filter.get_type("Video"),
+...     'duration': Filter.get_duration("Under 4 minutes"),
+...     'features': [Filter.get_features("4K"), Filter.get_features("Creative Commons")],
+...     'sort_by': Filter.get_sort_by("Upload date")
+... }
+>>> 
+>>> s = Search('music', filters=f)
+>>> for c in s.videos:
+...     print(c.watch_url)
+... 
+https://youtube.com/watch?v=_Rq8MzYz0YU
+https://youtube.com/watch?v=YHPGM8nBk3U
+https://youtube.com/watch?v=m98WShs7MLE
+https://youtube.com/watch?v=-vBqfC3Nir0
+https://youtube.com/watch?v=LbtrnCjopwk
+https://youtube.com/watch?v=pfl2ga6AS3c
+https://youtube.com/watch?v=TzNk2ygEU4c
+https://youtube.com/watch?v=yQfXVRKvA70
+https://youtube.com/watch?v=G5tQX990XU0
+https://youtube.com/watch?v=4LQzYMhtXV8
+https://youtube.com/watch?v=BOLGwdjCSAo
+https://youtube.com/watch?v=CgSH3Ww3MHs
+https://youtube.com/watch?v=_43tx98VEWc
+https://youtube.com/watch?v=wLDRGZaBEoQ
+https://youtube.com/watch?v=3qaHb2t3Lkw
+https://youtube.com/watch?v=56deLmbicLg
+https://youtube.com/watch?v=pQk2TzmwnS0
+https://youtube.com/watch?v=NJ3sOlg8KGo
+https://youtube.com/watch?v=kfDSHjlk4Pg
+https://youtube.com/watch?v=8KHak4ZNO3k
+>>> 
 
 
 ```
