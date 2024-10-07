@@ -113,7 +113,7 @@ Here it is interesting to note that videos and shorts are from the same class of
 
 The .playlist method will only return playlists::
 
-	>>> from pytubefix import Search
+    >>> from pytubefix import Search
     >>> 
     >>> s = Search('python tutorial')
     >>> 
