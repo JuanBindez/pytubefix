@@ -177,14 +177,14 @@ def channel_name(url: str) -> str:
     :returns:
         YouTube channel name.
     """
-    # Atualizando os padrões para evitar capturar 'www'
+
     patterns = [
-        r"(?:\/(c)\/([%\d\w_\-]+)(\/.*)?)",            # URL com /c/
-        r"(?:\/(channel)\/([%\w\d_\-]+)(\/.*)?)",      # URL com /channel/
-        r"(?:\/(u)\/([%\d\w_\-]+)(\/.*)?)",            # URL com /u/
-        r"(?:\/(user)\/([%\w\d_\-]+)(\/.*)?)",         # URL com /user/
-        r"(?:\/(\@)([%\d\w_\-\.]+)(\/.*)?)",           # URL com @
-        r"(?:youtube\.com\/(?!www)([%\d\w_\-]+)(\/.*)?)"  # Novo padrão sem prefixo, ignorando www
+        r"(?:\/(c)\/([%\d\w_\-]+)(\/.*)?)",            # URL  /c/
+        r"(?:\/(channel)\/([%\w\d_\-]+)(\/.*)?)",      # URL  /channel/
+        r"(?:\/(u)\/([%\d\w_\-]+)(\/.*)?)",            # URL  /u/
+        r"(?:\/(user)\/([%\w\d_\-]+)(\/.*)?)",         # URL  /user/
+        r"(?:\/(\@)([%\d\w_\-\.]+)(\/.*)?)",           # URL  @
+        r"(?:youtube\.com\/(?!www)([%\d\w_\-]+)(\/.*)?)" 
     ]
     
     for pattern in patterns:
@@ -192,10 +192,9 @@ def channel_name(url: str) -> str:
         function_match = regex.search(url)
         if function_match:
             logger.debug("finished regex search, matched: %s", pattern)
-            uri_style = function_match.group(1)  # Pode ser None se não houver prefixo
+            uri_style = function_match.group(1)
             uri_identifier = function_match.group(2)
             
-            # Se uri_style for None (ou seja, sem prefixo como 'c', 'channel', '@', etc.)
             if uri_style is None:
                 return f'/{uri_identifier}'
             
