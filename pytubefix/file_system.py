@@ -1,5 +1,3 @@
-from pytubefix import info
-
 
 windows = ['Windows', 'NTFS', 'FAT32', 'exFAT', 'ReFS']
 linux = ['Linux', 'ext2', 'ext3', 'ext4', 'Btrfs', 'XFS', 'ZFS']
@@ -30,6 +28,18 @@ macos_translation = str.maketrans({
 
 bsd_translation = str.maketrans({
             '/': '',
+        })
+
+network_filesystems_translation = str.maketrans({
+            '\\': '',
+            '/': '',
+            '?': '',
+            ':': '',
+            '*': '',
+            '"': '',
+            '<': '',
+            '>': '',
+            '|': '',
         })
 
 def file_system_verify(file_type) -> dict:
@@ -67,4 +77,4 @@ def file_system_verify(file_type) -> dict:
     elif file_type in bsd_unix:
         return bsd_translation
     elif file_type in network_filesystems:
-        return bsd_translation
+        return network_filesystems_translation
