@@ -675,6 +675,7 @@ class YouTube:
             "author", "unknown"
         )
 
+
         translation_table = str.maketrans({
             '/': '',
             ':': '',
