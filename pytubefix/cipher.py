@@ -127,8 +127,27 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
         # Regex logic changed based on old players, n_func can easily be found after ".length ||",
         # in this case n_func is "rma"
         # Before this regex, we got the function inside the idx 0 of "oDa"
-        r'[abc]=(?P<func>[a-zA-Z0-9$]+)\[(?P<idx>\d+)\]\([abc]\),a\.set\([a-zA-Z0-9$\",]+\),'
-        r'[a-zA-Z0-9$]+\.length\|\|(?P<n_func>[a-zA-Z0-9$]+)\(\"\"\)'
+        # r'[abc]=(?P<func>[a-zA-Z0-9$]+)\[(?P<idx>\d+)\]\([abc]\),a\.set\([a-zA-Z0-9$\",]+\),'
+        # r'[a-zA-Z0-9$]+\.length\|\|(?P<n_func>[a-zA-Z0-9$]+)\(\"\"\)'
+
+        # New pattern used in player "2f238d39" on October 10, 2024
+        # a.D && (b = "nn" [+a.D], zM(a), c = a.j[b] || null) && (c = XDa[0](c), a.set(b, c))
+        r'''(?x)
+                    (?:
+                        \.get\("n"\)\)&&\(b=|
+                        (?:
+                            b=String\.fromCharCode\(110\)|
+                            (?P<str_idx>[a-zA-Z0-9_$.]+)&&\(b="nn"\[\+(?P=str_idx)\]
+                        )
+                        (?:
+                            ,[a-zA-Z0-9_$]+\(a\))?,c=a\.
+                            (?:
+                                get\(b\)|
+                                [a-zA-Z0-9_$]+\[b\]\|\|null
+                            )\)&&\(c=|
+                        \b(?P<var>[a-zA-Z0-9_$]+)=
+                    )(?P<nfunc>[a-zA-Z0-9_$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z]\)
+                    (?(var),[a-zA-Z0-9_$]+\.set\("n"\,(?P=var)\),(?P=nfunc)\.length)'''
     ]
     logger.debug('Finding throttling function name')
     for pattern in function_patterns:
@@ -137,9 +156,11 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
         if function_match:
             logger.debug("finished regex search, matched: %s", pattern)
 
-            func = function_match.group('func')
+            func = function_match.group('nfunc')
             idx = function_match.group('idx')
-            n_func = function_match.group('n_func')
+
+            logger.debug(f'func is: {func}')
+            logger.debug(f'idx is: {idx}')
 
             logger.debug('Checking throttling function name')
             if idx:
@@ -147,13 +168,9 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
                 n_func_found = re.search(n_func_check_pattern, js)
 
                 if n_func_found:
-                    if n_func_found.group(1) == n_func:
-                        return n_func
-
-                    raise RegexMatchError(
-                        caller="get_throttling_function_name",
-                        pattern=f"{n_func}, does not match the one found in {js_url}"
-                    )
+                    throttling_function = n_func_found.group(1)
+                    logger.debug(f'Throttling function name is: {throttling_function}')
+                    return throttling_function
 
                 raise RegexMatchError(
                     caller="get_throttling_function_name", pattern=f"{n_func_check_pattern} in {js_url}"

@@ -676,18 +676,8 @@ class YouTube:
         )
 
 
-        translation_table = str.maketrans({
-            '/': '',
-            ':': '',
-            '*': '',
-            '"': '',
-            '<': '',
-            '>': '',
-            '|': '',
-        })
-
         if self._title:
-            return self._title.translate(translation_table)
+            return self._title
 
         try:
             self._title = self.vid_info['videoDetails']['title']
@@ -702,7 +692,7 @@ class YouTube:
                 )
             ) from e
 
-        return self._title.translate(translation_table)
+        return self._title
 
     @title.setter
     def title(self, value):
