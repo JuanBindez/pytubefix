@@ -21,6 +21,7 @@ from pytubefix import extract, request
 from pytubefix.helpers import safe_filename, target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
+from pytubefix.file_system import file_system_verify
 
 logger = logging.getLogger(__name__)
 
@@ -299,41 +300,52 @@ class Stream:
         timeout: Optional[int] = None,
         max_retries: int = 0,
         mp3: bool = False,
-        remove_problematic_character: Optional[str] = None,
+        file_system: str = 'NTFS',
         interrupt_checker: Optional[Callable[[], bool]] = None
     ) -> Optional[str]:
         
         """
-        Download the file from the URL provided by `self.url`.
+        Downloads a file from the URL provided by `self.url` and saves it locally with optional configurations.
 
         Args:
-            output_path (Optional[str]): Path where the downloaded file will be saved.
-            filename (Optional[str]): Name of the downloaded file.
-            filename_prefix (Optional[str]): Prefix to be added to the filename.
-            skip_existing (bool): Whether to skip the download if the file already exists.
-            timeout (Optional[int]): Timeout for the download request.
-            max_retries (Optional[int]): Maximum number of retries for the download.
-            mp3 (bool): Whether the file to be downloaded is an MP3 audio file.
-            remove_problematic_character (str): Characters to be removed from the filename, exemple (problematic_character="?").
-            interrupt_checker (Callable): It will be checked while downloading. When it returns True, download will be stopped without any errors.
+            output_path (Optional[str]): Directory path where the downloaded file will be saved. Defaults to the current directory if not specified.
+            filename (Optional[str]): Custom name for the downloaded file. If not provided, a default name is used.
+            filename_prefix (Optional[str]): Prefix to be added to the filename (if provided).
+            skip_existing (bool): Whether to skip the download if the file already exists at the target location. Defaults to True.
+            timeout (Optional[int]): Maximum time, in seconds, to wait for the download request. Defaults to None for no timeout.
+            max_retries (int): The number of times to retry the download if it fails. Defaults to 0 (no retries).
+            mp3 (bool): If set to True, the file will be treated as an MP3 audio file, and the filename will have the `.mp3` extension.
+            file_system (str): The file system type to ensure filename compatibility (e.g., 'NTFS', 'ext4'). Defaults to 'NTFS'. 
+                            Supported file systems include:
+                            - 'NTFS' (Windows)
+                            - 'FAT32' (Windows)
+                            - 'exFAT' (Windows, macOS)
+                            - 'ext4' (Linux)
+                            - 'APFS' (macOS)
+                            - 'UFS' (BSD/UNIX)
+                            - 'CIFS', 'SMB' (Network file systems)
+            interrupt_checker (Optional[Callable[[], bool]]): A callable function that is checked periodically during the download. If it returns True, the download will stop without errors.
 
         Returns:
-            str: File path of the downloaded file.
+            Optional[str]: The full file path of the downloaded file, or None if the download was skipped or failed.
 
         Raises:
-            HTTPError: If an HTTP error occurs during the download.
+            HTTPError: Raised if there is an error with the HTTP request during the download process.
 
         Note:
-            If `mp3` is set to True, the downloaded file will be assumed to be an MP3 audio file.
-            If `filename` is not provided and `mp3` is True, the title of the resource will be used as the filename with '.mp3' extension.
-            If `filename` is provided and `mp3` is True, '.mp3' extension will be appended to the filename.
-            If `remove_problematic_character` is specified, these characters will be removed from the filename to avoid issues with file naming.
-            The progress of the download is tracked using the `on_progress` callback.
-            The `on_complete` callback is triggered after the download is completed.
+            - If `mp3` is True and `filename` is not provided, the title of the resource will be used as the filename, with an `.mp3` extension.
+            - If `filename` is provided and `mp3` is True, the `.mp3` extension will be appended to the provided filename.
+            - The `file_system` argument ensures that invalid characters specific to the chosen file system are removed from the filename before saving. For example:
+                - NTFS (Windows) does not allow characters like `\`, `/`, `?`, `:`, `*`, etc.
+                - ext4 (Linux) only restricts the `/` character.
+                - APFS (macOS) restricts the `:` character.
+            - The `skip_existing` flag avoids redownloading if the file already exists in the target location.
+            - The `interrupt_checker` allows for the download to be halted cleanly if certain conditions are met during the download process.
+            - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
         """
 
-        if remove_problematic_character:
-            filename = self.title.replace(remove_problematic_character, "")
+        translation_table = file_system_verify(file_system)
+        filename = self.title.translate(translation_table)
         
         if mp3:
             if filename is None:
