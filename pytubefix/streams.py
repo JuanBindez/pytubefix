@@ -287,9 +287,7 @@ class Stream:
         :returns:
             An os file system compatible filename.
         """
-        filename = safe_filename(self.title)
-        return f"{filename}.{self.subtype}"
-
+        return f"{self.title}.{self.subtype}"
 
     def download(
         self,
