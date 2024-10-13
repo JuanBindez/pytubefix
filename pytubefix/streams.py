@@ -408,7 +408,7 @@ class Stream:
     ) -> str:
         if not filename:
             translation_table = file_system_verify(file_system)
-            filename = self.title.translate(translation_table)
+            filename = self.default_filename.translate(translation_table)
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
         return str(Path(target_directory(output_path)) / filename)
