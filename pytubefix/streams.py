@@ -336,13 +336,14 @@ class Stream:
             - If `mp3` is True and `filename` is not provided, the title of the resource will be used as the filename, with an `.mp3` extension.
             - If `filename` is provided and `mp3` is True, the `.mp3` extension will be appended to the provided filename.
             - The `file_system` argument ensures that invalid characters specific to the chosen file system are removed from the filename before saving. For example:
-                - NTFS (Windows) does not allow characters like `\\`, `/`, `?`, `:`, `*`, etc.
+                - NTFS (Windows) does not allow characters like `\`, `/`, `?`, `:`, `*`, etc.
                 - ext4 (Linux) only restricts the `/` character.
                 - APFS (macOS) restricts the `:` character.
             - The `skip_existing` flag avoids redownloading if the file already exists in the target location.
             - The `interrupt_checker` allows for the download to be halted cleanly if certain conditions are met during the download process.
             - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
         """
+
         
         if mp3:
             if filename is None:
@@ -409,7 +410,7 @@ class Stream:
     ) -> str:
         if not filename:
             translation_table = file_system_verify(file_system)
-            filename = self.default_filename.translate(translation_table)
+            filename = self.title.translate(translation_table)
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
         return str(Path(target_directory(output_path)) / filename)
