@@ -345,9 +345,12 @@ class Stream:
         
         if mp3:
             if filename is None:
-                filename = self.title + ".mp3"
-            else:
-                filename = filename + ".mp3"
+                translation_table = file_system_verify(file_system)
+                title = self.title.translate(translation_table)
+                filename = title + '.mp3'
+            elif filename:
+                translation_table = file_system_verify(file_system)
+                filename = filename.translate(translation_table) + '.mp3'
 
         file_path = self.get_file_path(
             filename=filename,
