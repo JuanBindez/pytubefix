@@ -342,14 +342,15 @@ class Stream:
             - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
         """
 
+        if mp3 and not ('audio' in self.mime_type and 'video' not in self.mime_type):
+            raise ValueError("The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
         
         if mp3:
+            translation_table = file_system_verify(file_system)
             if filename is None:
-                translation_table = file_system_verify(file_system)
                 title = self.title.translate(translation_table)
                 filename = title + '.mp3'
             elif filename:
-                translation_table = file_system_verify(file_system)
                 filename = filename.translate(translation_table) + '.mp3'
 
         file_path = self.get_file_path(
@@ -412,6 +413,10 @@ class Stream:
         if not filename:
             translation_table = file_system_verify(file_system)
             filename = self.default_filename.translate(translation_table)
+        elif filename:
+            translation_table = file_system_verify(file_system)
+            filename = filename.translate(translation_table)
+
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
         return str(Path(target_directory(output_path)) / filename)
