@@ -23,7 +23,6 @@ from pytubefix.helpers import safe_filename, target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
 from pytubefix.file_system import file_system_verify
-from pytubefix.info import info
 
 logger = logging.getLogger(__name__)
 
