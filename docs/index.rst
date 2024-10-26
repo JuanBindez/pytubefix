@@ -68,7 +68,6 @@ of pytubefix.
    user/chapters
    user/dubbed_streams
    user/keymoments
-   user/file_system
    user/po_token
    user/info
 

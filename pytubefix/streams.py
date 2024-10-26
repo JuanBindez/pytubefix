@@ -10,6 +10,7 @@ separately).
 import logging
 import os
 from math import ceil
+import sys
 
 from datetime import datetime
 from typing import BinaryIO, Dict, Optional, Tuple, Iterator, Callable
@@ -22,6 +23,7 @@ from pytubefix.helpers import safe_filename, target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
 from pytubefix.file_system import file_system_verify
+from pytubefix.info import info
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +300,6 @@ class Stream:
         timeout: Optional[int] = None,
         max_retries: int = 0,
         mp3: bool = False,
-        file_system: str = 'NTFS',
         interrupt_checker: Optional[Callable[[], bool]] = None
     ) -> Optional[str]:
         
@@ -313,15 +314,6 @@ class Stream:
             timeout (Optional[int]): Maximum time, in seconds, to wait for the download request. Defaults to None for no timeout.
             max_retries (int): The number of times to retry the download if it fails. Defaults to 0 (no retries).
             mp3 (bool): If set to True, the file will be treated as an MP3 audio file, and the filename will have the `.mp3` extension.
-            file_system (str): The file system type to ensure filename compatibility (e.g., 'NTFS', 'ext4'). Defaults to 'NTFS'. 
-                            Supported file systems include:
-                            - 'NTFS' (Windows)
-                            - 'FAT32' (Windows)
-                            - 'exFAT' (Windows, macOS)
-                            - 'ext4' (Linux)
-                            - 'APFS' (macOS)
-                            - 'UFS' (BSD/UNIX)
-                            - 'CIFS', 'SMB' (Network file systems)
             interrupt_checker (Optional[Callable[[], bool]]): A callable function that is checked periodically during the download. If it returns True, the download will stop without errors.
 
         Returns:
@@ -333,10 +325,6 @@ class Stream:
         Note:
             - If `mp3` is True and `filename` is not provided, the title of the resource will be used as the filename, with an `.mp3` extension.
             - If `filename` is provided and `mp3` is True, the `.mp3` extension will be appended to the provided filename.
-            - The `file_system` argument ensures that invalid characters specific to the chosen file system are removed from the filename before saving. For example:
-                - NTFS (Windows) does not allow characters like `\`, `/`, `?`, `:`, `*`, etc.
-                - ext4 (Linux) only restricts the `/` character.
-                - APFS (macOS) restricts the `:` character.
             - The `skip_existing` flag avoids redownloading if the file already exists in the target location.
             - The `interrupt_checker` allows for the download to be halted cleanly if certain conditions are met during the download process.
             - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
@@ -345,6 +333,15 @@ class Stream:
         if mp3 and not ('audio' in self.mime_type and 'video' not in self.mime_type):
             raise ValueError("The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
         
+        platform_type = sys.platform
+
+        if platform_type == "linux":
+            file_system = "ext4"
+        elif platform_type == "darwin":
+            file_system = "APFS"
+        else:
+            file_system = "NTFS"  
+                
         if mp3:
             translation_table = file_system_verify(file_system)
             if filename is None:
