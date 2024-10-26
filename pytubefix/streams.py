@@ -333,11 +333,11 @@ class Stream:
         if mp3 and not ('audio' in self.mime_type and 'video' not in self.mime_type):
             raise ValueError("The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
         
-        platform_type = sys.platform
+        kernel = sys.platform
 
-        if platform_type == "linux":
+        if kernel == "linux":
             file_system = "ext4"
-        elif platform_type == "darwin":
+        elif kernel == "darwin":
             file_system = "APFS"
         else:
             file_system = "NTFS"  
