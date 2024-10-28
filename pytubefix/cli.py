@@ -334,4 +334,3 @@ def display_streams(youtube: YouTube) -> None:
 
 if __name__ == "__main__":
     main()
-    
