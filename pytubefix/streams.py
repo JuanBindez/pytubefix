@@ -288,7 +288,7 @@ class Stream:
         :returns:
             An os file system compatible filename.
         """
-        if 'audio' in self.mime_type:
+        if 'audio' in self.mime_type and 'video' not in self.mime_type:
             self.subtype = "m4a"
         return f"{self.title}.{self.subtype}"
 
