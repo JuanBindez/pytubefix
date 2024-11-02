@@ -18,77 +18,6 @@ from pytubefix import YouTube
 
 logger = logging.getLogger(__name__)
 
-def main():
-    parser = argparse.ArgumentParser(description=main.__doc__)
-    args = _parse_args(parser)
-    
-    if args.verbose:
-        log_filename = args.logfile or None
-        setup_logger(logging.DEBUG, log_filename=log_filename)
-        logger.debug(f'Pytubefix version: {__version__}')
-
-    if not args.url or "youtu" not in args.url:
-        parser.print_help()
-        sys.exit(1)
-
-    if "/playlist" in args.url:
-        print("Loading playlist...")
-        playlist = Playlist(args.url)
-        if not args.target:
-            args.target = safe_filename(playlist.title)
-
-        for youtube_video in playlist.videos:
-            try:
-                _perform_args_on_youtube(youtube_video, args)
-            except exceptions.PytubeFixError as e:
-                print(f"There was an error with video: {youtube_video}")
-                print(e)
-    else:
-        print("Loading video...")
-        use_oauth = True
-        if args.noauth: use_oauth = False
-        youtube = YouTube(args.url, use_oauth=use_oauth, allow_oauth_cache=True)
-        _perform_args_on_youtube(youtube, args)
-
-def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None:
-    if len(sys.argv) == 2:  # no arguments parsed
-        download_highest_resolution_progressive(youtube=youtube, resolution="highest", target=args.target)
-    
-    if args.list_captions:
-        _print_available_captions(youtube.captions)
-    if args.list:
-        display_streams(youtube)
-    if args.build_playback_report:
-        build_playback_report(youtube)
-    if args.itag:
-        download_by_itag(youtube=youtube, itag=args.itag, target=args.target)
-    if args.caption_code:
-        download_caption(youtube=youtube, lang_code=args.caption_code, target=args.target)
-    if args.resolution:
-        download_by_resolution(youtube=youtube, resolution=args.resolution, target=args.target)
-    if args.audio:
-        download_audio(youtube=youtube, filetype=args.audio, target=args.target)
-    if args.ffmpeg:
-        ffmpeg_process(youtube=youtube, resolution=args.resolution, target=args.target)
-
-def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) -> argparse.Namespace:
-    parser.add_argument("url", help="The YouTube /watch or /playlist url", nargs="?")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    parser.add_argument("--itag", type=int, help="The itag for the desired stream")
-    parser.add_argument("-r", "--resolution", type=str, help="The resolution for the desired stream")
-    parser.add_argument("-l", "--list", action="store_true", help="The list option causes pytubefix cli to return a list of streams available to download")
-    parser.add_argument("--noauth", action="store_true", help="Do not use oauth token")
-    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="Set logger output to verbose output.")
-    parser.add_argument("--logfile", action="store", help="logging debug and error messages into a log file")
-    parser.add_argument("--build-playback-report", action="store_true", help="Save the html and js to disk")
-    parser.add_argument("-c", "--caption-code", type=str, help="Download srt captions for given language code. Prints available language codes if no argument given")
-    parser.add_argument('-lc', '--list-captions', action='store_true', help="List available caption codes for a video")
-    parser.add_argument("-t", "--target", help="The output directory for the downloaded stream. Default is current working directory")
-    parser.add_argument("-a", "--audio", const="mp4", nargs="?", help="Download the audio for a given URL at the highest bitrate available. Defaults to mp4 format if none is specified")
-    parser.add_argument("-f", "--ffmpeg", const="best", nargs="?", help="Downloads the audio and video stream for resolution provided. If no resolution is provided, downloads the best resolution. Runs the command line program ffmpeg to combine the audio and video")
-
-    return parser.parse_args(args)
-
 def build_playback_report(youtube: YouTube) -> None:
     """Serialize the request data to json for offline debugging.
     
@@ -334,6 +263,88 @@ def display_streams(youtube: YouTube) -> None:
     print(f"Available streams for {youtube.title}:")
     for stream in youtube.streams:
         print(f" - {stream}")
+
+
+def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) -> argparse.Namespace:
+    parser.add_argument("url", help="The YouTube /watch or /playlist url", nargs="?")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument("--itag", type=int, help="The itag for the desired stream")
+    parser.add_argument("-r", "--resolution", type=str, help="The resolution for the desired stream")
+    parser.add_argument("-l", "--list", action="store_true", help="The list option causes pytubefix cli to return a list of streams available to download")
+    parser.add_argument("--auth", action="store_true", help="use oauth token")
+    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="Set logger output to verbose output.")
+    parser.add_argument("--logfile", action="store", help="logging debug and error messages into a log file")
+    parser.add_argument("--build-playback-report", action="store_true", help="Save the html and js to disk")
+    parser.add_argument("-c", "--caption-code", type=str, help="Download srt captions for given language code. Prints available language codes if no argument given")
+    parser.add_argument('-lc', '--list-captions', action='store_true', help="List available caption codes for a video")
+    parser.add_argument("-t", "--target", help="The output directory for the downloaded stream. Default is current working directory")
+    parser.add_argument("-a", "--audio", const="mp4", nargs="?", help="Download the audio for a given URL at the highest bitrate available. Defaults to mp4 format if none is specified")
+    parser.add_argument("-f", "--ffmpeg", const="best", nargs="?", help="Downloads the audio and video stream for resolution provided. If no resolution is provided, downloads the best resolution. Runs the command line program ffmpeg to combine the audio and video")
+
+    return parser.parse_args(args)
+
+def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None:
+    if len(sys.argv) == 2:
+        download_highest_resolution_progressive(youtube=youtube, resolution="highest", target=args.target)
+        return  # Exit early as no further actions are needed
+
+    if args.list_captions:
+        _print_available_captions(youtube.captions)
+    if args.list:
+        display_streams(youtube)
+
+    if args.itag:
+        download_by_itag(youtube=youtube, itag=args.itag, target=args.target)
+    elif args.caption_code:
+        download_caption(youtube=youtube, lang_code=args.caption_code, target=args.target)
+    elif args.resolution:
+        download_by_resolution(youtube=youtube, resolution=args.resolution, target=args.target)
+    elif args.audio:
+        download_audio(youtube=youtube, filetype=args.audio, target=args.target)
+    
+    if args.ffmpeg:
+        ffmpeg_process(youtube=youtube, resolution=args.resolution, target=args.target)
+
+    if args.build_playback_report:
+        build_playback_report(youtube)
+
+    if args.version:
+        print(__version__)
+        exit()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=main.__doc__)
+    args = _parse_args(parser)
+
+    oauth = args.auth
+    cache = args.auth
+
+    log_filename = args.logfile if args.verbose else None
+    setup_logger(logging.DEBUG if args.verbose else logging.INFO, log_filename=log_filename)
+
+    if args.verbose:
+        logger.debug(f'Pytubefix version: {__version__}')
+
+    if not args.url or "youtu" not in args.url:
+        parser.print_help()
+        sys.exit(0)
+
+    if "/playlist" in args.url:
+        print("Loading playlist...")
+        playlist = Playlist(args.url, use_oauth=oauth, allow_oauth_cache=cache)
+        args.target = args.target or safe_filename(playlist.title)
+
+        for youtube_video in playlist.videos:
+            try:
+                _perform_args_on_youtube(youtube_video, args)
+            except exceptions.PytubeFixError as e:
+                print(f"There was an error with video: {youtube_video}")
+                print(e)
+    else:
+        print("Loading video...")
+        youtube = YouTube(args.url, use_oauth=oauth, allow_oauth_cache=cache)
+        _perform_args_on_youtube(youtube, args)
 
 if __name__ == "__main__":
     main()
