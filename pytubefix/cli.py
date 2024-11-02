@@ -45,7 +45,9 @@ def main():
                 print(e)
     else:
         print("Loading video...")
-        youtube = YouTube(args.url)
+        use_oauth = True
+        if args.noauth: use_oauth = False
+        youtube = YouTube(args.url, use_oauth=use_oauth, allow_oauth_cache=True)
         _perform_args_on_youtube(youtube, args)
 
 def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None:
@@ -67,7 +69,7 @@ def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None
     if args.audio:
         download_audio(youtube=youtube, filetype=args.audio, target=args.target)
     if args.ffmpeg:
-        ffmpeg_process(youtube=youtube, resolution=args.ffmpeg, target=args.target)
+        ffmpeg_process(youtube=youtube, resolution=args.resolution, target=args.target)
 
 def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) -> argparse.Namespace:
     parser.add_argument("url", help="The YouTube /watch or /playlist url", nargs="?")
@@ -75,6 +77,7 @@ def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) ->
     parser.add_argument("--itag", type=int, help="The itag for the desired stream")
     parser.add_argument("-r", "--resolution", type=str, help="The resolution for the desired stream")
     parser.add_argument("-l", "--list", action="store_true", help="The list option causes pytubefix cli to return a list of streams available to download")
+    parser.add_argument("--noauth", action="store_true", help="Do not use oauth token")
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="Set logger output to verbose output.")
     parser.add_argument("--logfile", action="store", help="logging debug and error messages into a log file")
     parser.add_argument("--build-playback-report", action="store_true", help="Save the html and js to disk")
@@ -92,7 +95,7 @@ def build_playback_report(youtube: YouTube) -> None:
     :param YouTube youtube:
         A YouTube object.
     """
-    ts = int(dt.datetime.utcnow().timestamp())
+    ts = int(dt.datetime.now(dt.timezone.utc).timestamp())
     fp = os.path.join(os.getcwd(), f"yt-video-{youtube.video_id}-{ts}.json.gz")
 
     js = youtube.js
@@ -192,7 +195,7 @@ def ffmpeg_process(youtube: YouTube, resolution: str, target: Optional[str] = No
     youtube.register_on_progress_callback(on_progress)
     target = target or os.getcwd()
 
-    if resolution == "best":
+    if resolution == None or resolution == "best":
         highest_quality_stream = youtube.streams.filter(progressive=False).order_by("resolution").last()
         mp4_stream = youtube.streams.filter(progressive=False, subtype="mp4").order_by("resolution").last()
         if highest_quality_stream.resolution == mp4_stream.resolution:
