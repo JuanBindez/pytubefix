@@ -267,7 +267,7 @@ def display_streams(youtube: YouTube) -> None:
 
 def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) -> argparse.Namespace:
     parser.add_argument("url", help="The YouTube /watch or /playlist url", nargs="?")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--itag", type=int, help="The itag for the desired stream")
     parser.add_argument("-r", "--resolution", type=str, help="The resolution for the desired stream")
     parser.add_argument("-l", "--list", action="store_true", help="The list option causes pytubefix cli to return a list of streams available to download")
