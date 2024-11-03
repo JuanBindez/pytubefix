@@ -308,11 +308,6 @@ def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None
     if args.build_playback_report:
         build_playback_report(youtube)
 
-    if args.version:
-        print(__version__)
-        exit()
-
-
 def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
