@@ -307,6 +307,18 @@ def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None
     if args.build_playback_report:
         build_playback_report(youtube)
 
+    oauth = False
+    cache = False
+
+    if args.oauth:
+        oauth = True
+        cache = True
+
+        print("Loading video...")
+        youtube = YouTube(args.url, use_oauth=oauth, allow_oauth_cache=cache)
+
+        download_highest_resolution_progressive(youtube=youtube, resolution="highest", target=args.target)
+
 
 def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
@@ -324,7 +336,7 @@ def main():
 
     if "/playlist" in args.url:
         print("Loading playlist...")
-        playlist = Playlist(args.url, use_oauth=oauth, allow_oauth_cache=cache)
+        playlist = Playlist(args.url)
         args.target = args.target or safe_filename(playlist.title)
 
         for youtube_video in playlist.videos:
@@ -334,20 +346,9 @@ def main():
                 print(f"There was an error with video: {youtube_video}")
                 print(e)
 
-    oauth = False
-    cache = False
-
-    if args.oauth:
-        oauth = True
-        cache = True
-
-        print("Loading video...")
-        youtube = YouTube(args.url, use_oauth=oauth, allow_oauth_cache=cache)
-        _perform_args_on_youtube(youtube, args)
-
     else:
         print("Loading video...")
-        youtube = YouTube(args.url, use_oauth=oauth, allow_oauth_cache=cache)
+        youtube = YouTube(args.url)
         _perform_args_on_youtube(youtube, args)
 
 if __name__ == "__main__":
