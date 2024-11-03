@@ -20,13 +20,13 @@ Now you can save subtitles to a txt file::
 
     yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
     
-    caption = yt.captions.get_by_language_code('en')
+    caption = yt.captions['a.en']
     caption.save_captions("captions.txt")
 
 
 Now let's checkout the english captions::
 
-    >>> caption = yt.captions.get_by_language_code('en')
+    >>> caption = yt.captions['a.en']
 
 Great, now let's see how YouTube formats them::
 
