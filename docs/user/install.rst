@@ -12,15 +12,15 @@ To install pytubefix, run the following command in your terminal::
 Get the Source Code
 -------------------
 
-pytubefix is actively developed on GitHub, where the source is `available <https://github.com/pytubefix/pytubefix>`_.
+pytubefix is actively developed on GitHub, where the source is `available <https://github.com/JuanBindez/pytubefix>`_.
 
 You can either clone the public repository::
 
-    $ git clone git://github.com/pytubefix/pytubefix.git
+    $ git clone git://github.com/JuanBindez/pytubefix.git
 
-Or, download the `tarball <https://github.com/pytubefix/pytubefix/tarball/master>`_::
+Or, download the `tarball <https://github.com/JuanBindez/pytubefix/tarball/master>`_::
 
-    $ curl -OL https://github.com/pytubefix/pytubefix/tarball/master
+    $ curl -OL https://github.com/JuanBindez/pytubefix/tarball/master
     # optionally, zipball is also available (for Windows users).
 
 Once you have a copy of the source, you can embed it in your Python package, or install it into your site-packages by running::
