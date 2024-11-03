@@ -341,6 +341,10 @@ def main():
         oauth = True
         cache = True
 
+        print("Loading video...")
+        youtube = YouTube(args.url, use_oauth=oauth, allow_oauth_cache=cache)
+        _perform_args_on_youtube(youtube, args)
+
     else:
         print("Loading video...")
         youtube = YouTube(args.url, use_oauth=oauth, allow_oauth_cache=cache)
