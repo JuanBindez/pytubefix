@@ -286,7 +286,7 @@ def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) ->
 def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None:
     if len(sys.argv) == 2:
         download_highest_resolution_progressive(youtube=youtube, resolution="highest", target=args.target)
- 
+
     if args.list_captions:
         _print_available_captions(youtube.captions)
     if args.list:
@@ -312,15 +312,6 @@ def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
 
-    global oauth, cache
-
-    oauth = False
-    cache = False
-
-    if args.oauth:
-        oauth = True
-        cache = True
-
     log_filename = args.logfile if args.verbose else None
     setup_logger(logging.DEBUG if args.verbose else logging.INFO, log_filename=log_filename)
 
@@ -343,29 +334,12 @@ def main():
                 print(f"There was an error with video: {youtube_video}")
                 print(e)
 
-    if len(sys.argv) == 2:
-        download_highest_resolution_progressive(youtube=youtube, resolution="highest", target=args.target)
-        return  # Exit early as no further actions are needed
+    oauth = False
+    cache = False
 
-    if args.list_captions:
-        _print_available_captions(youtube.captions)
-    if args.list:
-        display_streams(youtube)
-
-    if args.itag:
-        download_by_itag(youtube=youtube, itag=args.itag, target=args.target)
-    elif args.caption_code:
-        download_caption(youtube=youtube, lang_code=args.caption_code, target=args.target)
-    elif args.resolution:
-        download_by_resolution(youtube=youtube, resolution=args.resolution, target=args.target)
-    elif args.audio:
-        download_audio(youtube=youtube, filetype=args.audio, target=args.target)
-    
-    if args.ffmpeg:
-        ffmpeg_process(youtube=youtube, resolution=args.resolution, target=args.target)
-
-    if args.build_playback_report:
-        build_playback_report(youtube)
+    if args.oauth:
+        oauth = True
+        cache = True
 
     else:
         print("Loading video...")
