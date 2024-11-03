@@ -271,7 +271,7 @@ def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) ->
     parser.add_argument("--itag", type=int, help="The itag for the desired stream")
     parser.add_argument("-r", "--resolution", type=str, help="The resolution for the desired stream")
     parser.add_argument("-l", "--list", action="store_true", help="The list option causes pytubefix cli to return a list of streams available to download")
-    parser.add_argument("--auth", action="store_true", help="use oauth token")
+    parser.add_argument("--oauth", action="store_true", help="use oauth token")
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="Set logger output to verbose output.")
     parser.add_argument("--logfile", action="store", help="logging debug and error messages into a log file")
     parser.add_argument("--build-playback-report", action="store_true", help="Save the html and js to disk")
@@ -317,8 +317,8 @@ def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
 
-    oauth = args.auth
-    cache = args.auth
+    oauth = args.oauth
+    cache = args.oauth
 
     log_filename = args.logfile if args.verbose else None
     setup_logger(logging.DEBUG if args.verbose else logging.INFO, log_filename=log_filename)
