@@ -312,8 +312,12 @@ def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
 
-    oauth = args.oauth
-    cache = args.oauth
+    oauth = False
+    cache = False
+
+    if args.oauth:
+        oauth = True
+        cache = True
 
     log_filename = args.logfile if args.verbose else None
     setup_logger(logging.DEBUG if args.verbose else logging.INFO, log_filename=log_filename)
