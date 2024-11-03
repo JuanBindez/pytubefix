@@ -10,7 +10,6 @@ separately).
 import logging
 import os
 from math import ceil
-import sys
 
 from datetime import datetime
 from typing import BinaryIO, Dict, Optional, Tuple, Iterator, Callable
@@ -22,7 +21,6 @@ from pytubefix import extract, request
 from pytubefix.helpers import safe_filename, target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
-from pytubefix.file_system import file_system_verify
 
 logger = logging.getLogger(__name__)
 
@@ -333,29 +331,15 @@ class Stream:
 
         if mp3 and not ('audio' in self.mime_type and 'video' not in self.mime_type):
             raise ValueError("The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
-        
-        kernel = sys.platform
-
-        if kernel == "linux":
-            file_system = "ext4"
-        elif kernel == "darwin":
-            file_system = "APFS"
-        else:
-            file_system = "NTFS"  
                 
         if mp3:
-            translation_table = file_system_verify(file_system)
-            if filename is None:
-                title = self.title.translate(translation_table)
-                filename = title + '.mp3'
-            elif filename:
-                filename = filename.translate(translation_table) + '.mp3'
+            filename = safe_filename(filename if filename else self.title) + '.mp3'
+
 
         file_path = self.get_file_path(
             filename=filename,
             output_path=output_path,
-            filename_prefix=filename_prefix,
-            file_system=file_system
+            filename_prefix=filename_prefix
         )
 
         if skip_existing and self.exists_at_path(file_path):
@@ -406,15 +390,9 @@ class Stream:
         filename: Optional[str] = None,
         output_path: Optional[str] = None,
         filename_prefix: Optional[str] = None,
-        file_system: str = 'NTFS'
     ) -> str:
-        if not filename:
-            translation_table = file_system_verify(file_system)
-            filename = self.default_filename.translate(translation_table)
-        elif filename:
-            translation_table = file_system_verify(file_system)
-            filename = filename.translate(translation_table)
-
+        filename = safe_filename(filename if filename else self.default_filename)
+        
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
         return str(Path(target_directory(output_path)) / filename)

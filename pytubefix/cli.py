@@ -211,8 +211,10 @@ def ffmpeg_process(youtube: YouTube, resolution: str, target: Optional[str] = No
 
     audio_stream = youtube.streams.filter(progressive=False).order_by("abr").last()
 
-    video_file_name = _unique_name(youtube.title, "mp4", "video", target)
-    audio_file_name = _unique_name(youtube.title, "mp4", "audio", target)
+    # Download streams
+    filename = safe_filename(youtube.title)
+    video_file_name = _unique_name(filename, "mp4", "video", target)
+    audio_file_name = _unique_name(filename, "mp4", "audio", target)
 
     video_path = video_stream.get_file_path(filename=video_file_name, output_path=target)
     audio_path = audio_stream.get_file_path(filename=audio_file_name, output_path=target)
@@ -225,7 +227,7 @@ def ffmpeg_process(youtube: YouTube, resolution: str, target: Optional[str] = No
     _download(audio_stream, target=target, filename=audio_file_name)
 
     # Construct the command to run ffmpeg
-    command = ["ffmpeg", "-i", video_path, "-i", audio_path, "-c:v", "copy", "-c:a", "aac", "-strict", "experimental", f"{target}/{youtube.title}.mp4"]
+    command = ["ffmpeg", "-i", video_path, "-i", audio_path, "-c:v", "copy", "-c:a", "aac", "-strict", "experimental", f"{target}/{filename}.mp4"]
 
     # Execute the command
     subprocess.run(command)
