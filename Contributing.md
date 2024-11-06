@@ -32,7 +32,7 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 #### **Do you want to contribute to the PyTubefix documentation?**
 
-* Consider submitting a patch to the [docs](https://github.com/pytubefix/pytubefix/tree/master/docs)
+* Consider submitting a patch to the [docs](https://github.com/JuanBindez/pytubefix/tree/main/docs)
 
 PyTubefix is a volunteer effort. We encourage you to pitch in and [join the team](https://contributors.rubyonrails.org)!
 
