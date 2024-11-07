@@ -6,7 +6,7 @@ from pytubefix.exceptions import RegexMatchError
 
 def test_get_initial_function_name_with_no_match_should_error():
     with pytest.raises(RegexMatchError):
-        cipher.get_initial_function_name("asdf")
+        cipher.get_initial_function_name('asdf', 'https://example.com')
 
 
 def test_js_splice():
@@ -38,5 +38,5 @@ def test_get_throttling_function_name(base_js):
     for code_fragment, base_js_file in zip(base_js_code_fragments, base_js):
         assert code_fragment['raw_var'] in base_js_file
         assert code_fragment['raw_code'] in base_js_file
-        func_name = cipher.get_throttling_function_name(base_js_file)
+        func_name = cipher.get_throttling_function_name(base_js_file, 'https://example.com')
         assert func_name == code_fragment['nfunc_name']
