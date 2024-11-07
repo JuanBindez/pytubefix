@@ -109,7 +109,7 @@ from pytubefix import YouTube
 
 yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
 
-caption = yt.captions.get_by_language_code('en')
+caption = yt.captions['a.en']
 print(caption.generate_srt_captions())
 
 ```
@@ -123,7 +123,7 @@ from pytubefix import YouTube
 
 yt = YouTube('http://youtube.com/watch?v=2lAe1cqCOXo')
 
-caption = yt.captions.get_by_language_code('en')
+caption = yt.captions['a.en']
 caption.save_captions("captions.txt")
 
 ```
@@ -237,16 +237,5 @@ https://youtube.com/watch?v=kfDSHjlk4Pg
 https://youtube.com/watch?v=8KHak4ZNO3k
 >>> 
 
-
-```
-
-### info:
-
-```python
->>> from pytubefix import info
->>> 
->>> print(info())
-{'OS': {'linux'}, 'Python': {'3.11.6 (main, Apr 10 2024, 17:26:07) [GCC 13.2.0]'}, 'Pytubefix': {'7.3.1'}}
->>> 
 
 ```
