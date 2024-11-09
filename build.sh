@@ -2,10 +2,10 @@
 
 VERSION=8
 MINOR=3
-PATCH=0
+PATCH=2
 EXTRAVERSION=""
 
-NOTES="(#308 #309 #310)"
+NOTES="(#315 #316)"
 BRANCH="main"
 
 if [[ -z $PATCH ]]; then
