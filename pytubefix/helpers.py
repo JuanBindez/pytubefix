@@ -25,6 +25,7 @@ class DeferredGeneratorList:
     all simultaneously. This should allow for speed improvements for playlist
     and channel interactions.
     """
+
     def __init__(self, generator):
         """Construct a :class:`DeferredGeneratorList <DeferredGeneratorList>`.
 
@@ -55,11 +56,11 @@ class DeferredGeneratorList:
         while len(self._elements) < key_slice.stop:
             try:
                 next_item = next(self.gen)
-            except StopIteration:
+            except StopIteration as exc:
                 # If we can't find enough elements for the slice, raise an IndexError
-                raise IndexError
-            else:
-                self._elements.append(next_item)
+                raise IndexError from exc
+
+            self._elements.append(next_item)
 
         return self._elements[key]
 
@@ -71,9 +72,9 @@ class DeferredGeneratorList:
                 curr_item = self[iter_index]
             except IndexError:
                 return
-            else:
-                yield curr_item
-                iter_index += 1
+
+            yield curr_item
+            iter_index += 1
 
     def __next__(self) -> Any:
         """Fetch next element in iterator."""
@@ -326,14 +327,14 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
         'vid_info': yt.vid_info
     }
 
-    logger.info(f'Outputing json.gz file to {gzip_filepath}')
+    logger.info('Outputing json.gz file to %s', gzip_filepath)
     with gzip.open(gzip_filepath, 'wb') as f:
         f.write(json.dumps(html_data).encode('utf-8'))
 
     return html_data
 
 
-# Remove ANSI color codes from a colored string
 def strip_color_codes(input_str):
+    """Remove ANSI color codes from a string"""
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     return ansi_escape.sub('', input_str)
