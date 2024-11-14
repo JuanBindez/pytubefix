@@ -190,11 +190,13 @@ def channel_name(url: str) -> str:
             logger.debug("finished regex search, matched: %s", pattern)
             uri_style = function_match.group(1)
             uri_identifier = function_match.group(2)
-            return f'/{uri_style}/{uri_identifier}' if uri_style != '@' else f'/{uri_style}{uri_identifier}'
+            return f'/{uri_style}/{uri_identifier}' if uri_style != '@' \
+                else f'/{uri_style}{uri_identifier}'
 
     raise RegexMatchError(
         caller="channel_name", pattern="patterns"
     )
+
 
 def video_info_url(video_id: str, watch_url: str) -> str:
     """Construct the video_info url.
@@ -398,7 +400,7 @@ def get_ytcfg(html: str) -> str:
         except HTMLParseError:
             continue
 
-    if ytcfg: # there is at least one item
+    if ytcfg:  # there is at least one item
         return ytcfg
 
     raise RegexMatchError(
@@ -417,13 +419,13 @@ def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None
     for i, stream in enumerate(stream_manifest):
         try:
             url: str = stream["url"]
-        except KeyError:
+        except KeyError as exc:
             live_stream = (
                 vid_info.get("playabilityStatus", {}, )
                 .get("liveStreamability")
             )
             if live_stream:
-                raise LiveStreamError("UNKNOWN")
+                raise LiveStreamError("UNKNOWN") from exc
 
         parsed_url = urlparse(url)
 
@@ -433,10 +435,11 @@ def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None
             k: v[0] for k, v in query_params.items()
         }
 
-        logger.debug(f'Applying po_token to itag={stream["itag"]}')
+        logger.debug('Applying po_token to itag=%s', stream['itag'])
         query_params['pot'] = po_token
 
-        url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'
+        url = f'{
+            parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'
 
         stream_manifest[i]["url"] = url
 
@@ -453,17 +456,17 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
 
     """
     cipher = Cipher(js=js, js_url=url_js)
-    discovered_n = dict()
+    discovered_n = {}
     for i, stream in enumerate(stream_manifest):
         try:
             url: str = stream["url"]
-        except KeyError:
+        except KeyError as exc:
             live_stream = (
                 vid_info.get("playabilityStatus", {}, )
                 .get("liveStreamability")
             )
             if live_stream:
-                raise LiveStreamError("UNKNOWN")
+                raise LiveStreamError("UNKNOWN") from exc
 
         parsed_url = urlparse(url)
 
@@ -496,7 +499,7 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
             # To decipher the value of "n", we must interpret the player's JavaScript.
 
             initial_n = query_params['n']
-            logger.debug(f'Parameter n is: {initial_n}')
+            logger.debug('Parameter n is: %s', initial_n)
 
             # Check if any previous stream decrypted the parameter
             if initial_n not in discovered_n:
@@ -506,7 +509,7 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
 
             new_n = discovered_n[initial_n]
             query_params['n'] = new_n
-            logger.debug(f'Parameter n deciphered: {new_n}')
+            logger.debug('Parameter n deciphered: %s', new_n)
 
         url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'  # noqa:E501
 
@@ -572,7 +575,8 @@ def initial_data(watch_html: str) -> dict:
         except HTMLParseError:
             pass
 
-    raise RegexMatchError(caller='initial_data', pattern='initial_data_pattern')
+    raise RegexMatchError(caller='initial_data',
+                          pattern='initial_data_pattern')
 
 
 def initial_player_response(watch_html: str) -> str:
