@@ -34,8 +34,7 @@ class YouTubeMetadata:
         return self._metadata[key]
 
     def __iter__(self):
-        for el in self._metadata:
-            yield el
+        yield from self._metadata
 
     def __str__(self):
         return json.dumps(self._metadata)
