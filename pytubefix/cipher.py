@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 class Cipher:
     def __init__(self, js: str, js_url: str):
         self.signature_function_name = get_initial_function_name(js, js_url)
-        self.throttling_function_name = get_throttling_function_name(js, js_url)
+        self.throttling_function_name = get_throttling_function_name(
+            js, js_url)
 
         self.calculated_n = None
 
@@ -159,21 +160,24 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
             func = function_match.group('nfunc')
             idx = function_match.group('idx')
 
-            logger.debug(f'func is: {func}')
-            logger.debug(f'idx is: {idx}')
+            logger.debug('func is: %s', func)
+            logger.debug('idx is: %s', idx)
 
             logger.debug('Checking throttling function name')
             if idx:
-                n_func_check_pattern = fr'var {re.escape(func)}\s*=\s*\[(.+?)];'
+                n_func_check_pattern = fr'var {
+                    re.escape(func)}\s*=\s*\[(.+?)];'
                 n_func_found = re.search(n_func_check_pattern, js)
 
                 if n_func_found:
                     throttling_function = n_func_found.group(1)
-                    logger.debug(f'Throttling function name is: {throttling_function}')
+                    logger.debug('Throttling function name is: %s',
+                                 throttling_function)
                     return throttling_function
 
                 raise RegexMatchError(
-                    caller="get_throttling_function_name", pattern=f"{n_func_check_pattern} in {js_url}"
+                    caller="get_throttling_function_name",
+                    pattern=f"{n_func_check_pattern} in {js_url}"
                 )
 
     raise RegexMatchError(
