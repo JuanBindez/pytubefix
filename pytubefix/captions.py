@@ -2,7 +2,8 @@ import math
 import os
 import time
 import json
-import xml.etree.ElementTree as ElementTree
+
+from xml.etree import ElementTree
 from html import unescape
 from typing import Dict, Optional
 
@@ -114,7 +115,8 @@ class Caption:
                         caption += f' {s.text}'
                 if not caption:
                     continue
-                caption = unescape(caption.replace("\n", " ").replace("  ", " "),)
+                caption = unescape(caption.replace(
+                    "\n", " ").replace("  ", " "),)
                 try:
                     if "d" in child.attrib:
                         duration = float(child.attrib["d"]) / 1000.0
