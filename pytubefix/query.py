@@ -256,7 +256,7 @@ class StreamQuery(Sequence):
         """
         if isinstance(itag, int):
             return self.itag_index.get(itag)
-        elif isinstance(itag, str) and itag.isdigit():
+        if isinstance(itag, str) and itag.isdigit():
             return self.itag_index.get(int(itag))
 
     def get_by_resolution(self, resolution: str) -> Optional[Stream]:
