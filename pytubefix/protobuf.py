@@ -24,7 +24,6 @@ import base64
 import contextlib
 import enum
 import io
-import struct
 from collections import defaultdict
 
 
@@ -41,8 +40,8 @@ def encode_protobuf(value):
         result = _encode(data)
         encoded = base64.b64encode(result).decode()
         return encoded
-    except SyntaxError:
-        raise SyntaxError(f"invalid input: {value}")
+    except SyntaxError as exc:
+        raise SyntaxError(f"invalid input: {value}") from exc
 
 
 class WireType(enum.IntEnum):
@@ -52,10 +51,6 @@ class WireType(enum.IntEnum):
     SGROUP = 3
     EGROUP = 4
     I32 = 5
-
-
-_float_struct = struct.Struct(b"<f")
-_double_struct = struct.Struct(b"<d")
 
 
 def _encode(data) -> bytes:
