@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class PytubeFixError(Exception):
     """Base pytubefix exception that all others inherit.
 
@@ -13,6 +14,7 @@ class PytubeFixError(Exception):
     implementers code.
     """
 ### MISC Errors ###
+
 
 class MaxRetriesExceeded(PytubeFixError):
     """Maximum number of retries exceeded."""
@@ -39,14 +41,13 @@ class RegexMatchError(ExtractError):
         super().__init__(
             f"{caller}: could not find match for {pattern}")
 
-
         self.caller = caller
         self.pattern = pattern
 
 
 ### Video Unavailable Errors ###
 # There are really 3 types of errors thrown
-# 1. VideoUnavailable - This is the base error type for all video errors. 
+# 1. VideoUnavailable - This is the base error type for all video errors.
 #   Or a catchall if neither the user or developer cares about the specific error.
 # 2. Known Error Type, Extra info useful for user
 # 3. Unknown Error Type, Important to Developer
@@ -76,7 +77,10 @@ class VideoUnavailable(PytubeFixError):
 
 ## 2. Known Error Type, Extra info useful for user ##
 
+
 class VideoPrivate(VideoUnavailable):
+    """Video is private"""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -112,6 +116,8 @@ class MembersOnly(VideoUnavailable):
 
 
 class VideoRegionBlocked(VideoUnavailable):
+    """Video is blocked in your region"""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -124,7 +130,10 @@ class VideoRegionBlocked(VideoUnavailable):
     def error_string(self):
         return f'{self.video_id} is not available in your region'
 
+
 class BotDetection(VideoUnavailable):
+    """YouTube detected you are a bot"""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -141,6 +150,8 @@ class BotDetection(VideoUnavailable):
 
 
 class PoTokenRequired(VideoUnavailable):
+    """YouTube requires PoToken to download the video"""
+
     def __init__(self, video_id: str, client_name: str):
         """
         :param str video_id:
@@ -155,7 +166,8 @@ class PoTokenRequired(VideoUnavailable):
     @property
     def error_string(self):
         return (
-            f'{self.video_id} The {self.client_name} client requires PoToken to obtain functional streams, '
+            f'{self.video_id} The {
+                self.client_name} client requires PoToken to obtain functional streams, '
             f'See more details at https://github.com/JuanBindez/pytubefix/pull/209')
 
 
@@ -176,7 +188,10 @@ class LoginRequired(VideoUnavailable):
 
 # legacy livestream error types still supported
 
+
 class RecordingUnavailable(VideoUnavailable):
+    """Video does not have a live stream recording available"""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -226,6 +241,7 @@ class LiveStreamOffline(VideoUnavailable):
 
 # legacy age restricted error types still supported
 
+
 class AgeRestrictedError(VideoUnavailable):
     """Video is age restricted, and cannot be accessed without OAuth."""
 
@@ -236,13 +252,15 @@ class AgeRestrictedError(VideoUnavailable):
         """
         self.video_id = video_id
         super().__init__(self.video_id)
-    
+
     @property
     def error_string(self):
         return f"{self.video_id} is age restricted, and can't be accessed without logging in."
 
 
 class AgeCheckRequiredError(VideoUnavailable):
+    """Video has age restrictions and cannot be accessed without confirmation"""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -257,6 +275,8 @@ class AgeCheckRequiredError(VideoUnavailable):
 
 
 class AgeCheckRequiredAccountError(VideoUnavailable):
+    """Video has age restrictions and cannot be accessed without confirmation"""
+
     def __init__(self, video_id: str):
         """
         :param str video_id:
@@ -278,7 +298,10 @@ class AgeCheckRequiredAccountError(VideoUnavailable):
 class UnknownVideoError(VideoUnavailable):
     """Unknown video error."""
 
-    def __init__(self, video_id: str, status: str = None, reason: str = None, developer_message: str = None):
+    def __init__(self, video_id: str,
+                 status: str = None,
+                 reason: str = None,
+                 developer_message: str = None):
         """
         :param str video_id:
             A YouTube video identifier.
@@ -295,10 +318,10 @@ class UnknownVideoError(VideoUnavailable):
         self.developer_message = developer_message
 
         logger.warning('Unknown Video Error')
-        logger.warning(f'Video ID: {self.video_id}')
-        logger.warning(f'Status: {self.status}')
-        logger.warning(f'Reason: {self.reason}')
-        logger.warning(f'Developer Message: {self.developer_message}')
+        logger.warning('Video ID: %s', self.video_id)
+        logger.warning('Status: %s', self.status)
+        logger.warning('Reason: %s', self.reason)
+        logger.warning('Developer Message: %s', self.developer_message)
         logger.warning(
             'Please open an issue at '
             'https://github.com/JuanBindez/pytubefix/issues '
