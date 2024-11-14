@@ -1,3 +1,4 @@
+"""File system types"""
 
 windows = ['Windows', 'NTFS', 'FAT32', 'exFAT', 'ReFS']
 linux = ['Linux', 'ext2', 'ext3', 'ext4', 'Btrfs', 'XFS', 'ZFS']
@@ -7,40 +8,41 @@ network_filesystems = ['CIFS', 'SMB']
 
 
 windows_translation = str.maketrans({
-            '\\': '',
-            '/': '',
-            '?': '',
-            ':': '',
-            '*': '',
-            '"': '',
-            '<': '',
-            '>': '',
-            '|': '',
-        })
+    '\\': '',
+    '/': '',
+    '?': '',
+    ':': '',
+    '*': '',
+    '"': '',
+    '<': '',
+    '>': '',
+    '|': '',
+})
 
 linux_translation = str.maketrans({
-            '/': '',
-        })
+    '/': '',
+})
 
 macos_translation = str.maketrans({
-            ':': '',
-        })
+    ':': '',
+})
 
 bsd_translation = str.maketrans({
-            '/': '',
-        })
+    '/': '',
+})
 
 network_filesystems_translation = str.maketrans({
-            '\\': '',
-            '/': '',
-            '?': '',
-            ':': '',
-            '*': '',
-            '"': '',
-            '<': '',
-            '>': '',
-            '|': '',
-        })
+    '\\': '',
+    '/': '',
+    '?': '',
+    ':': '',
+    '*': '',
+    '"': '',
+    '<': '',
+    '>': '',
+    '|': '',
+})
+
 
 def file_system_verify(file_type) -> dict:
     """
@@ -70,11 +72,11 @@ def file_system_verify(file_type) -> dict:
 
     if file_type in windows:
         return windows_translation
-    elif file_type in linux:
+    if file_type in linux:
         return linux_translation
-    elif file_type in macOS:
+    if file_type in macOS:
         return macos_translation
-    elif file_type in bsd_unix:
+    if file_type in bsd_unix:
         return bsd_translation
-    elif file_type in network_filesystems:
+    if file_type in network_filesystems:
         return network_filesystems_translation
