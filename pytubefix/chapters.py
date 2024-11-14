@@ -41,6 +41,7 @@ class Chapter:
 
     @property
     def start_label(self) -> str:
+        """Return the chapter start time in HH:MM:SS format."""
         return str(timedelta(seconds=self.start_seconds))
 
     def __repr__(self):
