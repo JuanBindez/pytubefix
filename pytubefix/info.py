@@ -1,18 +1,21 @@
+"""This module provides information about the current operating system, 
+Python version, and Pytubefix version
+"""
 import sys
 from pytubefix import __version__
 
-os = sys.platform
-python = sys.version
-pytubefix = __version__
+OS = sys.platform
+PYTHON = sys.version
+PYTUBEFIX = __version__
 
 
 def info() -> dict:
     """
     Returns information about the current operating system, Python version, and Pytubefix version.
-    
+
     This function gathers system-related information such as the operating system, Python version, 
     and the version of the Pytubefix library, and returns it in a dictionary format.
-    
+
     This can be useful for debugging or logging purposes, as it allows developers to quickly 
     check the environment in which the code is being executed. It helps ensure that the correct 
     versions of Python and Pytubefix are being used, and can also assist in identifying any 
@@ -26,8 +29,8 @@ def info() -> dict:
     """
 
     message = {
-        'OS': os,
-        'Python': python,
-        'Pytubefix': pytubefix
+        'OS': OS,
+        'Python': PYTHON,
+        'Pytubefix': PYTUBEFIX
     }
     return message
