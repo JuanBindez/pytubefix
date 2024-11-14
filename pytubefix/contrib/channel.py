@@ -5,7 +5,7 @@ import logging
 from typing import Dict, List, Optional, Tuple, Iterable, Any, Callable
 
 from pytubefix import extract, YouTube, Playlist, request
-from pytubefix.helpers import cache, uniqueify, DeferredGeneratorList
+from pytubefix.helpers import uniqueify, DeferredGeneratorList
 from pytubefix.innertube import InnerTube
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,8 @@ class Channel(Playlist):
             token_file: Optional[str] = None,
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
-            po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
+            po_token_verifier: Optional[Callable[[
+                None], Tuple[str, str]]] = None,
     ):
         """Construct a :class:`Channel <Channel>`.
         :param str url:
@@ -79,7 +80,8 @@ class Channel(Playlist):
         self.featured_channels_url = self.channel_url + '/channels'
         self.about_url = self.channel_url + '/about'
 
-        self._html_url = self.videos_url  # Videos will be preferred over short videos and live
+        # Videos will be preferred over short videos and live
+        self._html_url = self.videos_url
 
         # Possible future additions
         self._playlists_html = None
@@ -185,7 +187,8 @@ class Channel(Playlist):
         if self._featured_channels_html:
             return self._featured_channels_html
         else:
-            self._featured_channels_html = request.get(self.featured_channels_url)
+            self._featured_channels_html = request.get(
+                self.featured_channels_url)
             return self._featured_channels_html
 
     @property
@@ -351,7 +354,8 @@ class Channel(Playlist):
         """
         try:
             return YouTube(f"/watch?v="
-                           f"{x['richItemRenderer']['content']['videoRenderer']['videoId']}",
+                           f"{x['richItemRenderer']['content']
+                               ['videoRenderer']['videoId']}",
                            client=self.client,
                            use_oauth=self.use_oauth,
                            allow_oauth_cache=self.allow_oauth_cache,
@@ -396,7 +400,8 @@ class Channel(Playlist):
         """
         try:
             return Playlist(f"/playlist?list="
-                            f"{x['richItemRenderer']['content']['playlistRenderer']['playlistId']}",
+                            f"{x['richItemRenderer']['content']
+                                ['playlistRenderer']['playlistId']}",
                             client=self.client,
                             use_oauth=self.use_oauth,
                             allow_oauth_cache=self.allow_oauth_cache,
