@@ -19,6 +19,9 @@ from pytubefix import request
 _client_id = '861556708454-d6dlm3lh05idd8npek18k6be8ba3oc68.apps.googleusercontent.com'
 _client_secret = 'SboVhoG9s0rNafixCSGGKXAT'
 
+_cache_dir = pathlib.Path(__file__).parent.resolve() / '__cache__'
+_token_file = os.path.join(_cache_dir, 'tokens.json')
+
 # Extracted API keys -- unclear what these are linked to.
 # API keys are not required, see: https://github.com/TeamNewPipe/NewPipeExtractor/pull/1168
 _api_keys = [
@@ -168,27 +171,6 @@ _default_clients = {
         'require_po_token': True
     },
 
-    # Deprecated
-    #   'ANDROID_EMBED': {
-    #     'innertube_context': {
-    #         'context': {
-    #             'client': {
-    #                 'clientName': 'ANDROID_EMBEDDED_PLAYER',
-    #                 'clientVersion': '19.13.36',
-    #                 'clientScreen': 'EMBED',
-    #                 'androidSdkVersion': '30'
-    #             }
-    #         }
-    #     },
-    #     'header': {
-    #         'User-Agent': 'com.google.android.youtube/',
-    #         'X-Youtube-Client-Name': '55',
-    #         'X-Youtube-Client-Version': '19.13.36'
-    #     },
-    #     'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-    #     'require_js_player': False
-    # },
-
     'ANDROID_VR': {
         'innertube_context': {
             'context': {
@@ -321,29 +303,6 @@ _default_clients = {
         'require_po_token': False
     },
 
-    # Deprecated
-    # 'IOS_EMBED': {
-    #     'innertube_context': {
-    #         'context': {
-    #             'client': {
-    #                 'clientName': 'IOS_MESSAGES_EXTENSION',
-    #                 'clientVersion': '19.16.3',
-    #                 'deviceMake': 'Apple',
-    #                 'platform': 'MOBILE',
-    #                 'osName': 'iOS',
-    #                 'osVersion': '17.4.1.21E237',
-    #                 'deviceModel': 'iPhone15,5'
-    #             }
-    #         }
-    #     },
-    #     'header': {
-    #         'User-Agent': 'com.google.ios.youtube/',
-    #         'X-Youtube-Client-Name': '66'
-    #     },
-    #     'api_key': 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
-    #     'require_js_player': False
-    # },
-
     'IOS_MUSIC': {
         'innertube_context': {
             'context': {
@@ -427,9 +386,6 @@ _default_clients = {
         'require_po_token': False
     }
 }
-_token_timeout = 1800
-_cache_dir = pathlib.Path(__file__).parent.resolve() / '__cache__'
-_token_file = os.path.join(_cache_dir, 'tokens.json')
 
 
 def _default_oauth_verifier(verification_url: str, user_code: str):
@@ -466,7 +422,7 @@ class InnerTube:
 
         :param str client:
             Client to use for the object.
-            The default is ANDROID_TESTSUITE because there is no need to decrypt the
+            The default is ANDROID_VR because there is no need to decrypt the
             signature cipher and throttling parameter.
         :param bool use_oauth:
             (Optional) Whether or not to authenticate to YouTube.
@@ -513,7 +469,7 @@ class InnerTube:
         # Try to load from file if specified
         self.token_file = token_file or _token_file
         if self.use_oauth and self.allow_cache and os.path.exists(self.token_file):
-            with open(self.token_file) as f:
+            with open(self.token_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 if data['access_token']:
                     self.access_token = data['access_token']
@@ -522,7 +478,7 @@ class InnerTube:
                     self.refresh_bearer_token()
 
         if self.use_po_token and self.allow_cache and os.path.exists(self.token_file):
-            with open(self.token_file) as f:
+            with open(self.token_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 self.access_visitorData = data['visitorData']
                 self.access_po_token = data['po_token']
@@ -542,7 +498,7 @@ class InnerTube:
         cacheDir = os.path.dirname(self.token_file)
         if not os.path.exists(cacheDir):
             os.makedirs(cacheDir, exist_ok=True)
-        with open(self.token_file, 'w') as f:
+        with open(self.token_file, 'w', encoding='utf-8') as f:
             json.dump(data, f)
 
     def refresh_bearer_token(self, force=False):
@@ -715,7 +671,8 @@ class InnerTube:
         if continuation:
             self.base_data.update({"continuation": continuation})
         if visitor_data:
-            self.base_data['context']['client'].update({"visitorData": visitor_data})
+            self.base_data['context']['client'].update(
+                {"visitorData": visitor_data})
 
         return self._call_api(endpoint, query, self.base_data)
 
@@ -724,18 +681,18 @@ class InnerTube:
 
         TODO: Figure out how we can use this
         """
-        # endpoint = f'{self.base_url}/reel'  # noqa:E800
-        ...
-        # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
+        # endpoint = f'{self.base_url}/reel'
+        # ...
+        # return self._call_api(endpoint, query, self.base_data)
 
     def config(self):
         """Make a request to the config endpoint.
 
         TODO: Figure out how we can use this
         """
-        # endpoint = f'{self.base_url}/config'  # noqa:E800
-        ...
-        # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
+        # endpoint = f'{self.base_url}/config'
+        # ...
+        # return self._call_api(endpoint, query, self.base_data)
 
     def guide(self):
         """Make a request to the guide endpoint.
@@ -743,7 +700,7 @@ class InnerTube:
         TODO: Figure out how we can use this
         """
         # endpoint = f'{self.base_url}/guide'  # noqa:E800
-        ...
+        # ...
         # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
 
     def next(self, video_id: str = None, continuation: str = None):
@@ -762,7 +719,8 @@ class InnerTube:
             self.base_data.update({"continuation": continuation})
 
         if video_id:
-            self.base_data.update({'videoId': video_id, 'contentCheckOk': "true"})
+            self.base_data.update(
+                {'videoId': video_id, 'contentCheckOk': "true"})
 
         endpoint = f'{self.base_url}/next'
         query = self.base_params
@@ -800,7 +758,7 @@ class InnerTube:
         endpoint = f'{self.base_url}/search'
         query = self.base_params
         data = data if data else {}
-   
+
         self.base_data.update({'query': search_query})
         if continuation:
             data['continuation'] = continuation
