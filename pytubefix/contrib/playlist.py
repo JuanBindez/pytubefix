@@ -1,4 +1,5 @@
 """Module to download a complete playlist from a youtube channel."""
+
 import json
 import logging
 from collections.abc import Sequence
@@ -25,7 +26,8 @@ class Playlist(Sequence):
             token_file: Optional[str] = None,
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
-            po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
+            po_token_verifier: Optional[Callable[[
+                None], Tuple[str, str]]] = None,
     ):
         """
         :param dict proxies:
@@ -125,9 +127,9 @@ class Playlist(Sequence):
         """
         if self._initial_data:
             return self._initial_data
-        else:
-            self._initial_data = extract.initial_data(self.html)
-            return self._initial_data
+
+        self._initial_data = extract.initial_data(self.html)
+        return self._initial_data
 
     @property
     def sidebar_info(self):
@@ -137,10 +139,10 @@ class Playlist(Sequence):
         """
         if self._sidebar_info:
             return self._sidebar_info
-        else:
-            self._sidebar_info = self.initial_data['sidebar'][
-                'playlistSidebarRenderer']['items']
-            return self._sidebar_info
+
+        self._sidebar_info = self.initial_data['sidebar'][
+            'playlistSidebarRenderer']['items']
+        return self._sidebar_info
 
     @property
     def yt_api_key(self):
@@ -185,20 +187,23 @@ class Playlist(Sequence):
         while continuation:  # there is an url found
             # requesting the next page of videos with the url generated from the
             # previous page, needs to be a post
-            req = InnerTube('WEB').browse(continuation=continuation, visitor_data=self._visitor_data)
+            req = InnerTube('WEB').browse(
+                continuation=continuation, visitor_data=self._visitor_data)
             # extract up to 100 songs from the page loaded
             # returns another continuation if more videos are available
             videos_urls, continuation = self._extract_videos(req, context)
             if until_watch_id:
                 try:
-                    trim_index = videos_urls.index(f"/watch?v={until_watch_id}")
+                    trim_index = videos_urls.index(
+                        f"/watch?v={until_watch_id}")
                     yield videos_urls[:trim_index]
                     return
                 except ValueError:
                     pass
             yield videos_urls
 
-    def _extract_videos(self, raw_json: str, context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
+    def _extract_videos(self, raw_json: str,
+                        context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
         """Extracts videos from a raw json page
 
         :param str raw_json: Input json extracted from the page or the last
@@ -294,7 +299,8 @@ class Playlist(Sequence):
 
             # New json tree added on 09/12/2024
             if 'shortsLockupViewModel' in content:
-                video_id = content['shortsLockupViewModel']['onTap']['innertubeCommand']['reelWatchEndpoint']['videoId']
+                video_id = content['shortsLockupViewModel']['onTap'][
+                    'innertubeCommand']['reelWatchEndpoint']['videoId']
             else:
                 video_id = content['reelItemRenderer']['videoId']
 
