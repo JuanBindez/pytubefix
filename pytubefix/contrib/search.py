@@ -22,7 +22,8 @@ class Search:
             token_file: Optional[str] = None,
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
-            po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
+            po_token_verifier: Optional[Callable[[
+                None], Tuple[str, str]]] = None,
             filters: Optional[dict] = None
     ):
         """Initialize Search object.
@@ -140,7 +141,7 @@ class Search:
         if not self._results:
             self._get_results()
 
-        return [items for items in self._results['videos']]
+        return list(self._results['videos'])
 
     @property
     def shorts(self) -> List[YouTube]:
@@ -156,7 +157,7 @@ class Search:
         if not self._results:
             self._get_results()
 
-        return [items for items in self._results['shorts']]
+        return list(self._results['shorts'])
 
     @property
     def playlist(self) -> List[Playlist]:
@@ -172,7 +173,7 @@ class Search:
         if not self._results:
             self._get_results()
 
-        return [items for items in self._results['playlist']]
+        return list(self._results['playlist'])
 
     @property
     def channel(self) -> List[Channel]:
@@ -188,7 +189,7 @@ class Search:
         if not self._results:
             self._get_results()
 
-        return [items for items in self._results['channel']]
+        return list(self._results['channel'])
 
     @property
     @deprecated("Get video results using: .videos")
@@ -226,7 +227,8 @@ class Search:
         This method does not return the results, but instead updates the results property.
         """
         if self._current_continuation:
-            results, continuation = self.fetch_and_parse(self._current_continuation)
+            results, continuation = self.fetch_and_parse(
+                self._current_continuation)
             self._current_continuation = continuation
             self._results['videos'].extend(results['videos'])
             self._results['shorts'].extend(results['shorts'])
@@ -311,7 +313,8 @@ class Search:
                 # Get playlist results
                 if 'playlistRenderer' in video_details:
                     playlist.append(Playlist(f"https://www.youtube.com/playlist?list="
-                                             f"{video_details['playlistRenderer']['playlistId']}",
+                                             f"{video_details['playlistRenderer']
+                                                 ['playlistId']}",
                                              client=self.client,
                                              use_oauth=self.use_oauth,
                                              allow_oauth_cache=self.allow_oauth_cache,
@@ -324,7 +327,8 @@ class Search:
                 # Get channel results
                 if 'channelRenderer' in video_details:
                     channel.append(Channel(f"https://www.youtube.com/channel/"
-                                           f"{video_details['channelRenderer']['channelId']}",
+                                           f"{video_details['channelRenderer']
+                                               ['channelId']}",
                                            client=self.client,
                                            use_oauth=self.use_oauth,
                                            allow_oauth_cache=self.allow_oauth_cache,
@@ -356,7 +360,8 @@ class Search:
                 # Get videos results
                 if 'videoRenderer' in video_details:
                     videos.append(YouTube(f"https://www.youtube.com/watch?v="
-                                          f"{video_details['videoRenderer']['videoId']}",
+                                          f"{video_details['videoRenderer']
+                                              ['videoId']}",
                                           client=self.client,
                                           use_oauth=self.use_oauth,
                                           allow_oauth_cache=self.allow_oauth_cache,
@@ -384,7 +389,8 @@ class Search:
         :returns:
             The raw json object returned by the innertube API.
         """
-        query_results = self._innertube_client.search(self.query, continuation=continuation, data=filters)
+        query_results = self._innertube_client.search(
+            self.query, continuation=continuation, data=filters)
         if not self._initial_results:
             self._initial_results = query_results
         return query_results  # noqa:R504
@@ -454,11 +460,11 @@ class Filter:
 
         combined[2] = dict(sorted(combined.get(2, {}).items()))
 
-        logger.debug(f"Combined filters: {combined}")
+        logger.debug("Combined filters: %s", combined)
 
         encoded_filters = encode_protobuf(str(combined))
 
-        logger.debug(f"Filter encoded in protobuf: {encoded_filters}")
+        logger.debug("Filter encoded in protobuf: %s", encoded_filters)
 
         return encoded_filters
 
