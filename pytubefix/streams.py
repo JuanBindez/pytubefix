@@ -12,14 +12,14 @@ import os
 from math import ceil
 import sys
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import BinaryIO, Dict, Optional, Tuple, Iterator, Callable
 from urllib.error import HTTPError
 from urllib.parse import parse_qs
 from pathlib import Path
 
 from pytubefix import extract, request
-from pytubefix.helpers import safe_filename, target_directory
+from pytubefix.helpers import target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
 from pytubefix.file_system import file_system_verify
@@ -53,7 +53,8 @@ class Stream:
         # set type and codec info
 
         # 'video/webm; codecs="vp8, vorbis"' -> 'video/webm', ['vp8', 'vorbis']
-        self.mime_type, self.codecs = extract.mime_type_codec(stream["mimeType"])
+        self.mime_type, self.codecs = extract.mime_type_codec(
+            stream["mimeType"])
 
         # 'video/webm' -> 'video', 'webm'
         self.type, self.subtype = self.mime_type.split("/")
@@ -67,15 +68,18 @@ class Stream:
 
         # filesize in bytes
         self._filesize: Optional[int] = int(stream.get('contentLength', 0))
-        
+
         # filesize in kilobytes
-        self._filesize_kb: Optional[float] = float(ceil(float(stream.get('contentLength', 0)) / 1024 * 1000) / 1000)
-        
+        self._filesize_kb: Optional[float] = float(ceil(float(stream.get('contentLength', 0))
+                                                        / 1024 * 1000) / 1000)
+
         # filesize in megabytes
-        self._filesize_mb: Optional[float] = float(ceil(float(stream.get('contentLength', 0)) / 1024 / 1024 * 1000) / 1000)
-        
+        self._filesize_mb: Optional[float] = float(ceil(float(stream.get('contentLength', 0))
+                                                        / 1024 / 1024 * 1000) / 1000)
+
         # filesize in gigabytes(fingers crossed we don't need terabytes going forward though)
-        self._filesize_gb: Optional[float] = float(ceil(float(stream.get('contentLength', 0)) / 1024 / 1024 / 1024 * 1000) / 1000)
+        self._filesize_gb: Optional[float] = float(ceil(float(stream.get('contentLength', 0))
+                                                        / 1024 / 1024 / 1024 * 1000) / 1000)
 
         # Additional information about the stream format, such as resolution,
         # frame rate, and whether the stream is live (HLS) or 3D.
@@ -98,7 +102,8 @@ class Stream:
         self.includes_multiple_audio_tracks: bool = 'audioTrack' in stream
         if self.includes_multiple_audio_tracks:
             self.is_default_audio_track = stream['audioTrack']['audioIsDefault']
-            self.audio_track_name = str(stream['audioTrack']['displayName']).split(" ")[0]
+            self.audio_track_name = str(
+                stream['audioTrack']['displayName']).split(" ")[0]
         else:
             self.is_default_audio_track = self.includes_audio_track and not self.includes_video_track
             self.audio_track_name = None
@@ -196,7 +201,7 @@ class Stream:
                     raise
                 self._filesize = request.seq_filesize(self.url)
         return self._filesize
-    
+
     @property
     def filesize_kb(self) -> float:
         """File size of the media stream in kilobytes.
@@ -207,13 +212,15 @@ class Stream:
         """
         if self._filesize_kb == 0:
             try:
-                self._filesize_kb = float(ceil(request.filesize(self.url)/1024 * 1000) / 1000)
+                self._filesize_kb = float(
+                    ceil(request.filesize(self.url)/1024 * 1000) / 1000)
             except HTTPError as e:
                 if e.code != 404:
                     raise
-                self._filesize_kb = float(ceil(request.seq_filesize(self.url)/1024 * 1000) / 1000)
+                self._filesize_kb = float(
+                    ceil(request.seq_filesize(self.url)/1024 * 1000) / 1000)
         return self._filesize_kb
-    
+
     @property
     def filesize_mb(self) -> float:
         """File size of the media stream in megabytes.
@@ -224,11 +231,13 @@ class Stream:
         """
         if self._filesize_mb == 0:
             try:
-                self._filesize_mb = float(ceil(request.filesize(self.url)/1024/1024 * 1000) / 1000)
+                self._filesize_mb = float(
+                    ceil(request.filesize(self.url)/1024/1024 * 1000) / 1000)
             except HTTPError as e:
                 if e.code != 404:
                     raise
-                self._filesize_mb = float(ceil(request.seq_filesize(self.url)/1024/1024 * 1000) / 1000)
+                self._filesize_mb = float(
+                    ceil(request.seq_filesize(self.url)/1024/1024 * 1000) / 1000)
         return self._filesize_mb
 
     @property
@@ -241,13 +250,15 @@ class Stream:
         """
         if self._filesize_gb == 0:
             try:
-                self._filesize_gb = float(ceil(request.filesize(self.url)/1024/1024/1024 * 1000) / 1000)
+                self._filesize_gb = float(
+                    ceil(request.filesize(self.url)/1024/1024/1024 * 1000) / 1000)
             except HTTPError as e:
                 if e.code != 404:
                     raise
-                self._filesize_gb = float(ceil(request.seq_filesize(self.url)/1024/1024/1024 * 1000) / 1000)
+                self._filesize_gb = float(
+                    ceil(request.seq_filesize(self.url)/1024/1024/1024 * 1000) / 1000)
         return self._filesize_gb
-    
+
     @property
     def title(self,) -> str:
         """Get title of video
@@ -277,8 +288,9 @@ class Stream:
 
     @property
     def expiration(self) -> datetime:
+        """Get expiration date of video"""
         expire = parse_qs(self.url.split("?")[1])["expire"][0]
-        return datetime.utcfromtimestamp(int(expire))
+        return datetime.fromtimestamp(int(expire), timezone.utc)
 
     @property
     def default_filename(self) -> str:
@@ -303,7 +315,6 @@ class Stream:
         mp3: bool = False,
         interrupt_checker: Optional[Callable[[], bool]] = None
     ) -> Optional[str]:
-        
         """
         Downloads a file from the URL provided by `self.url` and saves it locally with optional configurations.
 
@@ -332,8 +343,9 @@ class Stream:
         """
 
         if mp3 and not ('audio' in self.mime_type and 'video' not in self.mime_type):
-            raise ValueError("The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
-        
+            raise ValueError(
+                "The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
+
         kernel = sys.platform
 
         if kernel == "linux":
@@ -341,8 +353,8 @@ class Stream:
         elif kernel == "darwin":
             file_system = "APFS"
         else:
-            file_system = "NTFS"  
-                
+            file_system = "NTFS"
+
         if mp3:
             translation_table = file_system_verify(file_system)
             if filename is None:
@@ -359,12 +371,13 @@ class Stream:
         )
 
         if skip_existing and self.exists_at_path(file_path):
-            logger.debug(f'file {file_path} already exists, skipping')
+            logger.debug('file %s already exists, skipping', file_path)
             self.on_complete(file_path)
             return file_path
 
         bytes_remaining = self.filesize
-        logger.debug(f'downloading ({self.filesize} total bytes) file to {file_path}')
+        logger.debug(
+            'downloading (%s total bytes) file to %s', self.filesize, file_path)
 
         with open(file_path, "wb") as fh:
             try:
@@ -374,7 +387,8 @@ class Stream:
                     max_retries=max_retries
                 ):
                     if interrupt_checker is not None and interrupt_checker() == True:
-                        logger.debug('interrupt_checker returned True, causing to force stop the downloading')
+                        logger.debug(
+                            'interrupt_checker returned True, causing to force stop the downloading')
                         return
                     # reduce the (bytes) remainder by the length of the chunk.
                     bytes_remaining -= len(chunk)
@@ -391,7 +405,8 @@ class Stream:
                     max_retries=max_retries
                 ):
                     if interrupt_checker is not None and interrupt_checker() == True:
-                        logger.debug('interrupt_checker returned True, causing to force stop the downloading')
+                        logger.debug(
+                            'interrupt_checker returned True, causing to force stop the downloading')
                         return
                     # reduce the (bytes) remainder by the length of the chunk.
                     bytes_remaining -= len(chunk)
