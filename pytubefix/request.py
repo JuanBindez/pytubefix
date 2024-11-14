@@ -14,6 +14,7 @@ from pytubefix.helpers import regex_search
 
 logger = logging.getLogger(__name__)
 default_range_size = 9437184  # 9MB
+default_timeout = socket._GLOBAL_DEFAULT_TIMEOUT
 
 
 def _execute_request(
@@ -21,13 +22,13 @@ def _execute_request(
     method=None,
     headers=None,
     data=None,
-    timeout=socket._GLOBAL_DEFAULT_TIMEOUT
+    timeout=default_timeout
 ):
     base_headers = {"User-Agent": "Mozilla/5.0", "accept-language": "en-US,en"}
     if headers:
         base_headers.update(headers)
-    if data and not isinstance(data, bytes): # encode data for request
-            data = bytes(json.dumps(data), encoding="utf-8")
+    if data and not isinstance(data, bytes):  # encode data for request
+        data = bytes(json.dumps(data), encoding="utf-8")
     if url.lower().startswith("http"):
         request = Request(url, headers=base_headers, method=method, data=data)
     else:
@@ -35,7 +36,7 @@ def _execute_request(
     return urlopen(request, timeout=timeout)  # nosec
 
 
-def get(url, extra_headers=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+def get(url, extra_headers=None, timeout=default_timeout):
     """Send an http GET request.
 
     :param str url:
@@ -52,7 +53,7 @@ def get(url, extra_headers=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
     return response.read().decode("utf-8")
 
 
-def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+def post(url, extra_headers=None, data=None, timeout=default_timeout):
     """Send an http POST request.
 
     :param str url:
@@ -84,10 +85,9 @@ def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIME
 
 
 def seq_stream(
-            url,
-            timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-            max_retries=0):
-
+        url,
+        timeout=default_timeout,
+        max_retries=0):
     """Read the response in sequence.
     :param str url: The URL to perform the GET request for.
     :rtype: Iterable[bytes]
@@ -113,8 +113,7 @@ def seq_stream(
     segment_count_pattern = re.compile(b'Segment-Count: (\\d+)')
     for line in stream_info:
         match = segment_count_pattern.search(line)
-        if match:
-            segment_count = int(match.group(1).decode('utf-8'))
+        segment_count = int(match.group(1).decode('utf-8'))
 
     # We request these segments sequentially to build the file.
     seq_num = 1
@@ -130,7 +129,7 @@ def seq_stream(
 
 # TODO: Refactor this code
 def stream(url,
-           timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+           timeout=default_timeout,
            max_retries=0):
     """Read the response in chunks.
     :param str url: The URL to perform the GET request for.
@@ -140,7 +139,6 @@ def stream(url,
     downloaded = 0
     while downloaded < file_size:
         stop_pos = min(downloaded + default_range_size, file_size) - 1
-        range_header = f"bytes={downloaded}-{stop_pos}"
         tries = 0
 
         # Attempt to make the request multiple times as necessary.
@@ -189,9 +187,10 @@ def stream(url,
             if not chunk:
                 break
 
-            if chunk: downloaded += len(chunk)
+            if chunk:
+                downloaded += len(chunk)
             yield chunk
-    return  # pylint: disable=R1711
+    return
 
 
 @lru_cache()
