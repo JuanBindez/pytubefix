@@ -69,8 +69,9 @@ def find_object_from_startpoint(html, start_point):
         A dict created from parsing the object.
     """
     html = html[start_point:]
-    if html[0] not in ['{','[']:
-        raise HTMLParseError(f'Invalid start point. Start of HTML:\n{html[:20]}')
+    if html[0] not in ['{', '[']:
+        raise HTMLParseError(
+            f'Invalid start point. Start of HTML:\n{html[:20]}')
 
     # First letter MUST be a open brace, so we put that in the stack,
     # and skip the first character.
@@ -84,7 +85,7 @@ def find_object_from_startpoint(html, start_point):
         '[': ']',
         '"': '"',
         '\'': '\'',
-        '/': '/' # javascript regex
+        '/': '/'  # javascript regex
     }
 
     while i < len(html):
@@ -112,7 +113,7 @@ def find_object_from_startpoint(html, start_point):
             # Non-string contexts are when we need to look for context openers.
             if curr_char in context_closers.keys():
                 # Slash starts a regular expression depending on context
-                if not (curr_char == '/' and last_char not in ['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';']): 
+                if not (curr_char == '/' and last_char not in ['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';']):
                     stack.append(curr_char)
 
         i += 1
@@ -138,8 +139,8 @@ def parse_for_object_from_startpoint(html, start_point):
     except json.decoder.JSONDecodeError:
         try:
             return ast.literal_eval(full_obj)
-        except (ValueError, SyntaxError):
-            raise HTMLParseError('Could not parse object.')
+        except (ValueError, SyntaxError) as exc:
+            raise HTMLParseError('Could not parse object.') from exc
 
 
 def throttling_array_split(js_array):
@@ -165,7 +166,8 @@ def throttling_array_split(js_array):
             match = func_regex.search(curr_substring)
             match_start, match_end = match.span()
 
-            function_text = find_object_from_startpoint(curr_substring, match.span()[1])
+            function_text = find_object_from_startpoint(
+                curr_substring, match.span()[1])
             full_function_def = curr_substring[:match_end + len(function_text)]
             results.append(full_function_def)
             curr_substring = curr_substring[len(full_function_def) + 1:]
