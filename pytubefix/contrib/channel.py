@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Module for interacting with a user's youtube channel."""
+
 import json
 import logging
 from typing import Dict, List, Optional, Tuple, Iterable, Any, Callable
@@ -158,9 +159,9 @@ class Channel(Playlist):
         """
         if self._playlists_html:
             return self._playlists_html
-        else:
-            self._playlists_html = request.get(self.playlists_url)
-            return self._playlists_html
+
+        self._playlists_html = request.get(self.playlists_url)
+        return self._playlists_html
 
     @property
     def community_html(self):
@@ -172,9 +173,9 @@ class Channel(Playlist):
         """
         if self._community_html:
             return self._community_html
-        else:
-            self._community_html = request.get(self.community_url)
-            return self._community_html
+
+        self._community_html = request.get(self.community_url)
+        return self._community_html
 
     @property
     def featured_channels_html(self):
@@ -186,10 +187,10 @@ class Channel(Playlist):
         """
         if self._featured_channels_html:
             return self._featured_channels_html
-        else:
-            self._featured_channels_html = request.get(
-                self.featured_channels_url)
-            return self._featured_channels_html
+
+        self._featured_channels_html = request.get(
+            self.featured_channels_url)
+        return self._featured_channels_html
 
     @property
     def about_html(self):
@@ -201,9 +202,9 @@ class Channel(Playlist):
         """
         if self._about_html:
             return self._about_html
-        else:
-            self._about_html = request.get(self.about_url)
-            return self._about_html
+
+        self._about_html = request.get(self.about_url)
+        return self._about_html
 
     def url_generator(self):
         """Generator that yields video URLs.
@@ -211,12 +212,11 @@ class Channel(Playlist):
         :Yields: Video URLs
         """
         for page in self._paginate(self.html):
-            for obj in page:
-                yield obj
+            yield from page
 
     def videos_generator(self):
-        for url in self.video_urls:
-            yield url
+
+        yield from self.video_urls
 
     def _get_active_tab(self, initial_data) -> dict:
         """ Receive the raw json and return the active page.
@@ -267,8 +267,10 @@ class Channel(Playlist):
                 # Get videos, playlist and horizontal channels
                 if 'shelfRenderer' in item_section_renderer:
                     # We only take items that are horizontal
-                    if 'horizontalListRenderer' in item_section_renderer['shelfRenderer']['content']:
-                        # We iterate over each item in the array, which could be videos, playlist or channel
+                    if 'horizontalListRenderer' in \
+                            item_section_renderer['shelfRenderer']['content']:
+                        # We iterate over each item in the array, which could be videos,
+                        # playlist or channel
                         for x in item_section_renderer['shelfRenderer']['content']['horizontalListRenderer']['items']:
                             items.append(x)
 
@@ -281,7 +283,8 @@ class Channel(Playlist):
         # remove duplicates
         return uniqueify(items_obj)
 
-    def _extract_videos(self, raw_json: str, context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
+    def _extract_videos(self, raw_json: str,
+                        context: Optional[Any] = None) -> Tuple[List[str], Optional[str]]:
         """Extracts videos from a raw json page
 
         :param str raw_json: Input json extracted from the page or the last
@@ -434,7 +437,8 @@ class Channel(Playlist):
             return self._extract_shorts_id_from_home(x)
 
     def _extract_shorts_id_from_home(self, x: dict):
-        """ Try extracting the shorts IDs from the home page, if that fails, try extracting the playlist IDs.
+        """ Try extracting the shorts IDs from the home page, if that fails, 
+        try extracting the playlist IDs.
 
         :returns: List of YouTube, Playlist or Channel objects.
         """
@@ -500,10 +504,11 @@ class Channel(Playlist):
         self.html_url = self.about_url
 
         try:
-            views_text = self.initial_data['onResponseReceivedEndpoints'][0]['showEngagementPanelEndpoint'][
-                'engagementPanel']['engagementPanelSectionListRenderer']['content']['sectionListRenderer'][
-                'contents'][0]['itemSectionRenderer']['contents'][0]['aboutChannelRenderer']['metadata'][
-                'aboutChannelViewModel']['viewCountText']
+            views_text = self.initial_data['onResponseReceivedEndpoints'][0][
+                'showEngagementPanelEndpoint']['engagementPanel'][
+                'engagementPanelSectionListRenderer']['content']['sectionListRenderer'][
+                'contents'][0]['itemSectionRenderer']['contents'][0]['aboutChannelRenderer'][
+                'metadata']['aboutChannelViewModel']['viewCountText']
 
             # "1,234,567 view"
             count_text = views_text.split(' ')[0]
@@ -559,8 +564,10 @@ class Channel(Playlist):
         """
         self.html_url = self.videos_url
         try:
-            last_updated_text = self.initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][1][
-                'tabRenderer']['content']['richGridRenderer']['contents'][0]['richItemRenderer']['content'][
+            last_updated_text = self.initial_data['contents'][
+                'twoColumnBrowseResultsRenderer']['tabs'][1][
+                'tabRenderer']['content']['richGridRenderer'][
+                'contents'][0]['richItemRenderer']['content'][
                 'videoRenderer']['publishedTimeText']['simpleText']
             return last_updated_text
         except KeyError:
@@ -574,7 +581,8 @@ class Channel(Playlist):
         :return: a string with the url of the channel's profile image
         """
         self.html_url = self.channel_url  # get the url of the channel home page
-        return self.initial_data['metadata']['channelMetadataRenderer']['avatar']['thumbnails'][0]['url']
+        return self.initial_data['metadata']['channelMetadataRenderer'][
+            'avatar']['thumbnails'][0]['url']
 
     @property
     def home(self) -> list:
