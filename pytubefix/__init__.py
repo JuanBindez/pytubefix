@@ -19,4 +19,3 @@ from pytubefix.__main__ import YouTube
 from pytubefix.contrib.playlist import Playlist
 from pytubefix.contrib.channel import Channel
 from pytubefix.contrib.search import Search
-from pytubefix.info import info
