@@ -1,9 +1,9 @@
-.. _mp3:
+.. _m4a:
 
-Mp3 Download (MPEG-4 AAC audio codec)
+M4a Download (MPEG-4 AAC audio codec)
 =============================
 
-**If you want to save in .mp3 just pass the mp3=True parameter**::
+**Attention the mp3 parameter will no longer be used, all audios will now be downloaded as .m4a, the correct extension for the codec (MPEG-4 AAC audio codec)**::
 
         from pytubefix import YouTube
         from pytubefix.cli import on_progress
@@ -14,4 +14,4 @@ Mp3 Download (MPEG-4 AAC audio codec)
         print(yt.title)
          
         ys = yt.streams.get_audio_only()
-        ys.download(mp3=True)
+        ys.download()

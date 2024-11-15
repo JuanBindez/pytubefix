@@ -11,6 +11,7 @@ import logging
 import os
 from math import ceil
 import sys
+import warnings
 
 from datetime import datetime
 from typing import BinaryIO, Dict, Optional, Tuple, Iterator, Callable
@@ -314,7 +315,6 @@ class Stream:
             skip_existing (bool): Whether to skip the download if the file already exists at the target location. Defaults to True.
             timeout (Optional[int]): Maximum time, in seconds, to wait for the download request. Defaults to None for no timeout.
             max_retries (int): The number of times to retry the download if it fails. Defaults to 0 (no retries).
-            mp3 (bool): If set to True, the file will be treated as an MP3 audio file, and the filename will have the `.mp3` extension.
             interrupt_checker (Optional[Callable[[], bool]]): A callable function that is checked periodically during the download. If it returns True, the download will stop without errors.
 
         Returns:
@@ -324,16 +324,21 @@ class Stream:
             HTTPError: Raised if there is an error with the HTTP request during the download process.
 
         Note:
-            - If `mp3` is True and `filename` is not provided, the title of the resource will be used as the filename, with an `.mp3` extension.
             - If `filename` is provided and `mp3` is True, the `.mp3` extension will be appended to the provided filename.
             - The `skip_existing` flag avoids redownloading if the file already exists in the target location.
             - The `interrupt_checker` allows for the download to be halted cleanly if certain conditions are met during the download process.
             - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
         """
 
-        if mp3 and not ('audio' in self.mime_type and 'video' not in self.mime_type):
-            raise ValueError("The selected stream is not an audio file. It cannot be downloaded as MP3, do not use mp3=True for videos.")
-        
+        if mp3:
+            warnings.warn(
+                "The 'mp3' parameter is deprecated and will be removed in a future version. "
+                "All audio will be downloaded as .m4a, the correct extension for the MPEG-4 AAC codec.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            pass
+   
         kernel = sys.platform
 
         if kernel == "linux":
@@ -343,13 +348,14 @@ class Stream:
         else:
             file_system = "NTFS"  
                 
-        if mp3:
-            translation_table = file_system_verify(file_system)
-            if filename is None:
-                title = self.title.translate(translation_table)
-                filename = title + '.mp3'
-            elif filename:
-                filename = filename.translate(translation_table) + '.mp3'
+        translation_table = file_system_verify(file_system)
+
+        if filename is None:
+            title = self.title.translate(translation_table)
+            filename = title
+
+        if filename:
+            filename = filename.translate(translation_table)
 
         file_path = self.get_file_path(
             filename=filename,
@@ -413,7 +419,11 @@ class Stream:
             filename = self.default_filename.translate(translation_table)
         elif filename:
             translation_table = file_system_verify(file_system)
-            filename = filename.translate(translation_table)
+
+            if not ('audio' in self.mime_type and 'video' not in self.mime_type):
+                filename = filename.translate(translation_table) + ".mp4"
+            else:
+                filename = filename.translate(translation_table) + ".m4a"
 
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
