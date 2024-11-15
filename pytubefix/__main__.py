@@ -72,7 +72,7 @@ class YouTube:
                 WEB, WEB_EMBED, WEB_MUSIC, WEB_CREATOR, WEB_SAFARI,
                 ANDROID, ANDROID_MUSIC, ANDROID_CREATOR, ANDROID_VR, ANDROID_PRODUCER, ANDROID_TESTSUITE,
                 IOS, IOS_MUSIC, IOS_CREATOR,
-                MWEB, TV_EMBED, MEDIA_CONNECT.
+                MWEB, TV, TV_EMBED, MEDIA_CONNECT.
         :param func on_progress_callback:
             (Optional) User defined callback function for stream download
             progress events.
@@ -99,6 +99,7 @@ class YouTube:
             It must be sent with the API along with the linked visitorData and
             then passed as a `po_token` query parameter to affected clients.
             If allow_oauth_cache is set to True, the user should only be prompted once.
+            (Do not use together with `use_oauth=True`)
         :param Callable po_token_verifier:
             (Optional) Verified used to obtain the visitorData and po_token.
             The verifier will return the visitorData and po_token respectively.
@@ -135,7 +136,10 @@ class YouTube:
 
         self.client = 'WEB' if use_po_token else client
 
-        self.fallback_clients = ['WEB_EMBED', 'IOS', 'WEB']
+        # oauth can only be used by the TV and TV_EMBED client.
+        self.client = 'TV' if use_oauth else client
+
+        self.fallback_clients = ['MWEB', 'IOS', 'TV', 'WEB']
 
         self._signature_timestamp: dict = {}
 
@@ -440,7 +444,7 @@ class YouTube:
             return self._vid_details
 
         innertube = InnerTube(
-            client='WEB',
+            client='TV' if self.use_oauth else 'WEB',
             use_oauth=self.use_oauth,
             allow_cache=self.allow_oauth_cache,
             token_file=self.token_file,
@@ -675,12 +679,28 @@ class YouTube:
             "author", "unknown"
         )
 
-
         if self._title:
             return self._title
 
         try:
-            self._title = self.vid_info['videoDetails']['title']
+            # Some clients may not return the title in the `player` endpoint,
+            # so if it is not found we will look for it in the `next` endpoint
+            if 'title' in self.vid_info['videoDetails']:
+                self._title = self.vid_info['videoDetails']['title']
+                logger.debug('Found title in vid_info')
+            else:
+                logger.debug('Found title in vid_details')
+                self._title = self.vid_details['contents'][
+                    'singleColumnWatchNextResults'][
+                    'results'][
+                    'results'][
+                    'contents'][0][
+                    'itemSectionRenderer'][
+                    'contents'][0][
+                    'videoMetadataRenderer'][
+                    'title'][
+                    'runs'][0][
+                    'text']
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
