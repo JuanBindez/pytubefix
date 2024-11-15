@@ -70,6 +70,7 @@ of pytubefix.
    user/keymoments
    user/po_token
    user/info
+   user/output_path
 
 The API Documentation
 -----------------------------
