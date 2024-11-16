@@ -340,11 +340,39 @@ def strip_color_codes(input_str):
     return ansi_escape.sub('', input_str)
 
 
-def reset_cache():
-        """Reset the cache by deleting the __cache__ directory."""
-        cache_dir = os.path.join(os.path.dirname(__file__), '__cache__')
-        if os.path.exists(cache_dir) and os.path.isdir(cache_dir):
-            shutil.rmtree(cache_dir)
-            print(f"Cache directory '{cache_dir}' has been reset.")
-        else:
-            print(f"Cache directory '{cache_dir}' does not exist.")
+def reset_cache(verbose: bool = False):
+    """
+    Deletes the `__cache__` directory to reset the cache.
+
+    This function checks if the `__cache__` directory exists in the same directory 
+    as the script. If it exists and is a directory, it deletes it along with its contents. 
+    If the directory does not exist, it logs a message indicating that the cache directory 
+    is not present.
+
+    Parameters:
+        verbose (bool): If True, sets up logging at the DEBUG level. Default is False.
+
+    Behavior:
+        - When `verbose` is True, debug messages are logged, providing information about 
+          the existence and status of the cache directory.
+        - If `verbose` is False, no logging configuration is modified, and debug messages 
+          may not be shown unless logging is already configured externally.
+
+    Example:
+        >>> reset_cache(verbose=True)
+        # Logs detailed information about the cache reset process.
+
+    Raises:
+        None
+    """
+    
+    cache_dir = os.path.join(os.path.dirname(__file__), '__cache__')
+
+    if verbose:
+        setup_logger(level=logging.DEBUG)
+
+    if os.path.exists(cache_dir) and os.path.isdir(cache_dir):
+        shutil.rmtree(cache_dir)
+        logger.debug(f"Cache directory '{cache_dir}' has been reset.")
+    else:
+        logger.debug(f"Cache directory '{cache_dir}' does not exist.")
