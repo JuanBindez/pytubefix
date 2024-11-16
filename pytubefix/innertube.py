@@ -389,6 +389,25 @@ _default_clients = {
         'require_po_token': False
     },
 
+    'TV': {
+        'innertube_context': {
+            'context': {
+                'client': {
+                    'clientName': 'TVHTML5',
+                    'clientVersion': '7.20240813.07.00',
+                    'platform': 'TV'
+                }
+            }
+        },
+        'header': {
+            'User-Agent': 'Mozilla/5.0',
+            'X-Youtube-Client-Name': '7'
+        },
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True,
+        'require_po_token': False
+    },
+
     'TV_EMBED': {
         'innertube_context': {
             'context': {
