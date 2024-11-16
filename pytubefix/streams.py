@@ -301,7 +301,6 @@ class Stream:
         skip_existing: bool = True,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        mp3: bool = False,
         interrupt_checker: Optional[Callable[[], bool]] = None
     ) -> Optional[str]:
         
@@ -324,20 +323,10 @@ class Stream:
             HTTPError: Raised if there is an error with the HTTP request during the download process.
 
         Note:
-            - If `filename` is provided and `mp3` is True, the `.mp3` extension will be appended to the provided filename.
             - The `skip_existing` flag avoids redownloading if the file already exists in the target location.
             - The `interrupt_checker` allows for the download to be halted cleanly if certain conditions are met during the download process.
             - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
         """
-
-        if mp3:
-            warnings.warn(
-                "The 'mp3' parameter is deprecated and will be removed in a future version. "
-                "All audio will be downloaded as .m4a, the correct extension for the MPEG-4 AAC codec.",
-                DeprecationWarning,
-                stacklevel=2
-            )
-            pass
    
         kernel = sys.platform
 
