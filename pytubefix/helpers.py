@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import warnings
+import shutil
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 from urllib import request
 
@@ -333,7 +334,17 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
     return html_data
 
 
-# Remove ANSI color codes from a colored string
 def strip_color_codes(input_str):
+    """Remove ANSI color codes from a colored string"""
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     return ansi_escape.sub('', input_str)
+
+
+def reset_cache():
+        """Reset the cache by deleting the __cache__ directory."""
+        cache_dir = os.path.join(os.path.dirname(__file__), '__cache__')
+        if os.path.exists(cache_dir) and os.path.isdir(cache_dir):
+            shutil.rmtree(cache_dir)
+            print(f"Cache directory '{cache_dir}' has been reset.")
+        else:
+            print(f"Cache directory '{cache_dir}' does not exist.")
