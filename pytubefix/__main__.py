@@ -689,18 +689,21 @@ class YouTube:
                 self._title = self.vid_info['videoDetails']['title']
                 logger.debug('Found title in vid_info')
             else:
-                logger.debug('Found title in vid_details')
-                self._title = self.vid_details['contents'][
+                contents = self.vid_details['contents'][
                     'singleColumnWatchNextResults'][
                     'results'][
                     'results'][
                     'contents'][0][
                     'itemSectionRenderer'][
-                    'contents'][0][
-                    'videoMetadataRenderer'][
-                    'title'][
-                    'runs'][0][
-                    'text']
+                    'contents'][0]
+
+                if 'videoMetadataRenderer' in contents:
+                    self._title = contents['videoMetadataRenderer']['title']['runs'][0]['text']
+                else:
+                    # JSON tree for titles in videos available on YouTube music
+                    self._title = contents['musicWatchMetadataRenderer']['title']['simpleText']
+
+                logger.debug('Found title in vid_details')
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
