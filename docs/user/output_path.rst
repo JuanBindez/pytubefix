@@ -3,7 +3,7 @@
 Output Path
 ===========
 
-if you want to download a video to a specific directory::
+**if you want to download a video to a specific directory**::
     from pytubefix import YouTube
     from pytubefix.cli import on_progress
 
