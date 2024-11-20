@@ -9,13 +9,9 @@
 
 ## Python3 Library for Downloading YouTube Videos
 
-PyTubeFix simplifies the process of downloading YouTube videos, audio, playlists, and more with Python. It supports video searches, captions, and authenticated downloads.
-
 ---
 
 ## Installation
-
-Install PyTubeFix via pip:
 
 ```bash
 pip install pytubefix
