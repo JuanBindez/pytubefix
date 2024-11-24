@@ -2,10 +2,10 @@
 
 VERSION=8
 MINOR=5
-PATCH=1
+PATCH=2
 EXTRAVERSION=""
 
-NOTES="(#333 #334 #338)"
+NOTES="(Fixed bug on pytubefix 8.5.1: ".m4a" extension always added to all downloaded audio #354)"
 BRANCH="main"
 
 if [[ -z $PATCH ]]; then
