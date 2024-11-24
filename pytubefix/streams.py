@@ -291,6 +291,7 @@ class Stream:
         """
         if 'audio' in self.mime_type and 'video' not in self.mime_type:
             self.subtype = "m4a"
+        
         return f"{self.title}.{self.subtype}"
 
     def download(
@@ -340,8 +341,7 @@ class Stream:
         translation_table = file_system_verify(file_system)
 
         if filename is None:
-            title = self.title.translate(translation_table)
-            filename = title
+            filename = self.default_filename.translate(translation_table)
 
         if filename:
             filename = filename.translate(translation_table)
@@ -406,13 +406,14 @@ class Stream:
         if not filename:
             translation_table = file_system_verify(file_system)
             filename = self.default_filename.translate(translation_table)
-        elif filename:
+
+        if filename:
             translation_table = file_system_verify(file_system)
 
             if not ('audio' in self.mime_type and 'video' not in self.mime_type):
-                filename = filename.translate(translation_table) + ".mp4"
+                filename = filename.translate(translation_table)
             else:
-                filename = filename.translate(translation_table) + ".m4a"
+                filename = filename.translate(translation_table)
 
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
