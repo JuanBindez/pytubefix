@@ -689,19 +689,33 @@ class YouTube:
                 self._title = self.vid_info['videoDetails']['title']
                 logger.debug('Found title in vid_info')
             else:
-                contents = self.vid_details['contents'][
-                    'singleColumnWatchNextResults'][
-                    'results'][
-                    'results'][
-                    'contents'][0][
-                    'itemSectionRenderer'][
-                    'contents'][0]
+                if 'singleColumnWatchNextResults' in self.vid_details['contents']:
+                    contents = self.vid_details['contents'][
+                        'singleColumnWatchNextResults'][
+                        'results'][
+                        'results'][
+                        'contents'][0][
+                        'itemSectionRenderer'][
+                        'contents'][0]
 
-                if 'videoMetadataRenderer' in contents:
-                    self._title = contents['videoMetadataRenderer']['title']['runs'][0]['text']
-                else:
-                    # JSON tree for titles in videos available on YouTube music
-                    self._title = contents['musicWatchMetadataRenderer']['title']['simpleText']
+                    if 'videoMetadataRenderer' in contents:
+                        self._title = contents['videoMetadataRenderer']['title']['runs'][0]['text']
+                    else:
+                        # JSON tree for titles in videos available on YouTube music
+                        self._title = contents['musicWatchMetadataRenderer']['title']['simpleText']
+
+                # The type of video with this structure is not yet known.
+                # First reported in: https://github.com/JuanBindez/pytubefix/issues/351
+                elif 'twoColumnWatchNextResults' in self.vid_details['contents']:
+                    self._title = self.vid_details['contents'][
+                        'twoColumnWatchNextResults'][
+                        'results'][
+                        'results'][
+                        'contents'][0][
+                        'videoPrimaryInfoRenderer'][
+                        'title'][
+                        'runs'][0][
+                        'text']
 
                 logger.debug('Found title in vid_details')
         except KeyError as e:
