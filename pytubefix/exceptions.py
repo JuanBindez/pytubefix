@@ -309,4 +309,4 @@ class UnknownVideoError(VideoUnavailable):
 
     @property
     def error_string(self):
-        return f'{self.video_id} has an unknown error, check logs for more info'
+        return f'{self.video_id} has an unknown error, check logs for more info [Status: {self.status}] [Reason: {self.reason}]'
