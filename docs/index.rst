@@ -71,6 +71,7 @@ of pytubefix.
    user/po_token
    user/info
    user/output_path
+   user/buffer
 
 The API Documentation
 -----------------------------
