@@ -48,6 +48,12 @@ To list all command line options, simply type
 
     $ pytubefix --help
 
+See version
+
+.. code:: bash
+
+    $ pytubefix -V
+
 
 Finally, if you're filing a bug report, the cli contains a switch called
 ``--build-playback-report``, which bundles up the state, allowing others
