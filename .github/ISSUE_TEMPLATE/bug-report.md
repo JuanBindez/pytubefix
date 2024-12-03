@@ -53,7 +53,7 @@ Add any additional information or context that might help us resolve the issue.
 ---
 
 ### ✅ **Checklist Before Submitting**  
-- [ ] I have read the [contribution guidelines](link_to_guidelines).  
+- [ ] I have read the [contribution guidelines](https://github.com/JuanBindez/pytubefix/blob/main/Contributing.md).  
 - [ ] I have verified that the issue exists in the latest version of the library.  
 - [ ] I have included all necessary details to reproduce the bug.  
 
