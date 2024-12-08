@@ -405,6 +405,26 @@ class Playlist(Sequence):
             'title']['runs'][0]['text']
 
     @property
+    def thumbnail_url(self):
+        thumbnail_renderer = self.sidebar_info[0][
+                'playlistSidebarPrimaryInfoRenderer'][
+                'thumbnailRenderer']
+
+        if 'playlistVideoThumbnailRenderer' in thumbnail_renderer:
+            return thumbnail_renderer[
+                'playlistVideoThumbnailRenderer'][
+                'thumbnail'][
+                'thumbnails'][-1][
+                'url']
+
+        elif 'playlistCustomThumbnailRenderer' in thumbnail_renderer:
+            return thumbnail_renderer[
+                'playlistCustomThumbnailRenderer'][
+                'thumbnail'][
+                'thumbnails'][-1][
+                'url']
+
+    @property
     def description(self) -> str:
         return self.sidebar_info[0]['playlistSidebarPrimaryInfoRenderer'][
             'description']['simpleText']
