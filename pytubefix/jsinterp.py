@@ -430,6 +430,12 @@ class LocalNameSpace(collections.ChainMap):
         raise NotImplementedError('Deleting is not supported')
 
 
+def _fixup_n_function_code(argnames, code):
+    return argnames, re.sub(
+        rf';\s*if\s*\(\s*typeof\s+[a-zA-Z0-9_$]+\s*===?\s*(["\'])undefined\1\s*\)\s*return\s+{argnames[0]};',
+        ';', code)
+
+
 class JSInterpreter:
     __named_object_counter = 0
 
@@ -1069,7 +1075,7 @@ class JSInterpreter:
 
     def extract_function(self, funcname):
         return function_with_repr(
-            self.extract_function_from_code(*self.extract_function_code(funcname)),
+            self.extract_function_from_code(*_fixup_n_function_code(*self.extract_function_code(funcname))),
             f'F<{funcname}>')
 
     def extract_function_from_code(self, argnames, code, *global_stack):

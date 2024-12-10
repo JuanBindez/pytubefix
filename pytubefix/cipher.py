@@ -62,18 +62,18 @@ def get_initial_function_name(js: str, js_url: str) -> str:
     """
 
     function_patterns = [
+        r'(?P<sig>[a-zA-Z0-9$]+)\s*=\s*function\(\s*(?P<arg>[a-zA-Z0-9$]+)\s*\)\s*{\s*(?P=arg)\s*=\s*(?P=arg)\.split\(\s*""\s*\)\s*;\s*[^}]+;\s*return\s+(?P=arg)\.join\(\s*""\s*\)',
+        r'(?:\b|[^a-zA-Z0-9$])(?P<sig>[a-zA-Z0-9$]{2,})\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)(?:;[a-zA-Z0-9$]{2}\.[a-zA-Z0-9$]{2}\(a,\d+\))?',
+        r'\b(?P<var>[a-zA-Z0-9$]+)&&\((?P=var)=(?P<sig>[a-zA-Z0-9$]{2,})\(decodeURIComponent\((?P=var)\)\)',
+        # Old patterns
         r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\b[a-zA-Z0-9]+\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\bm=(?P<sig>[a-zA-Z0-9$]{2,})\(decodeURIComponent\(h\.s\)\)',
-        r'\bc&&\(c=(?P<sig>[a-zA-Z0-9$]{2,})\(decodeURIComponent\(c\)\)',
-        r'(?:\b|[^a-zA-Z0-9$])(?P<sig>[a-zA-Z0-9$]{2,})\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)(?:;[a-zA-Z0-9$]{2}\.[a-zA-Z0-9$]{2}\(a,\d+\))?',
-        r'(?P<sig>[a-zA-Z0-9$]+)\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)',
         # Obsolete patterns
         r'("|\')signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\(',
         r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-        r'\b[a-zA-Z0-9]+\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('
     ]
     logger.debug("finding initial function name")
@@ -81,8 +81,10 @@ def get_initial_function_name(js: str, js_url: str) -> str:
         regex = re.compile(pattern)
         function_match = regex.search(js)
         if function_match:
+            sig = function_match.group(1)
             logger.debug("finished regex search, matched: %s", pattern)
-            return function_match.group(1)
+            logger.debug(f'Signature cipher function name: {sig}')
+            return sig
 
     raise RegexMatchError(
         caller="get_initial_function_name", pattern=f"multiple in {js_url}"
@@ -133,21 +135,21 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
         # New pattern used in player "2f238d39" on October 10, 2024
         # a.D && (b = "nn" [+a.D], zM(a), c = a.j[b] || null) && (c = XDa[0](c), a.set(b, c))
         r'''(?x)
+            (?:
+                \.get\("n"\)\)&&\(b=|
+                (?:
+                    b=String\.fromCharCode\(110\)|
+                    (?P<str_idx>[a-zA-Z0-9_$.]+)&&\(b="nn"\[\+(?P=str_idx)\]
+                )
+                (?:
+                    ,[a-zA-Z0-9_$]+\(a\))?,c=a\.
                     (?:
-                        \.get\("n"\)\)&&\(b=|
-                        (?:
-                            b=String\.fromCharCode\(110\)|
-                            (?P<str_idx>[a-zA-Z0-9_$.]+)&&\(b="nn"\[\+(?P=str_idx)\]
-                        )
-                        (?:
-                            ,[a-zA-Z0-9_$]+\(a\))?,c=a\.
-                            (?:
-                                get\(b\)|
-                                [a-zA-Z0-9_$]+\[b\]\|\|null
-                            )\)&&\(c=|
-                        \b(?P<var>[a-zA-Z0-9_$]+)=
-                    )(?P<nfunc>[a-zA-Z0-9_$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z]\)
-                    (?(var),[a-zA-Z0-9_$]+\.set\("n"\,(?P=var)\),(?P=nfunc)\.length)'''
+                        get\(b\)|
+                        [a-zA-Z0-9_$]+\[b\]\|\|null
+                    )\)&&\(c=|
+                \b(?P<var>[a-zA-Z0-9_$]+)=
+            )(?P<nfunc>[a-zA-Z0-9_$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z]\)
+            (?(var),[a-zA-Z0-9_$]+\.set\((?:"n+"|[a-zA-Z0-9_$]+)\,(?P=var)\))'''
     ]
     logger.debug('Finding throttling function name')
     for pattern in function_patterns:
