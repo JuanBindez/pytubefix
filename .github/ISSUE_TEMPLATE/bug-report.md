@@ -2,7 +2,7 @@
 name: Bug Report
 about: Create a report to help us improve
 title: ''
-labels: bug, enhancement
+labels: bug
 assignees: ''
 
 ---
@@ -21,8 +21,6 @@ Provide a clear and concise description of the bug.
 Include the minimal code snippet that reproduces the issue.  
 
 ```python
-from pytubefix import YouTube
-
 # Insert your code here
 ```
 
@@ -34,8 +32,6 @@ Describe what you expected to happen instead of the observed behavior.
 ---
 
 ## 📸 **Screenshots or Logs**  
-If applicable, attach screenshots or logs that demonstrate the issue.  
-(Use a service like [Pastebin](https://pastebin.com/) if the logs are too lengthy.)  
 
 ---
 
@@ -51,13 +47,5 @@ Fill in the details below about your setup:
 Add any additional information or context that might help us resolve the issue.  
 
 ---
-
-### ✅ **Checklist Before Submitting**  
-- [ ] I have read the [contribution guidelines](https://github.com/JuanBindez/pytubefix/blob/main/Contributing.md).  
-- [ ] I have verified that the issue exists in the latest version of the library.  
-- [ ] I have included all necessary details to reproduce the bug.  
-
----
-
 ### 🚀 **Next Steps**  
 Once submitted, we will triage the issue. Make sure to respond to follow-up questions to keep the process smooth.
