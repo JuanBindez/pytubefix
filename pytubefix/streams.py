@@ -346,6 +346,8 @@ class Stream:
         if filename:
             filename = filename.translate(translation_table)
 
+        filename = filename.replace('/', '_').replace('\\', '_')
+
         file_path = self.get_file_path(
             filename=filename,
             output_path=output_path,
