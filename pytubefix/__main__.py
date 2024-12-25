@@ -137,7 +137,7 @@ class YouTube:
         self.client = 'WEB' if use_po_token else client
 
         # oauth can only be used by the TV and TV_EMBED client.
-        self.client = 'TV' if use_oauth else client
+        self.client = 'TV' if use_oauth else self.client
 
         self.fallback_clients = ['MWEB', 'IOS', 'TV', 'WEB']
 
