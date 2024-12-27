@@ -55,7 +55,7 @@ class Search:
             (if passed, else default verifier will be used)
         :param dict filters:
             (Optional) Apply filters when searching.
-            Can be used: `upload_data`, `type`, `duration`, `features`, `sort_by`.
+            Can be used: `upload_date`, `type`, `duration`, `features`, `sort_by`.
             features can be combined into a list with other parameters of the same type.
         """
         self.query = query
@@ -397,7 +397,7 @@ class Filter:
 
     def __init__(self):
         self.filters = {
-            'upload_data': None,
+            'upload_date': None,
             'type': None,
             'duration': None,
             'features': [],
@@ -449,8 +449,8 @@ class Filter:
             for feature in self.filters['features']:
                 combined[2].update(feature)
 
-        if self.filters['upload_data']:
-            combined[2].update(self.filters['upload_data'])
+        if self.filters['upload_date']:
+            combined[2].update(self.filters['upload_date'])
 
         combined[2] = dict(sorted(combined.get(2, {}).items()))
 
@@ -463,7 +463,7 @@ class Filter:
         return encoded_filters
 
     @staticmethod
-    def get_upload_data(option: str) -> dict:
+    def get_upload_date(option: str) -> dict:
         """
         Last Hour,
         Today,
