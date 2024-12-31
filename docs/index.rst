@@ -72,6 +72,7 @@ of pytubefix.
    user/info
    user/output_path
    user/buffer
+   user/proxy
 
 The API Documentation
 -----------------------------
