@@ -3,9 +3,9 @@
 VERSION=8
 MINOR=9
 PATCH=
-EXTRAVERSION="-rc1"
+EXTRAVERSION="-rc2"
 
-NOTES="(#397)"
+NOTES="(#397 #398)"
 BRANCH="dev"
 
 if [[ -z $PATCH ]]; then
