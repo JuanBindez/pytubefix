@@ -154,8 +154,8 @@ It wouldn't be very practical for the user or developer to have to manually retr
     >>> from pytubefix.contrib.search import Search, Filter
     >>> 
     >>> 
-    >>> f = {
-    ...     'upload_data': Filter.get_upload_data('Today'),
+    >>> filters = {
+    ...     'upload_date': Filter.get_upload_date('Today'),
     ...     'type': Filter.get_type("Video"),
     ...     'duration': Filter.get_duration("Under 4 minutes"),
     ...     'features': [Filter.get_features("4K"), Filter.get_features("Creative Commons")],

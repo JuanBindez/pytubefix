@@ -407,25 +407,38 @@ class YouTube:
 
         :rtype: Dict[Any, Any]
         """
-        if self._vid_info:
-            return self._vid_info
+        for client in self.fallback_clients:
+            if self._vid_info:
+                return self._vid_info
 
-        innertube = InnerTube(
-            client=self.client,
-            use_oauth=self.use_oauth,
-            allow_cache=self.allow_oauth_cache,
-            token_file=self.token_file,
-            oauth_verifier=self.oauth_verifier,
-            use_po_token=self.use_po_token,
-            po_token_verifier=self.po_token_verifier
-        )
-        if innertube.require_js_player:
-            innertube.innertube_context.update(self.signature_timestamp)
+            innertube = InnerTube(
+                client=self.client,
+                use_oauth=self.use_oauth,
+                allow_cache=self.allow_oauth_cache,
+                token_file=self.token_file,
+                oauth_verifier=self.oauth_verifier,
+                use_po_token=self.use_po_token,
+                po_token_verifier=self.po_token_verifier
+            )
+            if innertube.require_js_player:
+                innertube.innertube_context.update(self.signature_timestamp)
 
-        innertube_response = innertube.player(self.video_id)
-        if self.use_po_token:
-            self.po_token = innertube.access_po_token
-        self._vid_info = innertube_response
+            innertube_response = innertube.player(self.video_id)
+
+            # Some clients are unable to access certain types of videos
+            # If the video is unavailable for the current client, attempts will be made with fallback clients
+            playability_status = innertube_response['playabilityStatus']
+            if playability_status.get('status', None) == 'UNPLAYABLE':
+                if 'reason' in playability_status and playability_status['reason'] == 'This video is not available':
+                    logger.warning(f"{self.client} client returned: This video is not available")
+                    self.client = client
+                    self.vid_info = None
+                    logger.warning(f"Switching to client: {client}")
+            else:
+                if self.use_po_token:
+                    self.po_token = innertube.access_po_token
+                self._vid_info = innertube_response
+
         return self._vid_info
 
     @vid_info.setter
