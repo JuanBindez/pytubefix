@@ -321,19 +321,21 @@ class StreamQuery(Sequence):
             .first()
         )
 
-    def get_highest_resolution(self, progressive=True) -> Optional[Stream]:
+    def get_highest_resolution(self, progressive=True, mime_type=None) -> Optional[Stream]:
         """Get highest resolution stream that is a progressive video.
 
         :param bool progressive:
             Filter only progressive streams (video and audio in the same file), default is True.
             Set False to get the adaptive stream (separate video and audio) at the highest resolution
+        :param str mime_type:
+            Filter by mime_type. Leave as None to accept any mime_type.
         :rtype: :class:`Stream <Stream>` or None
         :returns:
             The :class:`Stream <Stream>` matching the given itag or None if
             not found.
 
         """
-        return self.filter(progressive=progressive).order_by("resolution").last()
+        return self.filter(progressive=progressive, mime_type=mime_type).order_by("resolution").last()
 
     def get_audio_only(self, subtype: str = "mp4") -> Optional[Stream]:
         """Get highest bitrate audio stream for given codec (defaults to mp4)
