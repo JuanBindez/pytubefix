@@ -18,6 +18,23 @@ from pytubefix import YouTube
 
 logger = logging.getLogger(__name__)
 
+
+def playlist_video(url):
+    print("Loading playlist...")
+    pl = Playlist(url)
+
+    for video in pl.videos:
+        ys = video.streams.get_highest_resolution()
+        ys.download()
+
+def playlist_audio(url):
+    print("Loading playlist...")
+    pl = Playlist(url)
+
+    for video in pl.videos:
+        ys = video.streams.get_audio_only()
+        ys.download()
+
 def build_playback_report(youtube: YouTube) -> None:
     """Serialize the request data to json for offline debugging.
     
@@ -280,7 +297,8 @@ def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) ->
     parser.add_argument("-t", "--target", help="The output directory for the downloaded stream. Default is current working directory")
     parser.add_argument("-a", "--audio", const="mp4", nargs="?", help="Download the audio for a given URL at the highest bitrate available. Defaults to mp4 format if none is specified")
     parser.add_argument("-f", "--ffmpeg", const="best", nargs="?", help="Downloads the audio and video stream for resolution provided. If no resolution is provided, downloads the best resolution. Runs the command line program ffmpeg to combine the audio and video")
-
+    parser.add_argument("-pl -a", "--playlist --audio", const="mp4", nargs="?", help="Download an entire playlist in audio format")
+    parser.add_argument("-pl", "--playlist", const="mp4", nargs="?", help="Download an entire playlist in video format")
     return parser.parse_args(args)
 
 def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None:
@@ -334,17 +352,11 @@ def main():
         parser.print_help()
         sys.exit(0)
 
-    if "/playlist" in args.url:
-        print("Loading playlist...")
-        playlist = Playlist(args.url)
-        args.target = args.target or safe_filename(playlist.title)
-
-        for youtube_video in playlist.videos:
-            try:
-                _perform_args_on_youtube(youtube_video, args)
-            except exceptions.PytubeFixError as e:
-                print(f"There was an error with video: {youtube_video}")
-                print(e)
+    if args == "-pl -a":
+        playlist_audio(args.url)
+    
+    elif args == "-pl":
+        playlist_video(args.url)
 
     else:
         print("Loading video...")
