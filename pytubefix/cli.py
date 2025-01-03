@@ -297,7 +297,6 @@ def _parse_args(parser: argparse.ArgumentParser, args: Optional[List] = None) ->
     parser.add_argument("-t", "--target", help="The output directory for the downloaded stream. Default is current working directory")
     parser.add_argument("-a", "--audio", const="mp4", nargs="?", help="Download the audio for a given URL at the highest bitrate available. Defaults to mp4 format if none is specified")
     parser.add_argument("-f", "--ffmpeg", const="best", nargs="?", help="Downloads the audio and video stream for resolution provided. If no resolution is provided, downloads the best resolution. Runs the command line program ffmpeg to combine the audio and video")
-    parser.add_argument("-pl -a", "--playlist --audio", const="mp4", nargs="?", help="Download an entire playlist in audio format")
     parser.add_argument("-pl", "--playlist", const="mp4", nargs="?", help="Download an entire playlist in video format")
     return parser.parse_args(args)
 
@@ -352,10 +351,9 @@ def main():
         parser.print_help()
         sys.exit(0)
 
-    if args == "-pl -a":
+    if args.pl and args.a:
         playlist_audio(args.url)
-    
-    elif args == "-pl":
+    elif args.pl:
         playlist_video(args.url)
 
     else:
