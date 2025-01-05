@@ -428,16 +428,16 @@ class YouTube:
             # Some clients are unable to access certain types of videos
             # If the video is unavailable for the current client, attempts will be made with fallback clients
             playability_status = innertube_response['playabilityStatus']
-            if playability_status.get('status', None) == 'UNPLAYABLE':
-                if 'reason' in playability_status and playability_status['reason'] == 'This video is not available':
-                    logger.warning(f"{self.client} client returned: This video is not available")
-                    self.client = client
-                    self.vid_info = None
-                    logger.warning(f"Switching to client: {client}")
+            if playability_status['status'] == 'UNPLAYABLE' and 'reason' in playability_status and playability_status['reason'] == 'This video is not available':
+                logger.warning(f"{self.client} client returned: This video is not available")
+                self.client = client
+                self.vid_info = None
+                logger.warning(f"Switching to client: {client}")
             else:
                 if self.use_po_token:
                     self.po_token = innertube.access_po_token
                 self._vid_info = innertube_response
+                break
 
         return self._vid_info
 
