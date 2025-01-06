@@ -272,6 +272,21 @@ class AgeCheckRequiredAccountError(VideoUnavailable):
             f"some users. Sign in to your primary account to confirm your age.")
 
 
+class InnerTubeResponseError(VideoUnavailable):
+    def __init__(self, video_id: str, client: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        """
+        self.video_id = video_id
+        self.client = client
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return (
+            f"{self.video_id} : {self.client} client did not receive a response from YouTube")
+
 ## 3. Unknown Error Type, Important to Developer ##
 
 
