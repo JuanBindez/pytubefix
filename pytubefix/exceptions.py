@@ -136,7 +136,7 @@ class BotDetection(VideoUnavailable):
     @property
     def error_string(self):
         return (
-            f'{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view. '
+            f'{self.video_id} This request was detected as a bot. Use `use_po_token=True` or switch to WEB client to view. '
             f'See more details at https://github.com/JuanBindez/pytubefix/pull/209')
 
 
