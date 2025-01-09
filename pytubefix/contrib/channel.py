@@ -467,7 +467,7 @@ class Channel(Playlist):
             return self._extract_channel_id_from_home(x)
 
     def _extract_channel_id_from_home(self, x: dict):
-        """ Try extracting the channel IDs from the home page, if that fails, return nothing.
+        """ Try extracting the channel IDs from the home page, if that fails, return playlist IDs from lockupViewModel.
 
         :returns: List of YouTube, Playlist or Channel objects.
         """
@@ -482,6 +482,25 @@ class Channel(Playlist):
                            use_po_token=self.use_po_token,
                            po_token_verifier=self.po_token_verifier
                            )
+        except (KeyError, IndexError, TypeError):
+            return self._extract_playlist_id_from_lockup_view_model(x)
+
+    def _extract_playlist_id_from_lockup_view_model(self, x: dict):
+        """ Try extracting the playlist IDs, if that fails, return nothing.
+
+        :returns: List of YouTube, Playlist or Channel objects.
+        """
+        try:
+            return Playlist(f"/playlist?list="
+                            f"{x['lockupViewModel']['contentId']}",
+                            client=self.client,
+                            use_oauth=self.use_oauth,
+                            allow_oauth_cache=self.allow_oauth_cache,
+                            token_file=self.token_file,
+                            oauth_verifier=self.oauth_verifier,
+                            use_po_token=self.use_po_token,
+                            po_token_verifier=self.po_token_verifier
+                            )
         except (KeyError, IndexError, TypeError):
             return []
 
