@@ -232,11 +232,16 @@ class YouTube:
         if self._visitor_data:
             return self._visitor_data
 
-        innertube_response = InnerTube('WEB').player(self.video_id)
         try:
-            self._visitor_data = innertube_response['responseContext']['visitorData']
-        except KeyError:
-            self._visitor_data = innertube_response['responseContext']['serviceTrackingParams'][0]['params'][6]['value']
+            logger.debug("Looking for visitorData in initial_data")
+            self._visitor_data = extract.visitor_data(str(self.initial_data['responseContext']))
+        except (KeyError, pytubefix.exceptions.RegexMatchError):
+            logger.debug("Unable to obtain visitorData from initial_data. Trying to request from the WEB client")
+            innertube_response = InnerTube('WEB').player(self.video_id)
+            try:
+                self._visitor_data = innertube_response['responseContext']['visitorData']
+            except KeyError:
+                self._visitor_data = innertube_response['responseContext']['serviceTrackingParams'][0]['params'][6]['value']
         logger.debug('VisitorData obtained successfully')
 
         return self._visitor_data
