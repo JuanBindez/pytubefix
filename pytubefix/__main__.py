@@ -31,6 +31,7 @@ smaller peripheral modules and functions.
 """
 
 import logging
+from subprocess import CalledProcessError
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pytubefix
@@ -259,7 +260,7 @@ class YouTube:
         try:
             self._pot = bot_guard.generate_po_token(visitor_data=self.visitor_data)
             logger.debug('PoToken generated successfully')
-        except FileNotFoundError:
+        except (FileNotFoundError, CalledProcessError):
             logger.warning('Unable to run botGuard. Skipping poToken generation')
         return self._pot
 
