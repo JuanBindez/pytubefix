@@ -1,4 +1,4 @@
-.. _PoToken:
+.. _pot_token:
 
 Add PoToken
 ===========
@@ -58,7 +58,7 @@ FAQ
 ---
 .. _proxy: https://pytubefix.readthedocs.io/en/latest/user/proxy.html
 
-.. _oauth: https://pytubefix.readthedocs.io/en/latest/user/auth.html
+.. _auth: https://pytubefix.readthedocs.io/en/latest/user/auth.html
 
 Detected as a bot even using PoToken
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
