@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubefix"
-version = "8.11.0"
+version = "8.12-rc1"
 authors = [
   { name="Juan Bindez", email="juanbindez780@gmail.com" },
 ]
@@ -48,3 +48,7 @@ include = ["pytubefix*"]
 
 [tool.setuptools]
 license-files = ["LICENSE"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"pytubefix" = ["botGuard/vm/*.js"]
