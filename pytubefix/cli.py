@@ -272,6 +272,7 @@ def download_video(url):
 
     ys = yt.streams.get_highest_resolution()
     ys.download()
+    sys.exit(0)
 
 def download_audio(url):
     yt = YouTube(url, on_progress_callback=on_progress)
@@ -279,18 +280,21 @@ def download_audio(url):
 
     ys = yt.streams.get_audio_only()
     ys.download()
+    sys.exit(0)
 
 def download_playlist_video(url):
     pl = Playlist(url)
     for video in pl.videos:
         ys = video.streams.get_highest_resolution()
         ys.download()
+        sys.exit(0)
 
 def download_playlist_audio(url):
     pl = Playlist(url)
     for video in pl.videos:
         ys = video.streams.get_audio_only()
         ys.download()
+        sys.exit(0)
 
 def main():
     """
