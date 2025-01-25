@@ -129,14 +129,17 @@ _3D = [82, 83, 84, 85, 100, 101, 102]
 LIVE = [91, 92, 93, 94, 95, 96, 132, 151]
 
 
-def get_format_profile(itag: str) -> Dict:
+def get_format_profile(itag: int) -> Dict:
     """Get additional format information for a given itag.
 
     :param str itag:
         YouTube format identifier code.
     """
     itag = int(itag)
-    res, bitrate = ITAGS[itag] if itag in ITAGS else (None, None)
+    if itag in ITAGS:
+        res, bitrate = ITAGS[itag]
+    else:
+        res, bitrate = None, None
     return {
         "resolution": res,
         "abr": bitrate,

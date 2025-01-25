@@ -26,7 +26,9 @@ def _execute_request(
     base_headers = {"User-Agent": "Mozilla/5.0", "accept-language": "en-US,en"}
     if headers:
         base_headers.update(headers)
-    if data and not isinstance(data, bytes): # encode data for request
+    if data:
+        # encode data for request
+        if not isinstance(data, bytes):
             data = bytes(json.dumps(data), encoding="utf-8")
     if url.lower().startswith("http"):
         request = Request(url, headers=base_headers, method=method, data=data)
@@ -84,17 +86,17 @@ def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIME
 
 
 def seq_stream(
-            url,
-            timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-            max_retries=0):
-
+    url,
+    timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+    max_retries=0
+):
     """Read the response in sequence.
     :param str url: The URL to perform the GET request for.
     :rtype: Iterable[bytes]
     """
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
-    base_url = f'{split_url.scheme}://{split_url.netloc}/{split_url.path}?'
+    base_url = '%s://%s/%s?' % (split_url.scheme, split_url.netloc, split_url.path)
 
     querys = dict(parse.parse_qsl(split_url.query))
 
@@ -128,10 +130,11 @@ def seq_stream(
     return  # pylint: disable=R1711
 
 
-# TODO: Refactor this code
-def stream(url,
-           timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-           max_retries=0):
+def stream(
+    url,
+    timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+    max_retries=0
+):
     """Read the response in chunks.
     :param str url: The URL to perform the GET request for.
     :rtype: Iterable[bytes]
@@ -152,14 +155,16 @@ def stream(url,
             # Try to execute the request, ignoring socket timeouts
             try:
                 response = _execute_request(
-                    f"{url}&range={downloaded}-{stop_pos}",
+                    url + f"&range={downloaded}-{stop_pos}",
                     method="GET",
                     timeout=timeout
                 )
             except URLError as e:
                 # We only want to skip over timeout errors, and
                 # raise any other URLError exceptions
-                if not isinstance(e.reason, socket.timeout):
+                if isinstance(e.reason, socket.timeout):
+                    pass
+                else:
                     raise
             except http.client.IncompleteRead:
                 # Allow retries on IncompleteRead errors for unreliable connections
@@ -172,7 +177,7 @@ def stream(url,
         if file_size == default_range_size:
             try:
                 resp = _execute_request(
-                    f"{url}&range=0-99999999999",
+                    url + f"&range={0}-{99999999999}",
                     method="GET",
                     timeout=timeout
                 )
@@ -181,15 +186,10 @@ def stream(url,
             except (KeyError, IndexError, ValueError) as e:
                 logger.error(e)
         while True:
-            try:
-                chunk = response.read()
-            except StopIteration:
-                return
-
+            chunk = response.read()
             if not chunk:
                 break
-
-            if chunk: downloaded += len(chunk)
+            downloaded += len(chunk)
             yield chunk
     return  # pylint: disable=R1711
 
@@ -214,7 +214,7 @@ def seq_filesize(url):
     total_filesize = 0
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
-    base_url = f'{split_url.scheme}://{split_url.netloc}/{split_url.path}?'
+    base_url = '%s://%s/%s?' % (split_url.scheme, split_url.netloc, split_url.path)
     querys = dict(parse.parse_qsl(split_url.query))
 
     # The 0th sequential request provides the file headers, which tell us

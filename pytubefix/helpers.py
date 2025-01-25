@@ -6,12 +6,10 @@ import logging
 import os
 import re
 import warnings
-import shutil
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 from urllib import request
 
 from pytubefix.exceptions import RegexMatchError
-
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +17,7 @@ logger = logging.getLogger(__name__)
 class DeferredGeneratorList:
     """A wrapper class for deferring list generation.
 
-    Pytubefix has some continuation generators that create web calls, which means
+    Pytube has some continuation generators that create web calls, which means
     that any time a full list is requested, all of those web calls must be
     made at once, which could lead to slowdowns. This will allow individual
     elements to be queried, so that slowdowns only happen as necessary. For
@@ -150,7 +148,7 @@ def safe_filename(s: str, max_length: int = 255) -> str:
         A sanitized string.
     """
     # Characters in range 0-31 (0x00-0x1F) are not allowed in ntfs filenames.
-    ntfs_characters = [chr(i) for i in range(31)]
+    ntfs_characters = [chr(i) for i in range(0, 31)]
     characters = [
         r'"',
         r"\#",
@@ -190,7 +188,7 @@ def setup_logger(level: int = logging.ERROR, log_filename: Optional[str] = None)
     formatter = logging.Formatter(fmt, datefmt=date_fmt)
 
     # https://github.com/pytube/pytube/issues/163
-    logger = logging.getLogger("pytubefix")
+    logger = logging.getLogger("pytube")
     logger.setLevel(level)
 
     stream_handler = logging.StreamHandler()
@@ -272,10 +270,12 @@ def uniqueify(duped_list: List) -> List:
     :return List result
         De-duplicated list
     """
+    seen: Dict[Any, bool] = {}
     result = []
     for item in duped_list:
-        if item in result:
+        if item in seen:
             continue
+        seen[item] = True
         result.append(item)
     return result
 
@@ -307,7 +307,7 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
         Dict used to generate the json.gz file
     """
     from pytubefix import YouTube
-    gzip_filename = f'yt-video-{vid_id}-html.json.gz'
+    gzip_filename = 'yt-video-%s-html.json.gz' % vid_id
 
     # Get the pytube directory in order to navigate to /tests/mocks
     pytube_dir_path = os.path.abspath(
@@ -333,47 +333,3 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
         f.write(json.dumps(html_data).encode('utf-8'))
 
     return html_data
-
-
-def strip_color_codes(input_str):
-    """Remove ANSI color codes from a colored string"""
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-    return ansi_escape.sub('', input_str)
-
-
-def reset_cache(verbose: bool = False):
-    """
-    Deletes the `__cache__` directory to reset the cache.
-
-    This function checks if the `__cache__` directory exists in the same directory 
-    as the script. If it exists and is a directory, it deletes it along with its contents. 
-    If the directory does not exist, it logs a message indicating that the cache directory 
-    is not present.
-
-    Parameters:
-        verbose (bool): If True, sets up logging at the DEBUG level. Default is False.
-
-    Behavior:
-        - When `verbose` is True, debug messages are logged, providing information about 
-          the existence and status of the cache directory.
-        - If `verbose` is False, no logging configuration is modified, and debug messages 
-          may not be shown unless logging is already configured externally.
-
-    Example:
-        >>> reset_cache(verbose=True)
-        # Logs detailed information about the cache reset process.
-
-    Raises:
-        None
-    """
-    
-    cache_dir = os.path.join(os.path.dirname(__file__), '__cache__')
-
-    if verbose:
-        setup_logger(level=logging.DEBUG)
-
-    if os.path.exists(cache_dir) and os.path.isdir(cache_dir):
-        shutil.rmtree(cache_dir)
-        logger.debug(f"Cache directory '{cache_dir}' has been reset.")
-    else:
-        logger.debug(f"Cache directory '{cache_dir}' does not exist.")

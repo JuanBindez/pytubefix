@@ -31,7 +31,7 @@ def parse_for_all_objects(html, preceding_regex):
             else:
                 result.append(obj)
 
-    if not result:
+    if len(result) == 0:
         raise HTMLParseError(f'No matches for regex {preceding_regex}')
 
     return result
@@ -83,12 +83,11 @@ def find_object_from_startpoint(html, start_point):
         '{': '}',
         '[': ']',
         '"': '"',
-        '\'': '\'',
         '/': '/' # javascript regex
     }
 
     while i < len(html):
-        if not stack:
+        if len(stack) == 0:
             break
         if curr_char not in [' ', '\n']:
             last_char = curr_char
@@ -103,7 +102,7 @@ def find_object_from_startpoint(html, start_point):
 
         # Strings and regex expressions require special context handling because they can contain
         #  context openers *and* closers
-        if curr_context in ['"', '\'', '/']:
+        if curr_context in ['"', '/']:
             # If there's a backslash in a string or regex expression, we skip a character
             if curr_char == '\\':
                 i += 2

@@ -36,7 +36,6 @@ class StreamQuery(Sequence):
         progressive=None,
         adaptive=None,
         is_dash=None,
-        audio_track_name=None,
         custom_filter_functions=None,
     ):
         """Apply the given filtering criterion.
@@ -115,11 +114,6 @@ class StreamQuery(Sequence):
         :param bool only_video:
             Excludes streams with audio tracks.
 
-        :param audio_track_name:
-            Name of the dubbed audio track
-        :type type:
-            str or None
-
         :param custom_filter_functions:
             (optional) Interface for defining complex filters without
             subclassing.
@@ -174,9 +168,6 @@ class StreamQuery(Sequence):
 
         if adaptive:
             filters.append(lambda s: s.is_adaptive)
-
-        if audio_track_name:
-            filters.append(lambda s: s.audio_track_name == audio_track_name)
 
         if custom_filter_functions:
             filters.extend(custom_filter_functions)
@@ -243,7 +234,7 @@ class StreamQuery(Sequence):
         """
         return self
 
-    def get_by_itag(self, itag: Union[int, str]) -> Optional[Stream]:
+    def get_by_itag(self, itag: int) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given itag.
 
         :param int itag:
@@ -254,10 +245,7 @@ class StreamQuery(Sequence):
             not found.
 
         """
-        if isinstance(itag, int):
-            return self.itag_index.get(itag)
-        elif isinstance(itag, str) and itag.isdigit():
-            return self.itag_index.get(int(itag))
+        return self.itag_index.get(int(itag))
 
     def get_by_resolution(self, resolution: str) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given resolution.
@@ -276,39 +264,9 @@ class StreamQuery(Sequence):
             progressive=True, subtype="mp4", resolution=resolution
         ).first()
 
-    def get_default_audio_track(self) -> "StreamQuery":
-        """Takes the standard audio tracks, will return all audio tracks if there is no dubbing.
-
-        :rtype: :class:`StreamQuery <StreamQuery>`
-        :returns: A StreamQuery object with filtered default dubbing streams.
-        """
-        return self._filter([lambda s: s.is_default_audio_track])
-
-    def get_extra_audio_track(self) -> Optional["StreamQuery"]:
-        """Get only dubbed audio tracks.
-
-        :rtype: :class:`StreamQuery <StreamQuery>` or None
-        :returns: A StreamQuery object with filtering only the dubbing streams.
-        """
-        return self._filter([lambda s:
-                             not s.is_default_audio_track
-                             and s.includes_audio_track
-                             and not s.includes_video_track])
-
-    def get_extra_audio_track_by_name(self, name) -> Optional["StreamQuery"]:
-        """Filter dubbed audio streams by name
-
-        :rtype: :class:`StreamQuery <StreamQuery>` or None
-        :returns: A StreamQuery object filtering dubbed audio streams by name.
-        """
-        return self._filter([lambda s: s.audio_track_name == name])
-
-    def get_lowest_resolution(self, progressive=True) -> Optional[Stream]:
+    def get_lowest_resolution(self) -> Optional[Stream]:
         """Get lowest resolution stream that is a progressive mp4.
 
-        :param bool progressive:
-            Filter only progressive streams (video and audio in the same file), default is True.
-            Set False to get the adaptive stream (separate video and audio) at the lowest resolution
         :rtype: :class:`Stream <Stream>` or None
         :returns:
             The :class:`Stream <Stream>` matching the given itag or None if
@@ -316,26 +274,21 @@ class StreamQuery(Sequence):
 
         """
         return (
-            self.filter(progressive=progressive, subtype="mp4")
+            self.filter(progressive=True, subtype="mp4")
             .order_by("resolution")
             .first()
         )
 
-    def get_highest_resolution(self, progressive=True, mime_type=None) -> Optional[Stream]:
+    def get_highest_resolution(self) -> Optional[Stream]:
         """Get highest resolution stream that is a progressive video.
 
-        :param bool progressive:
-            Filter only progressive streams (video and audio in the same file), default is True.
-            Set False to get the adaptive stream (separate video and audio) at the highest resolution
-        :param str mime_type:
-            Filter by mime_type. Leave as None to accept any mime_type.
         :rtype: :class:`Stream <Stream>` or None
         :returns:
             The :class:`Stream <Stream>` matching the given itag or None if
             not found.
 
         """
-        return self.filter(progressive=progressive, mime_type=mime_type).order_by("resolution").last()
+        return self.filter(progressive=True).order_by("resolution").last()
 
     def get_audio_only(self, subtype: str = "mp4") -> Optional[Stream]:
         """Get highest bitrate audio stream for given codec (defaults to mp4)
@@ -391,12 +344,15 @@ class StreamQuery(Sequence):
             pass
 
     @deprecated("Get the size of this list directly using len()")
-    def count(self, value: Optional[str] = None) -> int:    # pragma: no cover
+    def count(self, value: Optional[str] = None) -> int:  # pragma: no cover
         """Get the count of items in the list.
 
         :rtype: int
         """
-        return self.fmt_streams.count(value) if value else len(self)
+        if value:
+            return self.fmt_streams.count(value)
+
+        return len(self)
 
     @deprecated("This object can be treated as a list, all() is useless")
     def all(self) -> List[Stream]:  # pragma: no cover

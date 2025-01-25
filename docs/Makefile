@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
-SPHINXPROJ    = pytubefix
+SPHINXPROJ    = pytube
 SOURCEDIR     = .
 BUILDDIR      = _build
 

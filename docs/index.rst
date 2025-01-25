@@ -1,36 +1,36 @@
-.. pytubefix documentation master file,
+.. pytube documentation master file, created by sphinx-quickstart on Mon Oct  9 02:11:41 2017.
 
-pytubefix
+pytube
 ======
 Release v\ |version|. (:ref:`Installation<install>`)
 
-
-.. image:: https://img.shields.io/pypi/v/pytubefix.svg
+.. image:: https://img.shields.io/pypi/v/pytube.svg
   :alt: Pypi
-  :target: https://pypi.python.org/pypi/pytubefix/
+  :target: https://pypi.python.org/pypi/pytube/
 
-.. image:: https://img.shields.io/pypi/pyversions/pytubefix.svg
+.. image:: https://img.shields.io/pypi/pyversions/pytube.svg
   :alt: Python Versions
-  :target: https://pypi.python.org/pypi/pytubefix/
+  :target: https://pypi.python.org/pypi/pytube/
 
+.. image:: https://readthedocs.org/projects/python-pytube/badge/?version=latest&style=flat-square
+  :alt: Readthedocs
 
-**pytubefix** is a lightweight, Pythonic, dependency-free, library (and
+**pytube** is a lightweight, Pythonic, dependency-free, library (and
 command-line utility) for downloading YouTube Videos.
 
 -------------------
 
 **Behold, a perfect balance of simplicity versus flexibility**::
 
-    from pytubefix import YouTube
-    from pytubefix.cli import on_progress
-     
-    url = input("URL >")
-     
-    yt = YouTube(url, on_progress_callback = on_progress)
-    print(yt.title)
-     
-    ys = yt.streams.get_highest_resolution()
-    ys.download()
+    >>> from pytube import YouTube
+    >>> YouTube('https://youtu.be/9bZkp7q19f0').streams.first().download()
+    >>> yt = YouTube('http://youtube.com/watch?v=9bZkp7q19f0')
+    >>> yt.streams
+    ... .filter(progressive=True, file_extension='mp4')
+    ... .order_by('resolution')
+    ... .desc()
+    ... .first()
+    ... .download()
 
 Features
 --------
@@ -48,7 +48,7 @@ The User Guide
 --------------
 This part of the documentation begins with some background information about
 the project, then focuses on step-by-step instructions for getting the most out
-of pytubefix.
+of pytube.
 
 .. toctree::
    :maxdepth: 2
@@ -56,23 +56,12 @@ of pytubefix.
    user/install
    user/quickstart
    user/streams
-   user/auth
-   user/m4a
    user/captions
    user/playlist
    user/channel
    user/search
-   user/channel_playlists
    user/cli
    user/exceptions
-   user/chapters
-   user/dubbed_streams
-   user/keymoments
-   user/po_token
-   user/info
-   user/output_path
-   user/buffer
-   user/proxy
 
 The API Documentation
 -----------------------------

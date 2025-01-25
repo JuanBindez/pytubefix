@@ -6,24 +6,19 @@ combined). This was referred to as ``Video`` in the legacy pytube version, but
 has been renamed to accommodate DASH (which serves the audio and video
 separately).
 """
-
 import logging
 import os
 from math import ceil
-import sys
-import warnings
 
 from datetime import datetime
-from typing import BinaryIO, Dict, Optional, Tuple, Iterator, Callable
+from typing import BinaryIO, Dict, Optional, Tuple
 from urllib.error import HTTPError
 from urllib.parse import parse_qs
-from pathlib import Path
 
 from pytubefix import extract, request
 from pytubefix.helpers import safe_filename, target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
-from pytubefix.file_system import file_system_verify
 
 logger = logging.getLogger(__name__)
 
@@ -88,21 +83,9 @@ class Stream:
         self.resolution = itag_profile[
             "resolution"
         ]  # resolution (e.g.: "480p")
-
-        self._width = stream["width"] if 'width' in stream else None
-        self._height = stream["height"] if 'height' in stream else None
-
         self.is_3d = itag_profile["is_3d"]
         self.is_hdr = itag_profile["is_hdr"]
         self.is_live = itag_profile["is_live"]
-
-        self.includes_multiple_audio_tracks: bool = 'audioTrack' in stream
-        if self.includes_multiple_audio_tracks:
-            self.is_default_audio_track = stream['audioTrack']['audioIsDefault']
-            self.audio_track_name = str(stream['audioTrack']['displayName']).split(" ")[0]
-        else:
-            self.is_default_audio_track = self.includes_audio_track and not self.includes_video_track
-            self.audio_track_name = None
 
     @property
     def is_adaptive(self) -> bool:
@@ -160,26 +143,6 @@ class Stream:
         elif self.includes_audio_track:
             audio = self.codecs[0]
         return video, audio
-
-    @property
-    def width(self) -> int:
-        """Video width. Returns None if it does not have the value.
-
-        :rtype: int
-        :returns:
-            Returns an int of the video width
-        """
-        return self._width
-
-    @property
-    def height(self) -> int:
-        """Video height. Returns None if it does not have the value.
-
-        :rtype: int
-        :returns:
-            Returns an int of the video height
-        """
-        return self._height
 
     @property
     def filesize(self) -> int:
@@ -250,7 +213,7 @@ class Stream:
         return self._filesize_gb
     
     @property
-    def title(self,) -> str:
+    def title(self) -> str:
         """Get title of video
 
         :rtype: str
@@ -289,10 +252,8 @@ class Stream:
         :returns:
             An os file system compatible filename.
         """
-        if 'audio' in self.mime_type and 'video' not in self.mime_type:
-            self.subtype = "m4a"
-        
-        return f"{self.title}.{self.subtype}"
+        filename = safe_filename(self.title)
+        return f"{filename}.{self.subtype}"
 
     def download(
         self,
@@ -301,56 +262,43 @@ class Stream:
         filename_prefix: Optional[str] = None,
         skip_existing: bool = True,
         timeout: Optional[int] = None,
-        max_retries: int = 0,
-        interrupt_checker: Optional[Callable[[], bool]] = None
-    ) -> Optional[str]:
-        
+        max_retries: Optional[int] = 0
+    ) -> str:
+        """Write the media stream to disk.
+
+        :param output_path:
+            (optional) Output path for writing media file. If one is not
+            specified, defaults to the current working directory.
+        :type output_path: str or None
+        :param filename:
+            (optional) Output filename (stem only) for writing media file.
+            If one is not specified, the default filename is used.
+        :type filename: str or None
+        :param filename_prefix:
+            (optional) A string that will be prepended to the filename.
+            For example a number in a playlist or the name of a series.
+            If one is not specified, nothing will be prepended
+            This is separate from filename so you can use the default
+            filename but still add a prefix.
+        :type filename_prefix: str or None
+        :param skip_existing:
+            (optional) Skip existing files, defaults to True
+        :type skip_existing: bool
+        :param timeout:
+            (optional) Request timeout length in seconds. Uses system default.
+        :type timeout: int
+        :param max_retries:
+            (optional) Number of retries to attempt after socket timeout. Defaults to 0.
+        :type max_retries: int
+        :returns:
+            Path to the saved video
+        :rtype: str
+
         """
-        Downloads a file from the URL provided by `self.url` and saves it locally with optional configurations.
-
-        Args:
-            output_path (Optional[str]): Directory path where the downloaded file will be saved. Defaults to the current directory if not specified.
-            filename (Optional[str]): Custom name for the downloaded file. If not provided, a default name is used.
-            filename_prefix (Optional[str]): Prefix to be added to the filename (if provided).
-            skip_existing (bool): Whether to skip the download if the file already exists at the target location. Defaults to True.
-            timeout (Optional[int]): Maximum time, in seconds, to wait for the download request. Defaults to None for no timeout.
-            max_retries (int): The number of times to retry the download if it fails. Defaults to 0 (no retries).
-            interrupt_checker (Optional[Callable[[], bool]]): A callable function that is checked periodically during the download. If it returns True, the download will stop without errors.
-
-        Returns:
-            Optional[str]: The full file path of the downloaded file, or None if the download was skipped or failed.
-
-        Raises:
-            HTTPError: Raised if there is an error with the HTTP request during the download process.
-
-        Note:
-            - The `skip_existing` flag avoids redownloading if the file already exists in the target location.
-            - The `interrupt_checker` allows for the download to be halted cleanly if certain conditions are met during the download process.
-            - Download progress can be monitored using the `on_progress` callback, and the `on_complete` callback is triggered once the download is finished.
-        """
-   
-        kernel = sys.platform
-
-        if kernel == "linux":
-            file_system = "ext4"
-        elif kernel == "darwin":
-            file_system = "APFS"
-        else:
-            file_system = "NTFS"  
-                
-        translation_table = file_system_verify(file_system)
-
-        if filename is None:
-            filename = self.default_filename.translate(translation_table)
-
-        if filename:
-            filename = filename.translate(translation_table)
-
         file_path = self.get_file_path(
             filename=filename,
             output_path=output_path,
             filename_prefix=filename_prefix,
-            file_system=file_system
         )
 
         if skip_existing and self.exists_at_path(file_path):
@@ -368,9 +316,6 @@ class Stream:
                     timeout=timeout,
                     max_retries=max_retries
                 ):
-                    if interrupt_checker is not None and interrupt_checker() == True:
-                        logger.debug('interrupt_checker returned True, causing to force stop the downloading')
-                        return
                     # reduce the (bytes) remainder by the length of the chunk.
                     bytes_remaining -= len(chunk)
                     # send to the on_progress callback.
@@ -378,21 +323,16 @@ class Stream:
             except HTTPError as e:
                 if e.code != 404:
                     raise
-            except StopIteration:
                 # Some adaptive streams need to be requested with sequence numbers
                 for chunk in request.seq_stream(
                     self.url,
                     timeout=timeout,
                     max_retries=max_retries
                 ):
-                    if interrupt_checker is not None and interrupt_checker() == True:
-                        logger.debug('interrupt_checker returned True, causing to force stop the downloading')
-                        return
                     # reduce the (bytes) remainder by the length of the chunk.
                     bytes_remaining -= len(chunk)
                     # send to the on_progress callback.
                     self.on_progress(chunk, fh, bytes_remaining)
-
         self.on_complete(file_path)
         return file_path
 
@@ -401,23 +341,12 @@ class Stream:
         filename: Optional[str] = None,
         output_path: Optional[str] = None,
         filename_prefix: Optional[str] = None,
-        file_system: str = 'NTFS'
     ) -> str:
         if not filename:
-            translation_table = file_system_verify(file_system)
-            filename = self.default_filename.translate(translation_table)
-
-        if filename:
-            translation_table = file_system_verify(file_system)
-
-            if not ('audio' in self.mime_type and 'video' not in self.mime_type):
-                filename = filename.translate(translation_table)
-            else:
-                filename = filename.translate(translation_table)
-
+            filename = self.default_filename
         if filename_prefix:
             filename = f"{filename_prefix}{filename}"
-        return str(Path(target_directory(output_path)) / filename)
+        return os.path.join(target_directory(output_path), filename)
 
     def exists_at_path(self, file_path: str) -> bool:
         return (
@@ -464,9 +393,7 @@ class Stream:
         :rtype: None
 
         """
-
         file_handler.write(chunk)
-
         logger.debug("download remaining: %s", bytes_remaining)
         if self._monostate.on_progress:
             self._monostate.on_progress(self, chunk, bytes_remaining)
@@ -507,66 +434,3 @@ class Stream:
             parts.extend(['abr="{s.abr}"', 'acodec="{s.audio_codec}"'])
         parts.extend(['progressive="{s.is_progressive}"', 'type="{s.type}"'])
         return f"<Stream: {' '.join(parts).format(s=self)}>"
-
-    def on_progress_for_chunks(self, chunk: bytes, bytes_remaining: int):
-        """On progress callback function.
-
-        This function checks if an additional callback is defined in the monostate.
-        This is exposed to allow things like displaying a progress bar.
-
-        :param bytes chunk:
-        Segment of media file binary data, not yet written to disk.
-        :py:class:`io.BufferedWriter`
-        :param int bytes_remaining:
-        The delta between the total file size in bytes and amount already
-        downloaded.
-
-        :rtype: None
-        """
-
-        logger.debug("download remaining: %s", bytes_remaining)
-        if self._monostate.on_progress:
-            self._monostate.on_progress(self, chunk, bytes_remaining)
-
-    def iter_chunks(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-        """Get the chunks directly
-
-        Example:
-        # Write the chunk by yourself
-        with open("somefile.mp4") as out_file:
-            out_file.writelines(stream.iter_chunks(512))
-
-            # Another way
-            # for chunk in stream.iter_chunks(512):
-            #   out_file.write(chunk)
-
-        # Or give it external api
-        external_api.write_media(stream.iter_chunks(512))
-
-        :param int chunk size:
-        The size in the bytes
-        :rtype: Iterator[bytes]
-        """
-
-        bytes_remaining = self.filesize
-
-        if chunk_size:
-            request.default_range_size = chunk_size
-
-        logger.info(
-            "downloading (%s total bytes) file to buffer",
-            self.filesize,
-        )
-        try:
-            stream = request.stream(self.url)
-        except HTTPError as e:
-            if e.code != 404:
-                raise
-            stream = request.seq_stream(self.url)
-
-        for chunk in stream:
-            bytes_remaining -= len(chunk)
-            self.on_progress_for_chunks(chunk, bytes_remaining)
-            yield chunk
-
-        self.on_complete(None)

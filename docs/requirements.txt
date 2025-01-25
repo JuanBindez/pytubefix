@@ -1,2 +1,1 @@
 typing_extensions
-sphinx-rtd-theme

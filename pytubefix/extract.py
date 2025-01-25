@@ -13,26 +13,26 @@ from pytubefix.helpers import regex_search
 from pytubefix.metadata import YouTubeMetadata
 from pytubefix.parser import parse_for_object, parse_for_all_objects
 
+
 logger = logging.getLogger(__name__)
 
 
 def publish_date(watch_html: str):
-    """Extract publish date and return it as a datetime object
+    """Extract publish date
     :param str watch_html:
         The html contents of the watch page.
-    :rtype: datetime
+    :rtype: str
     :returns:
-        Publish date of the video as a datetime object with timezone.
+        Publish date of the video.
     """
     try:
-        result = re.search(
-            r"(?<=itemprop=\"datePublished\" content=\")\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}",
-            watch_html
+        result = regex_search(
+            r"(?<=itemprop=\"datePublished\" content=\")\d{4}-\d{2}-\d{2}",
+            watch_html, group=0
         )
-        if result:
-            return datetime.fromisoformat(result.group(0))
-    except AttributeError:
+    except RegexMatchError:
         return None
+    return datetime.strptime(result, '%Y-%m-%d')
 
 
 def recording_available(watch_html):
@@ -89,7 +89,7 @@ def is_age_restricted(watch_html: str) -> bool:
     return True
 
 
-def playability_status(player_response: dict) -> Tuple[Any, Any]:
+def playability_status(watch_html: str) -> (str, str):
     """Return the playability status and status explanation of a video.
 
     For example, a video may have a status of LOGIN_REQUIRED, and an explanation
@@ -97,34 +97,22 @@ def playability_status(player_response: dict) -> Tuple[Any, Any]:
 
     This explanation is what gets incorporated into the media player overlay.
 
-    :param str player_response:
-        Content of the player's response.
+    :param str watch_html:
+        The html contents of the watch page.
     :rtype: bool
     :returns:
         Playability status and reason of the video.
     """
+    player_response = initial_player_response(watch_html)
     status_dict = player_response.get('playabilityStatus', {})
-    # if 'liveStreamability' in status_dict:
-    # We used liveStreamability to know if the video was live,
-    # however some clients still return this parameter even if the video is already available
-    if 'videoDetails' in player_response:  # Private videos do not contain videoDetails
-        if 'isLive' in player_response['videoDetails']:
-            return 'LIVE_STREAM', 'Video is a live stream.'
-
+    if 'liveStreamability' in status_dict:
+        return 'LIVE_STREAM', 'Video is a live stream.'
     if 'status' in status_dict:
         if 'reason' in status_dict:
             return status_dict['status'], [status_dict['reason']]
         if 'messages' in status_dict:
             return status_dict['status'], status_dict['messages']
     return None, [None]
-
-
-def signature_timestamp(js: str) -> str:
-    return regex_search(r"signatureTimestamp:(\d*)", js, group=1)
-
-
-def visitor_data(response_context: str) -> str:
-    return regex_search(r"visitor_data[',\"\s]+value['\"]:\s?['\"]([a-zA-Z0-9_%-]+)['\"]", response_context, group=1)
 
 
 def video_id(url: str) -> str:
@@ -172,7 +160,6 @@ def channel_name(url: str) -> str:
     - :samp:`https://youtube.com/channel/{channel_id}/*
     - :samp:`https://youtube.com/u/{channel_name}/*`
     - :samp:`https://youtube.com/user/{channel_id}/*
-    - :samp:`https://youtube.com/@{channel_id}/*
 
     :param str url:
         A YouTube url containing a channel name.
@@ -184,8 +171,7 @@ def channel_name(url: str) -> str:
         r"(?:\/(c)\/([%\d\w_\-]+)(\/.*)?)",
         r"(?:\/(channel)\/([%\w\d_\-]+)(\/.*)?)",
         r"(?:\/(u)\/([%\d\w_\-]+)(\/.*)?)",
-        r"(?:\/(user)\/([%\w\d_\-]+)(\/.*)?)",
-        r"(?:\/(\@)([%\d\w_\-\.]+)(\/.*)?)"
+        r"(?:\/(user)\/([%\w\d_\-]+)(\/.*)?)"
     ]
     for pattern in patterns:
         regex = re.compile(pattern)
@@ -194,11 +180,12 @@ def channel_name(url: str) -> str:
             logger.debug("finished regex search, matched: %s", pattern)
             uri_style = function_match.group(1)
             uri_identifier = function_match.group(2)
-            return f'/{uri_style}/{uri_identifier}' if uri_style != '@' else f'/{uri_style}{uri_identifier}'
+            return f'/{uri_style}/{uri_identifier}'
 
     raise RegexMatchError(
         caller="channel_name", pattern="patterns"
     )
+
 
 def video_info_url(video_id: str, watch_url: str) -> str:
     """Construct the video_info url.
@@ -259,7 +246,7 @@ def video_info_url_age_restricted(video_id: str, embed_html: str) -> str:
 
 
 def _video_info_url(params: OrderedDict) -> str:
-    return f"https://www.youtube.com/get_video_info?{urlencode(params)}"
+    return "https://www.youtube.com/get_video_info?" + urlencode(params)
 
 
 def js_url(html: str) -> str:
@@ -275,7 +262,7 @@ def js_url(html: str) -> str:
         base_js = get_ytplayer_config(html)['assets']['js']
     except (KeyError, RegexMatchError):
         base_js = get_ytplayer_js(html)
-    return f"https://youtube.com{base_js}"
+    return "https://youtube.com" + base_js
 
 
 def mime_type_codec(mime_type_codec: str) -> Tuple[str, List[str]]:
@@ -402,7 +389,7 @@ def get_ytcfg(html: str) -> str:
         except HTMLParseError:
             continue
 
-    if ytcfg: # there is at least one item
+    if len(ytcfg) > 0:
         return ytcfg
 
     raise RegexMatchError(
@@ -410,114 +397,64 @@ def get_ytcfg(html: str) -> str:
     )
 
 
-def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None:
-    """Apply the proof of origin token to the stream manifest
-
-    :param dict stream_manifest:
-        Details of the media streams available.
-    :param str po_token:
-        Proof of Origin Token.
-    """
-    logger.debug(f'Applying poToken')
-    for i, stream in enumerate(stream_manifest):
-        try:
-            url: str = stream["url"]
-        except KeyError:
-            live_stream = (
-                vid_info.get("playabilityStatus", {}, )
-                .get("liveStreamability")
-            )
-            if live_stream:
-                raise LiveStreamError("UNKNOWN")
-
-        parsed_url = urlparse(url)
-
-        # Convert query params off url to dict
-        query_params = parse_qs(urlparse(url).query)
-        query_params = {
-            k: v[0] for k, v in query_params.items()
-        }
-
-        query_params['pot'] = po_token
-
-        url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'
-
-        stream_manifest[i]["url"] = url
-
-
-def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str) -> None:
+def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str) -> None:
     """Apply the decrypted signature to the stream manifest.
 
     :param dict stream_manifest:
         Details of the media streams available.
     :param str js:
         The contents of the base.js asset file.
-    :param str url_js:
-        Full base.js url
 
     """
-    cipher = Cipher(js=js, js_url=url_js)
-    discovered_n = dict()
+    cipher = Cipher(js=js)
+
     for i, stream in enumerate(stream_manifest):
         try:
             url: str = stream["url"]
         except KeyError:
             live_stream = (
-                vid_info.get("playabilityStatus", {}, )
+                vid_info.get("playabilityStatus", {},)
                 .get("liveStreamability")
             )
             if live_stream:
                 raise LiveStreamError("UNKNOWN")
-
-        parsed_url = urlparse(url)
-
-        # Convert query params off url to dict
-        query_params = parse_qs(urlparse(url).query)
-        query_params = {
-            k: v[0] for k, v in query_params.items()
-        }
-
         # 403 Forbidden fix.
         if "signature" in url or (
-                "s" not in stream and ("&sig=" in url or "&lsig=" in url)
+            "s" not in stream and ("&sig=" in url or "&lsig=" in url)
         ):
             # For certain videos, YouTube will just provide them pre-signed, in
             # which case there's no real magic to download them and we can skip
             # the whole signature descrambling entirely.
             logger.debug("signature found, skip decipher")
+            continue
 
-        else:
-            signature = cipher.get_signature(ciphered_signature=stream["s"])
+        signature = cipher.get_signature(ciphered_signature=stream["s"])
 
-            logger.debug(
-                "finished descrambling signature for itag=%s", stream["itag"]
-            )
+        logger.debug(
+            "finished descrambling signature for itag=%s", stream["itag"]
+        )
+        parsed_url = urlparse(url)
 
-            query_params['sig'] = signature
+        # Convert query params off url to dict
+        query_params = parse_qs(urlparse(url).query)
+        query_params = {
+            k: v[0] for k,v in query_params.items()
+        }
+        query_params['sig'] = signature
+        if 'ratebypass' not in query_params.keys():
+            # Cipher n to get the updated value
 
-        if 'n' in query_params.keys():
-            # For WEB-based clients, YouTube sends an "n" parameter that throttles download speed.
-            # To decipher the value of "n", we must interpret the player's JavaScript.
-
-            initial_n = query_params['n']
-            logger.debug(f'Parameter n is: {initial_n}')
-
-            # Check if any previous stream decrypted the parameter
-            if initial_n not in discovered_n:
-                discovered_n[initial_n] = cipher.get_throttling(initial_n)
-            else:
-                logger.debug('Parameter n found skipping decryption')
-
-            new_n = discovered_n[initial_n]
+            initial_n = list(query_params['n'])
+            new_n = cipher.calculate_n(initial_n)
             query_params['n'] = new_n
-            logger.debug(f'Parameter n deciphered: {new_n}')
 
         url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'  # noqa:E501
 
+        # 403 forbidden fix
         stream_manifest[i]["url"] = url
 
 
-def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
+def apply_descrambler(stream_data: Dict) -> None:
     """Apply various in-place transforms to YouTube's media stream data.
 
     Creates a ``list`` of dictionaries by string splitting on commas, then
@@ -539,7 +476,7 @@ def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
         return None
 
     # Merge formats and adaptiveFormats into a single list
-    formats: list[Dict] = []
+    formats = []
     if 'formats' in stream_data.keys():
         formats.extend(stream_data['formats'])
     if 'adaptiveFormats' in stream_data.keys():
@@ -547,17 +484,18 @@ def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
 
     # Extract url and s from signatureCiphers as necessary
     for data in formats:
-        if 'url' not in data and 'signatureCipher' in data:
-            cipher_url = parse_qs(data['signatureCipher'])
-            data['url'] = cipher_url['url'][0]
-            data['s'] = cipher_url['s'][0]
+        if 'url' not in data:
+            if 'signatureCipher' in data:
+                cipher_url = parse_qs(data['signatureCipher'])
+                data['url'] = cipher_url['url'][0]
+                data['s'] = cipher_url['s'][0]
         data['is_otf'] = data.get('type') == 'FORMAT_STREAM_TYPE_OTF'
 
     logger.debug("applying descrambler")
     return formats
 
 
-def initial_data(watch_html: str) -> dict:
+def initial_data(watch_html: str) -> str:
     """Extract the ytInitialData json from the watch_html page.
 
     This mostly contains metadata necessary for rendering the page on-load,

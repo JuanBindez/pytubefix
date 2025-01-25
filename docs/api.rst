@@ -3,7 +3,7 @@
 API
 ===
 
-.. module:: pytubefix
+.. module:: pytube
 
 
 YouTube Object
@@ -13,114 +13,83 @@ YouTube Object
    :members:
    :inherited-members:
 
-
-KeyMomentsThumbnail Object
---------------------------
-
-.. autoclass:: pytubefix.KeyMomentsThumbnail
-   :members:
-   :inherited-members:
-
-KeyMoments Object
------------------
-
-.. autoclass:: pytubefix.KeyMoments
-   :members:
-   :inherited-members:
-
-
 Playlist Object
 ---------------
 
-.. autoclass:: pytubefix.contrib.playlist.Playlist
+.. autoclass:: pytube.contrib.playlist.Playlist
    :members:
    :inherited-members:
 
 Channel Object
 --------------
 
-.. autoclass:: pytubefix.contrib.channel.Channel
+.. autoclass:: pytube.contrib.channel.Channel
    :members:
    :inherited-members:
 
 Stream Object
 -------------
 
-.. autoclass:: pytubefix.Stream
+.. autoclass:: pytube.Stream
    :members:
    :inherited-members:
 
 StreamQuery Object
 ------------------
 
-.. autoclass:: pytubefix.query.StreamQuery
+.. autoclass:: pytube.query.StreamQuery
    :members:
    :inherited-members:
 
 Caption Object
 --------------
 
-.. autoclass:: pytubefix.Caption
+.. autoclass:: pytube.Caption
    :members:
    :inherited-members:
 
 CaptionQuery Object
 -------------------
 
-.. autoclass:: pytubefix.query.CaptionQuery
+.. autoclass:: pytube.query.CaptionQuery
    :members:
    :inherited-members:
 
 Search Object
 -------------
 
-.. autoclass:: pytubefix.contrib.search.Search
-   :members:
-   :inherited-members:
-
-ChapterThumbnail Object
--------------
-
-.. autoclass:: pytubefix.chapters.ChapterThumbnail
-   :members:
-   :inherited-members:
-
-Chapter Object
--------------
-
-.. autoclass:: pytubefix.chapters.Chapter
+.. autoclass:: pytube.contrib.search.Search
    :members:
    :inherited-members:
 
 Extract
 -------
 
-.. automodule:: pytubefix.extract
+.. automodule:: pytube.extract
     :members:
 
 Cipher
 ------
 
-.. automodule:: pytubefix.cipher
+.. automodule:: pytube.cipher
     :members:
 
 Exceptions
 ----------
 
-.. automodule:: pytubefix.exceptions
+.. automodule:: pytube.exceptions
     :members:
 
 
 Helpers
 -------
 
-.. automodule:: pytubefix.helpers
+.. automodule:: pytube.helpers
     :members:
 
 
 Request
 -------
 
-.. automodule:: pytubefix.request
+.. automodule:: pytube.request
     :members:
-

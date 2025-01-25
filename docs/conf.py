@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""pytubefix documentation build configuration file."""
+"""pytube documentation build configuration file."""
 import os
 import sys
 
@@ -24,7 +24,6 @@ autosummary_generate = True
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
-
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
@@ -35,8 +34,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "pytubefix"
-author = "Juan Bindez"
+project = "pytube"
+author = "Ronnie Ghose, Taylor Fox Dahlin, Nick Ficano"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -52,7 +51,7 @@ release = __version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = "en"
+language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -118,9 +117,9 @@ latex_elements = {}
 latex_documents = [
     (
         master_doc,
-        "pytubefix.tex",
-        "pytubefix Documentation",
-        "Juan Bindez",
+        "pytube.tex",
+        "pytube Documentation",
+        "Nick Ficano",
         "manual",
     ),
 ]
@@ -130,7 +129,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "pytubefix", "pytubefix Documentation", [author], 1,),
+    (master_doc, "pytube", "pytube Documentation", [author], 1,),
 ]
 
 # -- Options for Texinfo output -------------------------------------------
@@ -141,10 +140,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "pytubefix",
-        "pytubefix Documentation",
+        "pytube",
+        "pytube Documentation",
         author,
-        "pytubefix",
+        "pytube",
         "One line description of project.",
         "Miscellaneous",
     ),
