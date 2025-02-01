@@ -141,7 +141,7 @@ class YouTube:
         # oauth can only be used by the TV and TV_EMBED client.
         self.client = 'TV' if use_oauth else self.client
 
-        self.fallback_clients = ['MWEB', 'IOS', 'TV']
+        self.fallback_clients = ['TV', 'IOS']
 
         self._signature_timestamp: dict = {}
         self._visitor_data = None
@@ -233,16 +233,21 @@ class YouTube:
         if self._visitor_data:
             return self._visitor_data
 
-        try:
-            logger.debug("Looking for visitorData in initial_data")
-            self._visitor_data = extract.visitor_data(str(self.initial_data['responseContext']))
-        except (KeyError, pytubefix.exceptions.RegexMatchError):
-            logger.debug("Unable to obtain visitorData from initial_data. Trying to request from the WEB client")
-            innertube_response = InnerTube('WEB').player(self.video_id)
+        if InnerTube(self.client).require_po_token:
             try:
-                self._visitor_data = innertube_response['responseContext']['visitorData']
-            except KeyError:
-                self._visitor_data = innertube_response['responseContext']['serviceTrackingParams'][0]['params'][6]['value']
+                logger.debug("Looking for visitorData in initial_data")
+                self._visitor_data = extract.visitor_data(str(self.initial_data['responseContext']))
+                logger.debug('VisitorData obtained successfully')
+                return self._visitor_data
+            except (KeyError, pytubefix.exceptions.RegexMatchError):
+                logger.debug("Unable to obtain visitorData from initial_data. Trying to request from the WEB client")
+
+        logger.debug("Looking for visitorData in InnerTube API")
+        innertube_response = InnerTube('WEB').player(self.video_id)
+        try:
+            self._visitor_data = innertube_response['responseContext']['visitorData']
+        except KeyError:
+            self._visitor_data = innertube_response['responseContext']['serviceTrackingParams'][0]['params'][6]['value']
         logger.debug('VisitorData obtained successfully')
 
         return self._visitor_data
@@ -471,6 +476,9 @@ class YouTube:
                 logger.debug(f"The {self.client} client requires poToken to obtain functional streams")
                 logger.debug("Automatically generating poToken")
                 innertube.insert_po_token(visitor_data=self.visitor_data, po_token=self.pot)
+            elif not self.use_po_token:
+                # from 01/22/2025 all clients must send the visitorData in the API request
+                innertube.insert_visitor_data(visitor_data=self.visitor_data)
 
             response = innertube.player(self.video_id)
 
@@ -536,7 +544,7 @@ class YouTube:
         Originally the WEB client was used, but with the implementation of PoToken we switched to MWEB.
         """
 
-        self.client = 'MWEB'
+        self.client = 'TV'
         innertube = InnerTube(
             client=self.client,
             use_oauth=self.use_oauth,
