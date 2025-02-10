@@ -845,7 +845,7 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get("videoDetails", {}).get("viewCount"))
+        return int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
 
     @property
     def author(self) -> str:
