@@ -23,7 +23,7 @@ linux_translation = str.maketrans({
         })
 
 macos_translation = str.maketrans({
-            ':': '',
+            '/': '',
         })
 
 bsd_translation = str.maketrans({
