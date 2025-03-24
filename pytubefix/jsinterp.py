@@ -15,6 +15,8 @@ import re
 import datetime
 import email.utils
 import calendar
+from functools import update_wrapper
+from contextlib import suppress as compat_contextlib_suppress
 
 
 def js_to_json(code, vars={}, *, strict=False):
@@ -357,6 +359,48 @@ def _js_ternary(cndn, if_true=True, if_false=False):
             return if_false
     return if_true
 
+_NaN = float('nan')
+_Infinity = float('inf')
+
+def _js_typeof(expr):
+    with compat_contextlib_suppress(TypeError, KeyError):
+        return {
+            JS_Undefined: 'undefined',
+            _NaN: 'number',
+            _Infinity: 'number',
+            True: 'boolean',
+            False: 'boolean',
+            None: 'object',
+        }[expr]
+    for t, n in (
+        (compat_basestring, 'string'),
+        (compat_numeric_types, 'number'),
+    ):
+        if isinstance(expr, t):
+            return n
+    if callable(expr):
+        return 'function'
+    # TODO: Symbol, BigInt
+    return 'object'
+
+def wraps_op(op):
+
+    def update_and_rename_wrapper(w):
+        f = update_wrapper(w, op)
+        # fn names are str in both Py 2/3
+        f.__name__ = str('JS_') + f.__name__
+        return f
+
+    return update_and_rename_wrapper
+
+def _js_unary_op(op):
+
+    @wraps_op(op)
+    def wrapped(_, a):
+        return op(a)
+
+    return wrapped
+
 
 # Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 _OPERATORS = {  # None => Defined in JSInterpreter._operator
@@ -391,7 +435,14 @@ _OPERATORS = {  # None => Defined in JSInterpreter._operator
     '**': _js_exp,
 }
 
+_UNARY_OPERATORS_X = {
+    'void': _js_unary_op(lambda _: JS_Undefined),
+    'typeof': _js_unary_op(_js_typeof),
+}
+
 _COMP_OPERATORS = {'===', '!==', '==', '!=', '<=', '>=', '<', '>'}
+
+_ALL_OPERATORS = {**_OPERATORS,  **_UNARY_OPERATORS_X}
 
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
@@ -565,6 +616,23 @@ class JSInterpreter:
         except TypeError:
             return self._named_object(namespace, obj)
 
+    def handle_operators(self, expr, local_vars, allow_recursion):
+        for op in _ALL_OPERATORS:
+            separated = list(self._separate(expr, op))
+            right_expr = separated.pop()
+            while True:
+                if op in '?<>*-' and len(separated) > 1 and not separated[-1].strip():
+                    separated.pop()
+                elif not (separated and op == '?' and right_expr.startswith('.')):
+                    break
+                right_expr = f'{op}{right_expr}'
+                if op != '-':
+                    right_expr = f'{separated.pop()}{op}{right_expr}'
+            if not separated:
+                continue
+            left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
+            return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), True
+
     # @Debugger.wrap_interpreter
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
@@ -619,6 +687,16 @@ class JSInterpreter:
             left = self.interpret_expression(expr[5:], local_vars, allow_recursion)
             return None, should_return
 
+        for op in _UNARY_OPERATORS_X:
+            if not expr.startswith(op):
+                continue
+            operand = expr[len(op):]
+            if not operand or operand[0] != ' ':
+                continue
+            op_result = self.handle_operators(expr, local_vars, allow_recursion)
+            if op_result:
+                return op_result[0], should_return
+
         if expr.startswith('{'):
             inner, outer = self._separate_at_paren(expr)
             # try for object expression (Map)
@@ -662,8 +740,11 @@ class JSInterpreter:
         md = m.groupdict() if m else {}
         if md.get('if'):
             cndn, expr = self._separate_at_paren(expr[m.end() - 1:])
-            if_expr, expr = self._separate_at_paren(expr.lstrip())
-            # TODO: "else if" is not handled
+            if expr.startswith('{'):
+                if_expr, expr = self._separate_at_paren(expr)
+            else:
+                # may lose ... else ... because of ll.368-374
+                if_expr, expr = self._separate_at_paren(' %s;' % (expr,), delim=';')
             else_expr = None
             m = re.match(r'else\s*{', expr)
             if m:
@@ -838,31 +919,25 @@ class JSInterpreter:
             return float('NaN'), should_return
 
         elif m and m.group('return'):
-            return local_vars.get(m.group('name'), JS_Undefined), should_return
+            try:
+                return local_vars[m.group('name')], should_return
+            except KeyError as e:
+                return self.extract_global_var(e.args[0]), should_return
 
         with contextlib.suppress(ValueError):
             return json.loads(js_to_json(expr, strict=True)), should_return
 
         if m and m.group('indexing'):
-            val = local_vars[m.group('in')]
+            try:
+                val = local_vars[m.group('in')]
+            except KeyError as e:
+                val = self.extract_global_obj(e.args[0])
             idx = self.interpret_expression(m.group('idx'), local_vars, allow_recursion)
             return self._index(val, idx), should_return
 
-        for op in _OPERATORS:
-            separated = list(self._separate(expr, op))
-            right_expr = separated.pop()
-            while True:
-                if op in '?<>*-' and len(separated) > 1 and not separated[-1].strip():
-                    separated.pop()
-                elif not (separated and op == '?' and right_expr.startswith('.')):
-                    break
-                right_expr = f'{op}{right_expr}'
-                if op != '-':
-                    right_expr = f'{separated.pop()}{op}{right_expr}'
-            if not separated:
-                continue
-            left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
-            return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), should_return
+        op_result = self.handle_operators(expr, local_vars, allow_recursion)
+        if op_result:
+            return op_result[0], should_return
 
         if m and m.group('attribute'):
             variable, member, nullish = m.group('var', 'member', 'nullish')
@@ -1030,6 +1105,22 @@ class JSInterpreter:
         if should_return:
             raise self.Exception('Cannot return from an expression', expr)
         return ret
+
+    def extract_global_obj(self, var):
+        global_var = re.search(
+            fr'''var\s?{re.escape(var)}=[\"\'](?P<var>.*?)\.split\(\"(?P<split>.*?)\"\)''',
+            self.code
+        )
+        code = global_var.group("var").split(global_var.group("split"))
+        return code
+
+    def extract_global_var(self, var):
+        global_var = re.search(
+            fr'''var\s?{re.escape(var)}=(?P<val>.*?);''',
+            self.code
+        )
+        code = global_var.group('val')
+        return code
 
     def extract_object(self, objname):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
