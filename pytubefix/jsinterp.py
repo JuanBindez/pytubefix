@@ -480,8 +480,30 @@ class LocalNameSpace(collections.ChainMap):
     def __delitem__(self, key):
         raise NotImplementedError('Deleting is not supported')
 
+def _extract_player_js_global_var(jscode):
+    global_var = re.search(
+        r'''(?x)
+            (?P<q1>["\'])use\s+strict(?P=q1);\s*
+            (?P<code>
+                var\s+(?P<name>[a-zA-Z0-9_$]+)\s*=\s*
+                (?P<value>
+                    (?P<q2>["\'])(?:(?!(?P=q2)).|\\.)+(?P=q2)
+                    \.split\((?P<q3>["\'])(?:(?!(?P=q3)).)+(?P=q3)\)
+                    |\[\s*(?:(?P<q4>["\'])(?:(?!(?P=q4)).|\\.)*(?P=q4)\s*,?\s*)+\]
+                )
+            )[;,]
+        ''', jscode)
 
-def _fixup_n_function_code(argnames, code):
+    if global_var:
+        return global_var.group('code')
+    else:
+        return None
+
+def _fixup_n_function_code(argnames, code, full_code):
+    global_var = _extract_player_js_global_var(full_code)
+    if global_var:
+        code = global_var + '; ' + code
+
     return argnames, re.sub(
         rf';\s*if\s*\(\s*typeof\s+[a-zA-Z0-9_$]+\s*===?\s*(["\'])undefined\1\s*\)\s*return\s+{argnames[0]};',
         ';', code)
@@ -928,10 +950,7 @@ class JSInterpreter:
             return json.loads(js_to_json(expr, strict=True)), should_return
 
         if m and m.group('indexing'):
-            try:
-                val = local_vars[m.group('in')]
-            except KeyError as e:
-                val = self.extract_global_obj(e.args[0])
+            val = local_vars[m.group('in')]
             idx = self.interpret_expression(m.group('idx'), local_vars, allow_recursion)
             return self._index(val, idx), should_return
 
@@ -1106,14 +1125,6 @@ class JSInterpreter:
             raise self.Exception('Cannot return from an expression', expr)
         return ret
 
-    def extract_global_obj(self, var):
-        global_var = re.search(
-            fr'''var\s?{re.escape(var)}=[\"\'](?P<var>.*?)\.split\(\"(?P<split>.*?)\"\)''',
-            self.code
-        )
-        code = global_var.group("var").split(global_var.group("split"))
-        return code
-
     def extract_global_var(self, var):
         global_var = re.search(
             fr'''var\s?{re.escape(var)}=(?P<val>.*?);''',
@@ -1166,7 +1177,7 @@ class JSInterpreter:
 
     def extract_function(self, funcname):
         return function_with_repr(
-            self.extract_function_from_code(*_fixup_n_function_code(*self.extract_function_code(funcname))),
+            self.extract_function_from_code(*_fixup_n_function_code(*self.extract_function_code(funcname), self.code)),
             f'F<{funcname}>')
 
     def extract_function_from_code(self, argnames, code, *global_stack):
