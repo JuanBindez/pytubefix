@@ -7,7 +7,7 @@ MINOR=12
 PATCH=2
 EXTRAVERSION=""
 NOTES="(#438 #442)"
-BRANCH="dev"
+BRANCH="main"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
