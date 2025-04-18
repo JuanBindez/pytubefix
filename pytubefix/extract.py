@@ -323,6 +323,7 @@ def get_ytplayer_js(html: str) -> Any:
         if function_match:
             logger.debug("finished regex search, matched: %s", pattern)
             yt_player_js = function_match.group(1)
+            logger.debug("player JS: " + yt_player_js)
             return yt_player_js
 
     raise RegexMatchError(

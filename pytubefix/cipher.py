@@ -13,14 +13,17 @@ functions" (2) sends them to be interpreted by jsinterp.py
 import logging
 import re
 
-from pytubefix.exceptions import RegexMatchError
-from pytubefix.jsinterp import JSInterpreter
+from pytubefix.exceptions import RegexMatchError, InterpretationError
+from pytubefix.jsinterp import JSInterpreter, extract_player_js_global_var
 
 logger = logging.getLogger(__name__)
 
 
 class Cipher:
     def __init__(self, js: str, js_url: str):
+
+        self.js_url = js_url
+
         self.signature_function_name = get_initial_function_name(js, js_url)
         self.throttling_function_name = get_throttling_function_name(js, js_url)
 
@@ -36,7 +39,10 @@ class Cipher:
         :returns:
             Returns the transformed value "n".
         """
-        return self.js_interpreter.call_function(self.throttling_function_name, n)
+        try:
+            return self.js_interpreter.call_function(self.throttling_function_name, n)
+        except:
+            raise InterpretationError(js_url=self.js_url)
 
     def get_signature(self, ciphered_signature: str) -> str:
         """interprets the function that signs the streams.
@@ -47,7 +53,10 @@ class Cipher:
         :returns:
            Returns the correct stream signature.
         """
-        return self.js_interpreter.call_function(self.signature_function_name, ciphered_signature)
+        try:
+            return self.js_interpreter.call_function(self.signature_function_name, ciphered_signature)
+        except:
+            raise InterpretationError(js_url=self.js_url)
 
 
 def get_initial_function_name(js: str, js_url: str) -> str:
@@ -76,12 +85,12 @@ def get_initial_function_name(js: str, js_url: str) -> str:
         r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('
     ]
-    logger.debug("finding initial function name")
+    logger.debug("looking for signature cipher name")
     for pattern in function_patterns:
         regex = re.compile(pattern)
         function_match = regex.search(js)
         if function_match:
-            sig = function_match.group(1)
+            sig = function_match.group('sig')
             logger.debug("finished regex search, matched: %s", pattern)
             logger.debug(f'Signature cipher function name: {sig}')
             return sig
@@ -102,39 +111,37 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
     :returns:
         The name of the function used to compute the throttling parameter.
     """
-    function_patterns = [
-        # https://github.com/ytdl-org/youtube-dl/issues/29326#issuecomment-865985377
-        # https://github.com/yt-dlp/yt-dlp/commit/48416bc4a8f1d5ff07d5977659cb8ece7640dcd8
-        # var Bpa = [iha];
-        # ...
-        # a.C && (b = a.get("n")) && (b = Bpa[0](b), a.set("n", b),
-        # Bpa.length || iha("")) }};
-        # In the above case, `iha` is the relevant function name
-        # r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
-        # r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
 
-        # New pattern added on July 9, 2024
-        # https://github.com/yt-dlp/yt-dlp/pull/10390/files
-        # In this example we can find the name of the function at index "0" of "IRa"
-        # a.D && (b = String.fromCharCode(110), c = a.get(b)) && (c = IRa[0](c), a.set(b,c), IRa.length || Ima(""))
-        # r'(?:\.get\(\"n\"\)\)&&\(b=|b=String\.fromCharCode\(\d+\),c=a\.get\(b\)\)&&\(c=)([a-zA-Z0-9$]+)(?:\[('r'\d+)\])?\([a-zA-Z0-9]\)'
+    logger.debug("looking for nsig name")
+    try:
+        # Extracts the function name based on the global array
+        global_obj, varname, code = extract_player_js_global_var(js)
+        if global_obj and varname and code:
+            logger.debug(f"Global Obj name is: {varname}")
+            global_obj = JSInterpreter(js).interpret_expression(code, {}, 100)
+            logger.debug("Successfully interpreted global object")
+            for k, v in enumerate(global_obj):
+                if v.endswith('_w8_'):
+                    logger.debug(f"_w8_ found in index {k}")
+                    pattern = r'''(?xs)
+                            [;\n](?:
+                                (?P<f>function\s+)|
+                                (?:var\s+)?
+                            )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
+                            \((?P<argname>[a-zA-Z0-9_$]+)\)\s*\{
+                            (?:(?!\}[;\n]).)+
+                            \}\s*catch\(\s*[a-zA-Z0-9_$]+\s*\)\s*
+                            \{\s*return\s+%s\[%d\]\s*\+\s*(?P=argname)\s*\}\s*return\s+[^}]+\}[;\n]
+                        '''  % (re.escape(varname), k)
+                    func_name = re.search(pattern, js)
+                    if func_name:
+                        n_func = func_name.group("funcname")
+                        logger.debug(f"Nfunc name is: {n_func}")
+                        return n_func
+    except:
+        pass
 
-        # New pattern added on July 23, 2024
-        # https://github.com/yt-dlp/yt-dlp/pull/10542
-        # a.D && (b = "nn"[+a.D], c = a.get(b)) && (c = rDa[0](c), a.set(b,c), rDa.length || rma(""))
-        # r'(?:\.get\("n"\)\)&&\(b=|(?:b=String\.fromCharCode\(110\)|([a-zA-Z0-9$.]+)&&\(b="nn"\[\+\1\]),c=a\.get\(b\)\)&&\(c=)(?P<nfunc>[a-zA-Z0-9$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z0-9]\)'
-
-        # New pattern used in player "20dfca59" on July 29, 2024
-        # a.D && (PL(a), b = a.j.n || null) && (b = oDa[0](b), a.set("n", b), oDa.length || rma(""))
-        # Regex logic changed based on old players, n_func can easily be found after ".length ||",
-        # in this case n_func is "rma"
-        # Before this regex, we got the function inside the idx 0 of "oDa"
-        # r'[abc]=(?P<func>[a-zA-Z0-9$]+)\[(?P<idx>\d+)\]\([abc]\),a\.set\([a-zA-Z0-9$\",]+\),'
-        # r'[a-zA-Z0-9$]+\.length\|\|(?P<n_func>[a-zA-Z0-9$]+)\(\"\"\)'
-
-        # New pattern used in player "2f238d39" on October 10, 2024
-        # a.D && (b = "nn" [+a.D], zM(a), c = a.j[b] || null) && (c = XDa[0](c), a.set(b, c))
-        r'''(?x)
+    pattern = r'''(?x)
             (?:
                 \.get\("n"\)\)&&\(b=|
                 (?:
@@ -150,34 +157,34 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
                 \b(?P<var>[a-zA-Z0-9_$]+)=
             )(?P<nfunc>[a-zA-Z0-9_$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z]\)
             (?(var),[a-zA-Z0-9_$]+\.set\((?:"n+"|[a-zA-Z0-9_$]+)\,(?P=var)\))'''
-    ]
+
     logger.debug('Finding throttling function name')
-    for pattern in function_patterns:
-        regex = re.compile(pattern)
-        function_match = regex.search(js)
-        if function_match:
-            logger.debug("finished regex search, matched: %s", pattern)
 
-            func = function_match.group('nfunc')
-            idx = function_match.group('idx')
+    regex = re.compile(pattern)
+    function_match = regex.search(js)
+    if function_match:
+        logger.debug("finished regex search, matched: %s", pattern)
 
-            logger.debug(f'func is: {func}')
-            logger.debug(f'idx is: {idx}')
+        func = function_match.group('nfunc')
+        idx = function_match.group('idx')
 
-            logger.debug('Checking throttling function name')
-            if idx:
-                n_func_check_pattern = fr'var {re.escape(func)}\s*=\s*\[(.+?)];'
-                n_func_found = re.search(n_func_check_pattern, js)
+        logger.debug(f'func is: {func}')
+        logger.debug(f'idx is: {idx}')
 
-                if n_func_found:
-                    throttling_function = n_func_found.group(1)
-                    logger.debug(f'Throttling function name is: {throttling_function}')
-                    return throttling_function
+        logger.debug('Checking throttling function name')
+        if idx:
+            n_func_check_pattern = fr'var {re.escape(func)}\s*=\s*\[(.+?)];'
+            n_func_found = re.search(n_func_check_pattern, js)
 
-                raise RegexMatchError(
-                    caller="get_throttling_function_name", pattern=f"{n_func_check_pattern} in {js_url}"
-                )
+            if n_func_found:
+                throttling_function = n_func_found.group(1)
+                logger.debug(f'Throttling function name is: {throttling_function}')
+                return throttling_function
+
+            raise RegexMatchError(
+                caller="get_throttling_function_name", pattern=f"{n_func_check_pattern} in {js_url}"
+            )
 
     raise RegexMatchError(
-        caller="get_throttling_function_name", pattern=f"multiple in {js_url}"
+        caller="get_throttling_function_name", pattern=f"{pattern} in {js_url}"
     )
