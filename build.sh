@@ -3,11 +3,11 @@
 set -e
 
 VERSION=8
-MINOR=12
-PATCH=3
-EXTRAVERSION=""
-NOTES="(#452)"
-BRANCH="main"
+MINOR=13
+PATCH=
+EXTRAVERSION="-rc1"
+NOTES="(#465 #467)"
+BRANCH="dev"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
