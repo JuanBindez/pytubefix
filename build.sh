@@ -4,10 +4,10 @@ set -e
 
 VERSION=8
 MINOR=13
-PATCH=
-EXTRAVERSION="-rc1"
+PATCH=1
+EXTRAVERSION=""
 NOTES="(#465 #467)"
-BRANCH="dev"
+BRANCH="main"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
