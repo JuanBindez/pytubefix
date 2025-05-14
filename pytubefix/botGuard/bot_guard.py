@@ -1,12 +1,16 @@
 import os
 import subprocess
 import sys
+import shutil
 
 PLATFORM = sys.platform
 
 NODE = 'node' if PLATFORM == 'linux' else 'node.exe'
 
 NODE_PATH = os.path.dirname(os.path.realpath(__file__)) + f'/binaries/{NODE}'
+
+if not os.path.isfile(NODE_PATH):
+    NODE_PATH = shutil.which(NODE)
 
 if not os.path.isfile(NODE_PATH):
     NODE_PATH = 'node'
