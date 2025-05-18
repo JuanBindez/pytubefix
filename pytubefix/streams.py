@@ -11,7 +11,6 @@ import logging
 import os
 from math import ceil
 import sys
-import warnings
 
 from datetime import datetime
 from typing import BinaryIO, Dict, Optional, Tuple, Iterator, Callable
@@ -20,10 +19,11 @@ from urllib.parse import parse_qs
 from pathlib import Path
 
 from pytubefix import extract, request
-from pytubefix.helpers import safe_filename, target_directory
+from pytubefix.helpers import target_directory
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
 from pytubefix.file_system import file_system_verify
+from pytubefix.sabr.core.server_abr_stream import ServerAbrStream
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Stream:
     """Container for stream manifest data."""
 
     def __init__(
-        self, stream: Dict, monostate: Monostate
+        self, stream: Dict, monostate: Monostate, po_token: str, video_playback_ustreamer_config: str
     ):
         """Construct a :class:`Stream <Stream>`.
 
@@ -50,6 +50,8 @@ class Stream:
         self.itag = int(
             stream["itag"]
         )  # stream format id (youtube nomenclature)
+
+        self.xtags = stream["xtags"] if "xtags" in stream else None
 
         # set type and codec info
 
@@ -95,6 +97,11 @@ class Stream:
         self.is_3d = itag_profile["is_3d"]
         self.is_hdr = itag_profile["is_hdr"]
         self.is_live = itag_profile["is_live"]
+        self._is_sabr = stream.get('is_sabr', False)
+        self.durationMs = stream['approxDurationMs']
+        self.last_Modified = stream['lastModified']
+        self.po_token = po_token
+        self.video_playback_ustreamer_config = video_playback_ustreamer_config
 
         self.includes_multiple_audio_tracks: bool = 'audioTrack' in stream
         if self.includes_multiple_audio_tracks:
@@ -127,6 +134,18 @@ class Stream:
         :rtype: bool
         """
         return not self.is_adaptive
+
+    @property
+    def is_sabr(self) -> bool:
+        """Whether the stream is SABR.
+
+        :rtype: bool
+        """
+        return self._is_sabr
+
+    @is_sabr.setter
+    def is_sabr(self, value):
+        self._is_sabr = value
 
     @property
     def includes_audio_track(self) -> bool:
@@ -367,40 +386,52 @@ class Stream:
         bytes_remaining = self.filesize
         logger.debug(f'downloading ({self.filesize} total bytes) file to {file_path}')
 
+        def write_chunk(chunk_, bytes_remaining_):
+            # send to the on_progress callback.
+            self.on_progress(chunk_, fh, bytes_remaining_)
+
+
         with open(file_path, "wb") as fh:
             try:
-                for chunk in request.stream(
-                    self.url,
-                    timeout=timeout,
-                    max_retries=max_retries
-                ):
-                    if interrupt_checker is not None and interrupt_checker() == True:
-                        logger.debug('interrupt_checker returned True, causing to force stop the downloading')
-                        return
-                    # reduce the (bytes) remainder by the length of the chunk.
-                    bytes_remaining -= len(chunk)
-                    # send to the on_progress callback.
-                    self.on_progress(chunk, fh, bytes_remaining)
+                if not self.is_sabr:
+                    for chunk in request.stream(
+                        self.url,
+                        timeout=timeout,
+                        max_retries=max_retries
+                    ):
+                        if interrupt_checker is not None and interrupt_checker() == True:
+                            logger.debug('interrupt_checker returned True, causing to force stop the downloading')
+                            return
+                        # reduce the (bytes) remainder by the length of the chunk.
+                        bytes_remaining -= len(chunk)
+                        write_chunk(chunk, bytes_remaining)
+                else:
+                    logger.debug('This stream is SABR. Starting ServerAbrStream')
+                    ServerAbrStream(stream=self, write_chunk=write_chunk).start()
+
             except HTTPError as e:
                 if e.code != 404:
                     raise
             except StopIteration:
-                # Some adaptive streams need to be requested with sequence numbers
-                for chunk in request.seq_stream(
-                    self.url,
-                    timeout=timeout,
-                    max_retries=max_retries
-                ):
-                    if interrupt_checker is not None and interrupt_checker() == True:
-                        logger.debug('interrupt_checker returned True, causing to force stop the downloading')
-                        return
-                    # reduce the (bytes) remainder by the length of the chunk.
-                    bytes_remaining -= len(chunk)
-                    # send to the on_progress callback.
-                    self.on_progress(chunk, fh, bytes_remaining)
+                if not self.is_sabr:
+                    # Some adaptive streams need to be requested with sequence numbers
+                    for chunk in request.seq_stream(
+                        self.url,
+                        timeout=timeout,
+                        max_retries=max_retries
+                    ):
+                        if interrupt_checker is not None and interrupt_checker() == True:
+                            logger.debug('interrupt_checker returned True, causing to force stop the downloading')
+                            return
+                        # reduce the (bytes) remainder by the length of the chunk.
+                        bytes_remaining -= len(chunk)
+                        write_chunk(chunk, bytes_remaining)
+                else:
+                    logger.debug('This stream is SABR. Starting ServerAbrStream')
+                    ServerAbrStream(stream=self, write_chunk=write_chunk).start()
 
-        self.on_complete(file_path)
-        return file_path
+            self.on_complete(file_path)
+            return file_path
 
     def get_file_path(
         self,
@@ -511,7 +542,7 @@ class Stream:
                 parts.extend(['vcodec="{s.video_codec}"'])
         else:
             parts.extend(['abr="{s.abr}"', 'acodec="{s.audio_codec}"'])
-        parts.extend(['progressive="{s.is_progressive}"', 'type="{s.type}"'])
+        parts.extend(['progressive="{s.is_progressive}"', 'sabr="{s.is_sabr}"', 'type="{s.type}"'])
         return f"<Stream: {' '.join(parts).format(s=self)}>"
 
     def on_progress_for_chunks(self, chunk: bytes, bytes_remaining: int):

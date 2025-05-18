@@ -347,6 +347,8 @@ class YouTube:
             video = Stream(
                 stream=stream,
                 monostate=self.stream_monostate,
+                po_token=self.po_token,
+                video_playback_ustreamer_config=self.video_playback_ustreamer_config
             )
             self._fmt_streams.append(video)
 
@@ -448,6 +450,14 @@ class YouTube:
                 }
             }
         return self._signature_timestamp
+
+    @property
+    def video_playback_ustreamer_config(self):
+        return self.vid_info[
+            'playerConfig'][
+            'mediaCommonConfig'][
+            'mediaUstreamerRequestConfig'][
+            'videoPlaybackUstreamerConfig']
 
     @property
     def vid_info(self):
