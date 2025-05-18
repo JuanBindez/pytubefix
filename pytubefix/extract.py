@@ -552,6 +552,10 @@ def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
             cipher_url = parse_qs(data['signatureCipher'])
             data['url'] = cipher_url['url'][0]
             data['s'] = cipher_url['s'][0]
+            data['is_sabr'] = False
+        elif 'url' not in data and 'signatureCipher' not in data:
+            data['url'] = stream_data['serverAbrStreamingUrl']
+            data['is_sabr'] = True
         data['is_otf'] = data.get('type') == 'FORMAT_STREAM_TYPE_OTF'
 
     logger.debug("applying descrambler")
