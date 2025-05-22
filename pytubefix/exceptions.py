@@ -44,6 +44,15 @@ class RegexMatchError(ExtractError):
         self.pattern = pattern
 
 
+class InterpretationError(PytubeFixError):
+    def __init__(self, js_url: str):
+        self.js_url = js_url
+        super().__init__(self.error_string)
+
+    @property
+    def error_string(self):
+        return f'Error interpreting player js: {self.js_url}'
+
 ### Video Unavailable Errors ###
 # There are really 3 types of errors thrown
 # 1. VideoUnavailable - This is the base error type for all video errors. 
@@ -136,7 +145,7 @@ class BotDetection(VideoUnavailable):
     @property
     def error_string(self):
         return (
-            f'{self.video_id} This request was detected as a bot. Use `use_po_token=True` to view. '
+            f'{self.video_id} This request was detected as a bot. Use `use_po_token=True` or switch to WEB client to view. '
             f'See more details at https://github.com/JuanBindez/pytubefix/pull/209')
 
 
@@ -271,6 +280,21 @@ class AgeCheckRequiredAccountError(VideoUnavailable):
             f"{self.video_id} may be inappropriate for "
             f"some users. Sign in to your primary account to confirm your age.")
 
+
+class InnerTubeResponseError(VideoUnavailable):
+    def __init__(self, video_id: str, client: str):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        """
+        self.video_id = video_id
+        self.client = client
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return (
+            f"{self.video_id} : {self.client} client did not receive a response from YouTube")
 
 ## 3. Unknown Error Type, Important to Developer ##
 

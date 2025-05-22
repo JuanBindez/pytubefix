@@ -15,6 +15,8 @@ import re
 import datetime
 import email.utils
 import calendar
+from functools import update_wrapper
+from contextlib import suppress as compat_contextlib_suppress
 
 
 def js_to_json(code, vars={}, *, strict=False):
@@ -357,6 +359,48 @@ def _js_ternary(cndn, if_true=True, if_false=False):
             return if_false
     return if_true
 
+_NaN = float('nan')
+_Infinity = float('inf')
+
+def _js_typeof(expr):
+    with compat_contextlib_suppress(TypeError, KeyError):
+        return {
+            JS_Undefined: 'undefined',
+            _NaN: 'number',
+            _Infinity: 'number',
+            True: 'boolean',
+            False: 'boolean',
+            None: 'object',
+        }[expr]
+    for t, n in (
+        (compat_basestring, 'string'),
+        (compat_numeric_types, 'number'),
+    ):
+        if isinstance(expr, t):
+            return n
+    if callable(expr):
+        return 'function'
+    # TODO: Symbol, BigInt
+    return 'object'
+
+def wraps_op(op):
+
+    def update_and_rename_wrapper(w):
+        f = update_wrapper(w, op)
+        # fn names are str in both Py 2/3
+        f.__name__ = str('JS_') + f.__name__
+        return f
+
+    return update_and_rename_wrapper
+
+def _js_unary_op(op):
+
+    @wraps_op(op)
+    def wrapped(_, a):
+        return op(a)
+
+    return wrapped
+
 
 # Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 _OPERATORS = {  # None => Defined in JSInterpreter._operator
@@ -391,11 +435,19 @@ _OPERATORS = {  # None => Defined in JSInterpreter._operator
     '**': _js_exp,
 }
 
+_UNARY_OPERATORS_X = {
+    'void': _js_unary_op(lambda _: JS_Undefined),
+    'typeof': _js_unary_op(_js_typeof),
+}
+
 _COMP_OPERATORS = {'===', '!==', '==', '!=', '<=', '>=', '<', '>'}
+
+_ALL_OPERATORS = {**_OPERATORS,  **_UNARY_OPERATORS_X}
 
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
 _QUOTES = '\'"/'
+_NESTED_BRACKETS = r'[^[\]]+(?:\[[^[\]]+(?:\[[^\]]+\])?\])?'
 
 
 class JS_Undefined:
@@ -429,8 +481,30 @@ class LocalNameSpace(collections.ChainMap):
     def __delitem__(self, key):
         raise NotImplementedError('Deleting is not supported')
 
+def extract_player_js_global_var(jscode):
+    global_var = re.search(
+        r'''(?x)
+            (?P<q1>["\'])use\s+strict(?P=q1);\s*
+            (?P<code>
+                var\s+(?P<name>[a-zA-Z0-9_$]+)\s*=\s*
+                (?P<value>
+                    (?P<q2>["\'])(?:(?!(?P=q2)).|\\.)+(?P=q2)
+                    \.split\((?P<q3>["\'])(?:(?!(?P=q3)).)+(?P=q3)\)
+                    |\[\s*(?:(?P<q4>["\'])(?:(?!(?P=q4)).|\\.)*(?P=q4)\s*,?\s*)+\]
+                )
+            )[;,]
+        ''', jscode)
 
-def _fixup_n_function_code(argnames, code):
+    if global_var:
+        return global_var.group('code'), global_var.group("name"), global_var.group("value")
+    else:
+        return None, None, None
+
+def _fixup_n_function_code(argnames, code, full_code):
+    global_var, _, _ = extract_player_js_global_var(full_code)
+    if global_var:
+        code = global_var + '; ' + code
+
     return argnames, re.sub(
         rf';\s*if\s*\(\s*typeof\s+[a-zA-Z0-9_$]+\s*===?\s*(["\'])undefined\1\s*\)\s*return\s+{argnames[0]};',
         ';', code)
@@ -565,6 +639,23 @@ class JSInterpreter:
         except TypeError:
             return self._named_object(namespace, obj)
 
+    def handle_operators(self, expr, local_vars, allow_recursion):
+        for op in _ALL_OPERATORS:
+            separated = list(self._separate(expr, op))
+            right_expr = separated.pop()
+            while True:
+                if op in '?<>*-' and len(separated) > 1 and not separated[-1].strip():
+                    separated.pop()
+                elif not (separated and op == '?' and right_expr.startswith('.')):
+                    break
+                right_expr = f'{op}{right_expr}'
+                if op != '-':
+                    right_expr = f'{separated.pop()}{op}{right_expr}'
+            if not separated:
+                continue
+            left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
+            return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), True
+
     # @Debugger.wrap_interpreter
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
@@ -619,6 +710,16 @@ class JSInterpreter:
             left = self.interpret_expression(expr[5:], local_vars, allow_recursion)
             return None, should_return
 
+        for op in _UNARY_OPERATORS_X:
+            if not expr.startswith(op):
+                continue
+            operand = expr[len(op):]
+            if not operand or operand[0] != ' ':
+                continue
+            op_result = self.handle_operators(expr, local_vars, allow_recursion)
+            if op_result:
+                return op_result[0], should_return
+
         if expr.startswith('{'):
             inner, outer = self._separate_at_paren(expr)
             # try for object expression (Map)
@@ -662,8 +763,11 @@ class JSInterpreter:
         md = m.groupdict() if m else {}
         if md.get('if'):
             cndn, expr = self._separate_at_paren(expr[m.end() - 1:])
-            if_expr, expr = self._separate_at_paren(expr.lstrip())
-            # TODO: "else if" is not handled
+            if expr.startswith('{'):
+                if_expr, expr = self._separate_at_paren(expr)
+            else:
+                # may lose ... else ... because of ll.368-374
+                if_expr, expr = self._separate_at_paren(' %s;' % (expr,), delim=';')
             else_expr = None
             m = re.match(r'else\s*{', expr)
             if m:
@@ -791,24 +895,25 @@ class JSInterpreter:
         if not expr:
             return None, should_return
 
-        reg = fr'''(?x)
+        m = re.match(fr'''(?x)
             (?P<assign>
-                (?P<out>{_NAME_RE})(?:\[(?P<index>[^\]]+?)\])?\s*
+                (?P<out>{_NAME_RE})(?:\[(?P<index>{_NESTED_BRACKETS})\])?\s*
                 (?P<op>{"|".join(map(re.escape, set(_OPERATORS) - _COMP_OPERATORS))})?
                 =(?!=)(?P<expr>.*)$
             )|(?P<return>
                 (?!if|return|true|false|null|undefined|NaN)(?P<name>{_NAME_RE})$
+            )|(?P<attribute>
+                (?P<var>{_NAME_RE})(?:
+                    (?P<nullish>\?)?\.(?P<member>[^(]+)|
+                    \[(?P<member2>{_NESTED_BRACKETS})\]
+                )\s*
             )|(?P<indexing>
                 (?P<in>{_NAME_RE})\[(?P<idx>.+)\]$
-            )|(?P<attribute>
-                (?P<var>{_NAME_RE})(?:(?P<nullish>\?)?\.(?P<member>[^(]+)|\[(?P<member2>[^\]]+)\])\s*
             )|(?P<function>
                 (?P<fname>{_NAME_RE})\((?P<args>.*)\)$
-            )'''
-        m = re.match(reg, expr)
+            )''', expr)
         if m and m.group('assign'):
-            out = m.group('out')
-            left_val = local_vars.get(out)
+            left_val = local_vars.get(m.group('out'))
 
             if not m.group('index'):
                 local_vars[m.group('out')] = self._operator(
@@ -838,7 +943,10 @@ class JSInterpreter:
             return float('NaN'), should_return
 
         elif m and m.group('return'):
-            return local_vars.get(m.group('name'), JS_Undefined), should_return
+            try:
+                return local_vars[m.group('name')], should_return
+            except KeyError as e:
+                return self.extract_global_var(e.args[0]), should_return
 
         with contextlib.suppress(ValueError):
             return json.loads(js_to_json(expr, strict=True)), should_return
@@ -848,21 +956,9 @@ class JSInterpreter:
             idx = self.interpret_expression(m.group('idx'), local_vars, allow_recursion)
             return self._index(val, idx), should_return
 
-        for op in _OPERATORS:
-            separated = list(self._separate(expr, op))
-            right_expr = separated.pop()
-            while True:
-                if op in '?<>*-' and len(separated) > 1 and not separated[-1].strip():
-                    separated.pop()
-                elif not (separated and op == '?' and right_expr.startswith('.')):
-                    break
-                right_expr = f'{op}{right_expr}'
-                if op != '-':
-                    right_expr = f'{separated.pop()}{op}{right_expr}'
-            if not separated:
-                continue
-            left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
-            return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), should_return
+        op_result = self.handle_operators(expr, local_vars, allow_recursion)
+        if op_result:
+            return op_result[0], should_return
 
         if m and m.group('attribute'):
             variable, member, nullish = m.group('var', 'member', 'nullish')
@@ -890,7 +986,7 @@ class JSInterpreter:
                 if obj is NO_DEFAULT:
                     if variable not in self._objects:
                         try:
-                            self._objects[variable] = self.extract_object(variable)
+                            self._objects[variable] = self.extract_object(variable, local_vars)
                         except self.Exception:
                             if not nullish:
                                 raise
@@ -1031,7 +1127,15 @@ class JSInterpreter:
             raise self.Exception('Cannot return from an expression', expr)
         return ret
 
-    def extract_object(self, objname):
+    def extract_global_var(self, var):
+        global_var = re.search(
+            fr'''var\s?{re.escape(var)}=(?P<val>.*?);''',
+            self.code
+        )
+        code = global_var.group('val')
+        return code
+
+    def extract_object(self, objname, *global_stack):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
         obj = {}
         obj_m = re.search(
@@ -1045,14 +1149,16 @@ class JSInterpreter:
             raise self.Exception(f'Could not find object {objname}')
         fields = obj_m.group('fields')
         # Currently, it only supports function definitions
-        r = r'''(?x)
+        fields_m = re.finditer(
+            r'''(?x)
                 (?P<key>%s)\s*:\s*function\s*\((?P<args>(?:%s|,)*)\){(?P<code>[^}]+)}
-            ''' % (_FUNC_NAME_RE, _NAME_RE)
-        fields_m = re.finditer(r, fields)
+            ''' % (_FUNC_NAME_RE, _NAME_RE),
+            fields)
         for f in fields_m:
             argnames = f.group('args').split(',')
             name = remove_quotes(f.group('key'))
-            obj[name] = function_with_repr(self.build_function(argnames, f.group('code')), f'F<{name}>')
+            obj[name] = function_with_repr(
+                self.build_function(argnames, f.group('code'), *global_stack), f'F<{name}>')
 
         return obj
 
@@ -1075,7 +1181,7 @@ class JSInterpreter:
 
     def extract_function(self, funcname):
         return function_with_repr(
-            self.extract_function_from_code(*_fixup_n_function_code(*self.extract_function_code(funcname))),
+            self.extract_function_from_code(*_fixup_n_function_code(*self.extract_function_code(funcname), self.code)),
             f'F<{funcname}>')
 
     def extract_function_from_code(self, argnames, code, *global_stack):

@@ -1,11 +1,12 @@
 #!/bin/bash
 
-VERSION=8
-MINOR=8
-PATCH=5
-EXTRAVERSION=""
+set -e
 
-NOTES="(#395)"
+VERSION=8
+MINOR=13
+PATCH=1
+EXTRAVERSION=""
+NOTES="(#465 #467)"
 BRANCH="main"
 
 if [[ -z $PATCH ]]; then

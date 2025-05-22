@@ -123,6 +123,10 @@ def signature_timestamp(js: str) -> str:
     return regex_search(r"signatureTimestamp:(\d*)", js, group=1)
 
 
+def visitor_data(response_context: str) -> str:
+    return regex_search(r"visitor_data[',\"\s]+value['\"]:\s?['\"]([a-zA-Z0-9_%-]+)['\"]", response_context, group=1)
+
+
 def video_id(url: str) -> str:
     """Extract the ``video_id`` from a YouTube url.
 
@@ -319,6 +323,7 @@ def get_ytplayer_js(html: str) -> Any:
         if function_match:
             logger.debug("finished regex search, matched: %s", pattern)
             yt_player_js = function_match.group(1)
+            logger.debug("player JS: " + yt_player_js)
             return yt_player_js
 
     raise RegexMatchError(
@@ -414,6 +419,7 @@ def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None
     :param str po_token:
         Proof of Origin Token.
     """
+    logger.debug(f'Applying poToken')
     for i, stream in enumerate(stream_manifest):
         try:
             url: str = stream["url"]
@@ -433,7 +439,6 @@ def apply_po_token(stream_manifest: Dict, vid_info: Dict, po_token: str) -> None
             k: v[0] for k, v in query_params.items()
         }
 
-        logger.debug(f'Applying po_token to itag={stream["itag"]}')
         query_params['pot'] = po_token
 
         url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'

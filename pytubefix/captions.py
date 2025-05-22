@@ -2,6 +2,7 @@ import math
 import os
 import time
 import json
+import re
 import xml.etree.ElementTree as ElementTree
 from html import unescape
 from typing import Dict, Optional
@@ -62,6 +63,22 @@ class Caption:
         recompiles them into the "SubRip Subtitle" format.
         """
         return self.xml_caption_to_srt(self.xml_captions)
+        
+    def generate_txt_captions(self) -> str:
+        """Generate Text captions.
+
+        Takes the "SubRip Subtitle" format captions and converts them into text
+        """
+        srt_captions = self.generate_srt_captions()
+        lines = srt_captions.splitlines()
+        text = ''
+        for line in lines:
+            if re.search('^[0-9]+$', line) is None and \
+               re.search('^[0-9]{2}:[0-9]{2}:[0-9]{2}', line) is None and \
+               re.search('^$', line) is None:
+                text += ' ' + line.strip()
+            text = text.lstrip()  
+        return text.strip()
 
     def save_captions(self, filename: str):
         """Generate and save "SubRip Subtitle" captions to a text file.
