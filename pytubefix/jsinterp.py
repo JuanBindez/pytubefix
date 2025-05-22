@@ -362,6 +362,12 @@ def _js_ternary(cndn, if_true=True, if_false=False):
 _NaN = float('nan')
 _Infinity = float('inf')
 
+compat_str, compat_basestring, compat_chr = (
+    str, (str, bytes), chr
+)
+
+compat_numeric_types = (int, float, complex)
+
 def _js_typeof(expr):
     with compat_contextlib_suppress(TypeError, KeyError):
         return {
@@ -879,10 +885,33 @@ class JSInterpreter:
                     return ret, True
             return ret, False
 
-        r = rf'''(?x)
+        p =fr'''(?x)
+                (?P<out>{_NAME_RE})(?:\[(?P<index>{_NESTED_BRACKETS})\])?\s*
+                (?P<op>{"|".join(map(re.escape, set(_OPERATORS) - _COMP_OPERATORS))})?
+                =(?!=)(?P<expr>.*)$
+            '''
+        m = re.match(p, expr)
+        if m:  # We are assigning a value to a variable
+            left_val = local_vars.get(m.group('out'))
+
+            if not m.group('index'):
+                local_vars[m.group('out')] = self._operator(
+                    m.group('op'), left_val, m.group('expr'), expr, local_vars, allow_recursion)
+                return local_vars[m.group('out')], should_return
+            elif left_val in (None, JS_Undefined):
+                raise self.Exception(f'Cannot index undefined variable {m.group("out")}', expr)
+
+            idx = self.interpret_expression(m.group('index'), local_vars, allow_recursion)
+            if not isinstance(idx, (int, float)):
+                raise self.Exception(f'List index {idx} must be integer', expr)
+            idx = int(idx)
+            left_val[idx] = self._operator(
+                m.group('op'), self._index(left_val, idx), m.group('expr'), expr, local_vars, allow_recursion)
+            return left_val[idx], should_return
+
+        for m in re.finditer(rf'''(?x)
                 (?P<pre_sign>\+\+|--)(?P<var1>{_NAME_RE})|
-                (?P<var2>{_NAME_RE})(?P<post_sign>\+\+|--)'''
-        for m in re.finditer(r, expr):
+                (?P<var2>{_NAME_RE})(?P<post_sign>\+\+|--)''', expr):
             var = m.group('var1') or m.group('var2')
             start, end = m.span()
             sign = m.group('pre_sign') or m.group('post_sign')
