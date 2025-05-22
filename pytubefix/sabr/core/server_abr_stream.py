@@ -125,8 +125,12 @@ class ServerAbrStream:
                 sequence_numbers = [seq.get("sequenceNumber", 0) for seq in fmt["sequenceList"]]
                 self.previous_sequences[format_key] = sequence_numbers
 
-            if not main_format["sequenceList"]:
-                raise Sabr("Error getting chunks. The Abr server did not return any chunks")
+            protection_status: StreamProtectionStatus = data.get("stream_protection_status", None)
+
+            if not main_format.get("sequenceList", None):
+                raise Sabr(f"Error getting chunks. The Abr server did not return any chunks. Protection Status: "
+                           f"{protection_status.status if protection_status else None}, "
+                           f"{protection_status.field2 if protection_status else None}")
 
             if (
                     not main_format or
@@ -205,6 +209,8 @@ class ServerAbrStream:
             elif part['type'] == PART.STREAM_PROTECTION_STATUS.value:
                 nonlocal stream_protection_status
                 stream_protection_status = StreamProtectionStatus.decode(data)
+            else:
+                print(part['type'])
 
         ump.parse(callback)
 
