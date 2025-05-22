@@ -26,27 +26,6 @@ class VideoPlaybackAbrRequest:
         self.field23: int = 0
         self.field1000: List[Pqa] = []
 
-    def finish(self) -> bytes:
-        # Flush the buffer
-        if self.buf:
-            self.chunks.append(bytes(self.buf))
-            self.buf = bytearray()
-
-        # Calculate total length
-        total_length = sum(len(chunk) for chunk in self.chunks)
-
-        # Concatenate all chunks
-        result = bytearray(total_length)
-        offset = 0
-        for chunk in self.chunks:
-            result[offset:offset + len(chunk)] = chunk
-            offset += len(chunk)
-
-        # Clear chunks
-        self.chunks = []
-
-        return bytes(result)
-
     @staticmethod
     def encode(message: dict, writer=None):
         if writer is None:

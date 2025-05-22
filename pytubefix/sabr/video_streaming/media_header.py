@@ -1,18 +1,11 @@
 # All credits to https://github.com/LuanRT/googlevideo
 
-from enum import IntEnum
 from typing import Optional
 
 from pytubefix.sabr.common import FormatId
 from pytubefix.sabr.proto import BinaryReader, BinaryWriter
 from pytubefix.sabr.video_streaming.time_range import TimeRange
 
-
-class MediaHeaderCompressionAlgorithm(IntEnum):
-    UNKNOWN = 0
-    NONE = 1
-    GZIP = 2
-    UNRECOGNIZED = -1
 
 class MediaHeader:
     def __init__(self):
@@ -30,7 +23,7 @@ class MediaHeader:
         self.durationMs: int = 0
         self.formatId: Optional[FormatId] = None
         self.contentLength: int = 0
-        self.timeRange = None
+        self.timeRange: Optional[TimeRange] = None
 
     @staticmethod
     def decode(reader, length: Optional[int] = None):
