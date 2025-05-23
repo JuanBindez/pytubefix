@@ -6,7 +6,7 @@ from typing import Optional
 
 PLATFORM = sys.platform
 
-NODE = 'node' if PLATFORM == 'linux' else 'node.exe'
+NODE = 'node' if PLATFORM in ['linux', 'darwin'] else 'node.exe'
 
 def _find_node_path() -> Optional[str]:
     """Try multiple ways to find Node.js path."""
