@@ -4,7 +4,7 @@ import sys
 
 PLATFORM = sys.platform
 
-NODE = 'node' if PLATFORM == 'linux' else 'node.exe'
+NODE = 'node' if PLATFORM in ['linux', 'darwin'] else 'node.exe'
 
 NODE_PATH = os.path.dirname(os.path.realpath(__file__)) + f'/binaries/{NODE}'
 
