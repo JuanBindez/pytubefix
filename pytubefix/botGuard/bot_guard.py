@@ -2,29 +2,46 @@ import os
 import subprocess
 import sys
 import shutil
+from typing import Optional
 
 PLATFORM = sys.platform
 
 NODE = 'node' if PLATFORM == 'linux' else 'node.exe'
 
-NODE_PATH = os.path.dirname(os.path.realpath(__file__)) + f'/binaries/{NODE}'
+def _find_node_path() -> Optional[str]:
+    """Try multiple ways to find Node.js path."""
+    local_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), f'binaries/{NODE}')
+    if os.path.isfile(local_path):
+        return local_path
+    
+    system_path = shutil.which(NODE)
+    if system_path:
+        return system_path
+        
+    return NODE
 
-if not os.path.isfile(NODE_PATH):
-    NODE_PATH = shutil.which(NODE)
-
-if not os.path.isfile(NODE_PATH):
-    NODE_PATH = 'node'
-
-VM_PATH = os.path.dirname(os.path.realpath(__file__)) + '/vm/botGuard.js'
+NODE_PATH = _find_node_path()
+VM_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vm/botGuard.js')
 
 def generate_po_token(visitor_data: str) -> str:
     """
     Run nodejs to generate poToken through botGuard.
-
-    Requires nodejs installed.
+    
+    Raises:
+        RuntimeError: If Node.js is not available
     """
-    result = subprocess.check_output(
-        [NODE_PATH, VM_PATH, visitor_data]
-    ).decode()
-    return result.replace("\n", "")
-
+    try:
+        result = subprocess.check_output(
+            [NODE_PATH, VM_PATH, visitor_data],
+            stderr=subprocess.PIPE
+        ).decode()
+        return result.replace("\n", "")
+    except FileNotFoundError as e:
+        raise RuntimeError(
+            f"Node.js is required but not found. Tried path: {NODE_PATH}\n"
+            "Please install Node.js or ensure it's in your PATH."
+        ) from e
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"Failed to execute botGuard.js: {e.stderr.decode().strip()}"
+        ) from e
