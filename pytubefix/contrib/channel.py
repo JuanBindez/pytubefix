@@ -630,6 +630,11 @@ class Channel(Playlist):
         return DeferredGeneratorList(self.videos_generator())
 
     @property
+    def lives(self) -> Iterable[YouTube]:
+        """Alias for the 'live' property."""
+        return self.live
+
+    @property
     def releases(self) -> Iterable[Playlist]:
         """Yields Playlist objects in this channel
 
