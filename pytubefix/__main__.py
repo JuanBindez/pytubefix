@@ -580,7 +580,15 @@ class YouTube:
         :rtype: List[Caption]
         """
 
-        innertube_response = InnerTube(client='WEB').player(self.video_id)
+        innertube_response = InnerTube(
+            client='WEB' if not self.use_oauth else self.client,
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache,
+            token_file=self.token_file,
+            oauth_verifier=self.oauth_verifier,
+            use_po_token=self.use_po_token,
+            po_token_verifier=self.po_token_verifier
+        ).player(self.video_id)
 
         raw_tracks = (
             innertube_response.get("captions", {})
