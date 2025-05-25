@@ -148,7 +148,7 @@ class YouTube:
 
         # Shared between all instances of `Stream` (Borg pattern).
         self.stream_monostate = Monostate(
-            on_progress=on_progress_callback, on_complete=on_complete_callback
+            on_progress=on_progress_callback, on_complete=on_complete_callback, youtube=self
         )
 
         if proxies:
@@ -458,6 +458,21 @@ class YouTube:
             'mediaCommonConfig'][
             'mediaUstreamerRequestConfig'][
             'videoPlaybackUstreamerConfig']
+
+    @property
+    def server_abr_streaming_url(self):
+        """
+        Extract the url for abr server and decrypt the `n` parameter
+        """
+        try:
+            url = self.vid_info[
+                'streamingData'][
+                'serverAbrStreamingUrl']
+            stream_manifest = [{"url": url}]
+            extract.apply_signature(stream_manifest, vid_info=self.vid_info, js=self.js, url_js=self.js_url)
+            return stream_manifest[0]["url"]
+        except Exception:
+            return None
 
     @property
     def vid_info(self):

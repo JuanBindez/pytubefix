@@ -25,7 +25,7 @@ class HTMLParseError(PytubeFixError):
 class ExtractError(PytubeFixError):
     """Data extraction based exception."""
 
-class Sabr(PytubeFixError):
+class SABRError(PytubeFixError):
     def __init__(self, msg: str):
         self.msg = msg
         super().__init__(self.msg)

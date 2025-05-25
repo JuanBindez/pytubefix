@@ -46,14 +46,19 @@ class NextRequestPolicy:
 
             if field == 1 and tag == 8:
                 message.targetAudioReadaheadMs = reader.int32()
+                continue
             elif field == 2 and tag == 16:
                 message.targetVideoReadaheadMs = reader.int32()
+                continue
             elif field == 4 and tag == 32:
                 message.backoffTimeMs = reader.int32()
+                continue
             elif field == 7 and tag == 58:
                 message.playbackCookie = PlaybackCookie.decode(reader, reader.uint32())
+                continue
             elif field == 8 and tag == 66:
                 message.videoId = reader.string()
+                continue
             elif (tag & 7) == 4 or tag == 0:
                 break
             else:

@@ -12,23 +12,29 @@ class TimeRange:
         self.timescale: int = 0
 
     @staticmethod
-    def decode(reader: BinaryReader, length: Optional[int] = None) -> 'TimeRange':
+    def decode(input_data, length=None):
+        reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
         end = reader.len if length is None else reader.pos + length
-        message = TimeRange()
+        message = TimeRange
+
         while reader.pos < end:
             tag = reader.uint32()
             field = tag >> 3
 
             if field == 1 and tag == 8:
                 message.start = long_to_number(reader.int64())
+                continue
             elif field == 2 and tag == 16:
                 message.duration = long_to_number(reader.int64())
+                continue
             elif field == 3 and tag == 24:
                 message.timescale = reader.int32()
+                continue
             elif (tag & 7) == 4 or tag == 0:
                 break
             else:
                 reader.skip(tag & 7)
+
         return message
 
     def encode(self, writer: Optional[BinaryWriter] = None) -> BinaryWriter:

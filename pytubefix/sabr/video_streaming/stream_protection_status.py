@@ -4,20 +4,21 @@ from pytubefix.sabr.proto import BinaryReader, BinaryWriter
 
 
 class StreamProtectionStatus:
-    def __init__(self, status=0, field2=0):
-        self.status = status
-        self.field2 = field2
+    def __init__(self):
+        self.status = None
+        self.field2 = None
 
     @staticmethod
-    def encode(message, writer=None):
+    def encode(message: dict, writer=None):
         if writer is None:
             writer = BinaryWriter()
-        if message.status != 0:
+
+        if message.get("status", 0) != 0:
             writer.uint32(8)
-            writer.int32(message.status)
-        if message.field2 != 0:
+            writer.int32(message["status"])
+        if message.get("field2") != 0:
             writer.uint32(16)
-            writer.int32(message.field2)
+            writer.int32(message["field2"])
         return writer
 
     @staticmethod
@@ -25,6 +26,7 @@ class StreamProtectionStatus:
         reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
         end = reader.len if length is None else reader.pos + length
         message = StreamProtectionStatus()
+
         while reader.pos < end:
             tag = reader.uint32()
             field_no = tag >> 3

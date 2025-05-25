@@ -45,12 +45,16 @@ class PlaybackCookie:
 
             if field == 1 and tag == 8:
                 message["field1"] = reader.int32()
+                continue
             elif field == 2 and tag == 16:
                 message["field2"] = reader.int32()
+                continue
             elif field == 7 and tag == 58:
                 message["videoFmt"] = FormatId.decode(reader, reader.uint32())
+                continue
             elif field == 8 and tag == 66:
                 message["audioFmt"] = FormatId.decode(reader, reader.uint32())
+                continue
             elif (tag & 7) == 4 or tag == 0:
                 break
             else:

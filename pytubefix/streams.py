@@ -407,7 +407,7 @@ class Stream:
                         write_chunk(chunk, bytes_remaining)
                 else:
                     logger.debug('This stream is SABR. Starting ServerAbrStream')
-                    ServerAbrStream(stream=self, write_chunk=write_chunk).start()
+                    ServerAbrStream(stream=self, write_chunk=write_chunk, monostate=self._monostate).start()
 
             except HTTPError as e:
                 if e.code != 404:
@@ -428,7 +428,7 @@ class Stream:
                         write_chunk(chunk, bytes_remaining)
                 else:
                     logger.debug('This stream is SABR. Starting ServerAbrStream')
-                    ServerAbrStream(stream=self, write_chunk=write_chunk).start()
+                    ServerAbrStream(stream=self, write_chunk=write_chunk, monostate=self._monostate).start()
 
             self.on_complete(file_path)
             return file_path

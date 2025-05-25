@@ -162,92 +162,136 @@ class ClientAbrState:
 
             if field_number == 13 and tag == 104:
                 message['timeSinceLastManualFormatSelectionMs'] = long_to_number(reader.int64())
+                continue
             elif field_number == 14 and tag == 112:
                 message['lastManualDirection'] = reader.sint32()
+                continue
             elif field_number == 16 and tag == 128:
                 message['lastManualSelectedResolution'] = reader.int32()
+                continue
             elif field_number == 17 and tag == 136:
                 message['detailedNetworkType'] = reader.int32()
+                continue
             elif field_number == 18 and tag == 144:
                 message['clientViewportWidth'] = reader.int32()
+                continue
             elif field_number == 19 and tag == 152:
                 message['clientViewportHeight'] = reader.int32()
+                continue
             elif field_number == 20 and tag == 160:
                 message['clientBitrateCapBytesPerSec'] = long_to_number(reader.int64())
+                continue
             elif field_number == 21 and tag == 168:
                 message['stickyResolution'] = reader.int32()
+                continue
             elif field_number == 22 and tag == 176:
                 message['clientViewportIsFlexible'] = reader.bool()
+                continue
             elif field_number == 23 and tag == 184:
                 message['bandwidthEstimate'] = long_to_number(reader.int64())
+                continue
             elif field_number == 24 and tag == 192:
                 message['minAudioQuality'] = reader.int32()
+                continue
             elif field_number == 25 and tag == 200:
                 message['maxAudioQuality'] = reader.int32()
+                continue
             elif field_number == 26 and tag == 208:
                 message['videoQualitySetting'] = reader.int32()
+                continue
             elif field_number == 27 and tag == 216:
                 message['audioRoute'] = reader.int32()
+                continue
             elif field_number == 28 and tag == 224:
                 message['playerTimeMs'] = long_to_number(reader.int64())
+                continue
             elif field_number == 29 and tag == 232:
                 message['timeSinceLastSeek'] = long_to_number(reader.int64())
+                continue
             elif field_number == 30 and tag == 240:
                 message['dataSaverMode'] = reader.bool()
+                continue
             elif field_number == 32 and tag == 256:
                 message['networkMeteredState'] = reader.int32()
+                continue
             elif field_number == 34 and tag == 272:
                 message['visibility'] = reader.int32()
+                continue
             elif field_number == 35 and tag == 285:
                 message['playbackRate'] = reader.float()
+                continue
             elif field_number == 36 and tag == 288:
                 message['elapsedWallTimeMs'] = long_to_number(reader.int64())
+                continue
             elif field_number == 38 and tag == 306:
                 message['mediaCapabilities'] = reader.bytes()
+                continue
             elif field_number == 39 and tag == 312:
                 message['timeSinceLastActionMs'] = long_to_number(reader.int64())
+                continue
             elif field_number == 40 and tag == 320:
                 message['enabledTrackTypesBitfield'] = reader.int32()
+                continue
             elif field_number == 43 and tag == 344:
                 message['maxPacingRate'] = reader.int32()
+                continue
             elif field_number == 44 and tag == 352:
                 message['playerState'] = long_to_number(reader.int64())
+                continue
             elif field_number == 46 and tag == 368:
                 message['drcEnabled'] = reader.bool()
+                continue
             elif field_number == 48 and tag == 384:
                 message['Jda'] = reader.int32()
+                continue
             elif field_number == 50 and tag == 400:
                 message['qw'] = reader.int32()
+                continue
             elif field_number == 51 and tag == 408:
                 message['Ky'] = reader.int32()
+                continue
             elif field_number == 54 and tag == 432:
                 message['sabrReportRequestCancellationInfo'] = reader.int32()
+                continue
             elif field_number == 56 and tag == 448:
                 message['l'] = reader.bool()
+                continue
             elif field_number == 57 and tag == 456:
                 message['G7'] = long_to_number(reader.int64())
+                continue
             elif field_number == 58 and tag == 464:
                 message['preferVp9'] = reader.bool()
+                continue
             elif field_number == 59 and tag == 472:
                 message['qj'] = reader.int32()
+                continue
             elif field_number == 60 and tag == 480:
                 message['Hx'] = reader.int32()
+                continue
             elif field_number == 61 and tag == 488:
                 message['isPrefetch'] = reader.bool()
+                continue
             elif field_number == 62 and tag == 496:
                 message['sabrSupportQualityConstraints'] = reader.int32()
+                continue
             elif field_number == 63 and tag == 506:
                 message['sabrLicenseConstraint'] = reader.bytes()
+                continue
             elif field_number == 64 and tag == 512:
                 message['allowProximaLiveLatency'] = reader.int32()
+                continue
             elif field_number == 66 and tag == 528:
                 message['sabrForceProxima'] = reader.int32()
+                continue
             elif field_number == 67 and tag == 536:
                 message['Tqb'] = reader.int32()
+                continue
             elif field_number == 68 and tag == 544:
                 message['sabrForceMaxNetworkInterruptionDurationMs'] = long_to_number(reader.int64())
+                continue
             elif field_number == 69 and tag == 554:
                 message['audioTrackId'] = reader.string()
+                continue
             else:
                 if (tag & 7) == 4 or tag == 0:
                     break

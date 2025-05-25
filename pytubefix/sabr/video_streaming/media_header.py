@@ -37,77 +37,93 @@ class MediaHeader:
 
             if field == 1 and tag == 8:
                 message.headerId = reader.uint32()
+                continue
             elif field == 2 and tag == 18:
                 message.videoId = reader.string()
+                continue
             elif field == 3 and tag == 24:
                 message.itag = reader.int32()
+                continue
             elif field == 4 and tag == 32:
                 message.lmt = long_to_number(reader.uint64())
+                continue
             elif field == 5 and tag == 42:
                 message.xtags = reader.string()
+                continue
             elif field == 6 and tag == 48:
                 message.startRange = long_to_number(reader.int64())
+                continue
             elif field == 7 and tag == 56:
                 message.compressionAlgorithm = reader.int32()
+                continue
             elif field == 8 and tag == 64:
                 message.isInitSeg = reader.bool()
+                continue
             elif field == 9 and tag == 72:
                 message.sequenceNumber = long_to_number(reader.int64())
+                continue
             elif field == 10 and tag == 80:
                 message.field10 = long_to_number(reader.int64())
+                continue
             elif field == 11 and tag == 88:
                 message.startMs = long_to_number(reader.int64())
+                continue
             elif field == 12 and tag == 96:
                 message.durationMs = long_to_number(reader.int64())
+                continue
             elif field == 13 and tag == 106:
                 length = reader.uint32()
                 message.formatId = FormatId.decode(reader, length)
+                continue
             elif field == 14 and tag == 112:
                 message.contentLength = long_to_number(reader.int64())
+                continue
             elif field == 15 and tag == 122:
                 length = reader.uint32()
                 message.timeRange = TimeRange.decode(reader, length)
+                continue
             elif (tag & 7) == 4 or tag == 0:
                 break
             else:
                 reader.skip(tag & 7)
         return message
 
-    def encode(self, writer: Optional[BinaryWriter] = None) -> BinaryWriter:
-        writer = writer or BinaryWriter()
+    @staticmethod
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
 
-        if self.headerId:
-            writer.uint32(8).uint32(self.headerId)
-        if self.videoId:
-            writer.uint32(18).string(self.videoId)
-        if self.itag:
-            writer.uint32(24).int32(self.itag)
-        if self.lmt:
-            writer.uint32(32).uint64(self.lmt)
-        if self.xtags:
-            writer.uint32(42).string(self.xtags)
-        if self.startRange:
-            writer.uint32(48).int64(self.startRange)
-        if self.compressionAlgorithm:
-            writer.uint32(56).int32(self.compressionAlgorithm)
-        if self.isInitSeg:
-            writer.uint32(64).bool(self.isInitSeg)
-        if self.sequenceNumber:
-            writer.uint32(72).int64(self.sequenceNumber)
-        if self.field10:
-            writer.uint32(80).int64(self.field10)
-        if self.startMs:
-            writer.uint32(88).int64(self.startMs)
-        if self.durationMs:
-            writer.uint32(96).int64(self.durationMs)
-        if self.formatId is not None:
-            writer.uint32(106).fork()
-            self.formatId.encode(writer).join()
-        if self.contentLength:
-            writer.uint32(112).int64(self.contentLength)
-        if self.timeRange is not None:
-            writer.uint32(122).fork()
-            self.timeRange.encode(writer).join()
+        if message.get("headerId", 0):
+            writer.uint32(8).uint32(message["headerId"])
+        if message.get("videoId", ""):
+            writer.uint32(18).string(message["videoId"])
+        if message.get("itag", 0):
+            writer.uint32(24).int32(message["itag"])
+        if message.get("lmt", 0):
+            writer.uint32(32).uint64(message["lmt"])
+        if message.get("xtags", ""):
+            writer.uint32(42).string(message["xtags"])
+        if message.get("startRange", 0):
+            writer.uint32(48).int64(message["startRange"])
+        if message.get("compressionAlgorithm", 0):
+            writer.uint32(56).int32(message["compressionAlgorithm"])
+        if message.get("isInitSeg", False):
+            writer.uint32(64).bool(message["isInitSeg"])
+        if message.get("sequenceNumber", 0):
+            writer.uint32(72).int64(message["sequenceNumber"])
+        if message.get("field10", 0):
+            writer.uint32(80).int64(message["field10"])
+        if message.get("startMs", 0):
+            writer.uint32(88).int64(message["startMs"])
+        if message.get("durationMs", 0):
+            writer.uint32(96).int64(message["durationMs"])
+        if message.get("formatId", 0):
+            FormatId.encode(message["formatId"], writer.uint32(106).fork()).join()
+        if message.get("contentLength", 0):
+            writer.uint32(112).int64(message["contentLength"])
+        if message.get("timeRange", 0):
+            TimeRange.encode(message["timeRange"], writer.uint32(122).fork()).join()
+
         return writer
 
 def long_to_number(int64_value):

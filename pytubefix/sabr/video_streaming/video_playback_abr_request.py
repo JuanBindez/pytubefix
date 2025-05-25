@@ -1,10 +1,9 @@
 # All credits to https://github.com/LuanRT/googlevideo
 
-import struct
 from typing import List, Optional
 
 from pytubefix.sabr.common import FormatId
-from pytubefix.sabr.proto import BinaryWriter
+from pytubefix.sabr.proto import BinaryWriter, BinaryReader
 from pytubefix.sabr.video_streaming.buffered_range import BufferedRange
 from pytubefix.sabr.video_streaming.client_abr_state import ClientAbrState
 from pytubefix.sabr.video_streaming.streamer_context import StreamerContext
@@ -17,10 +16,14 @@ class VideoPlaybackAbrRequest:
         self.buffered_ranges: List[BufferedRange] = []
         self.player_time_ms: int = 0
         self.video_playback_ustreamer_config: bytes = bytes()
-        self.lo: Optional[Lo] = None
+        self.lo = None
+        self.lj = None
         self.selected_audio_format_ids: List[FormatId] = []
         self.selected_video_format_ids: List[FormatId] = []
         self.streamer_context: Optional[StreamerContext] = None
+        self.field1 = None
+        self.field2 = None
+        self.field3 = None
         self.field21: Optional[OQa] = None
         self.field22: int = 0
         self.field23: int = 0
@@ -91,51 +94,55 @@ class VideoPlaybackAbrRequest:
         return writer
 
     @staticmethod
-    def decode(data):
+    def decode(input_data, length=None):
+        reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
+        end = reader.len if length is None else reader.pos + length
         message = VideoPlaybackAbrRequest()
-        pos = 0
 
-        while pos < len(data):
-            field_number, wire_type = struct.unpack('>BB', data[pos:pos + 2])
-            pos += 2
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3
 
-            if wire_type == 2:  # Length-delimited
-                length = struct.unpack('>I', data[pos:pos + 4])[0]
-                pos += 4
-                field_data = data[pos:pos + length]
-                pos += length
+            if field_number == 1 and tag == 10:
+                message.client_abr_state = ClientAbrState.decode(reader, reader.uint32())
+                continue
+            elif field_number == 2 and tag == 18:
+                message.selected_format_ids.append(FormatId.decode(reader, reader.uint32()))
+                continue
+            elif field_number == 3 and tag == 26:
+                message.buffered_ranges.append(BufferedRange.decode(reader, reader.uint32()))
+                continue
+            elif field_number == 4 and tag == 32:
+                message.player_time_ms = long_to_number(reader.int64())
+                continue
+            elif field_number == 5 and tag == 42:
+                message.video_playback_ustreamer_config = reader.bytes()
+                continue
+            elif field_number == 6 and tag == 50:
+                message.lo = Lo.decode(reader, reader.uint32())
+                continue
+            elif field_number == 16 and tag == 130:
+                message.selected_audio_format_ids.append(FormatId.decode(reader, reader.uint32()))
+                continue
+            elif field_number == 17 and tag == 138:
+                message.selected_video_format_ids.append(FormatId.decode(reader, reader.uint32()))
+                continue
+            elif field_number == 19 and tag == 154:
+                message.streamer_context = StreamerContext.decode(reader, reader.uint32())
+                continue
+            elif field_number == 21 and tag == 170:
+                message.field21 = OQa.decode(reader, reader.uint32())
+                continue
+            elif field_number == 22 and tag == 176:
+                message.field22 = reader.int32()
+                continue
+            elif field_number == 23 and tag == 184:
+                message.field23 = reader.int32()
+                continue
+            elif field_number == 1000 and tag == 8002:
+                message.field1000.append(Pqa.decode(reader, reader.uint32()))
+                continue
 
-                if field_number == 1:
-                    message.client_abr_state = ClientAbrState.decode(field_data)
-                elif field_number == 2:
-                    message.selected_format_ids.append(FormatId.decode(field_data))
-                elif field_number == 3:
-                    message.buffered_ranges.append(BufferedRange.decode(field_data))
-                elif field_number == 5:
-                    message.video_playback_ustreamer_config = field_data
-                elif field_number == 6:
-                    message.lo = Lo.decode(field_data)
-                elif field_number == 16:
-                    message.selected_audio_format_ids.append(FormatId.decode(field_data))
-                elif field_number == 17:
-                    message.selected_video_format_ids.append(FormatId.decode(field_data))
-                elif field_number == 19:
-                    message.streamer_context = StreamerContext.decode(field_data)
-                elif field_number == 21:
-                    message.field21 = OQa.decode(field_data)
-                elif field_number == 1000:
-                    message.field1000.append(Pqa.decode(field_data))
-
-            elif wire_type == 0:  # Varint
-                if field_number == 4:
-                    message.player_time_ms = struct.unpack('>Q', data[pos:pos + 8])[0]
-                    pos += 8
-                elif field_number == 22:
-                    message.field22 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
-                elif field_number == 23:
-                    message.field23 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
 
         return message
 
@@ -143,68 +150,61 @@ class VideoPlaybackAbrRequest:
 class Lo:
     def __init__(self):
         self.format_id: Optional[FormatId] = None
-        self.lj: int = 0
+        self.Lj: int = 0
         self.sequence_number: int = 0
         self.field4: Optional[Lo_Field4] = None
-        self.mz: int = 0
+        self.MZ: int = 0
 
     @staticmethod
-    def encode(message):
-        data = bytearray()
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
 
-        if message.format_id is not None:
-            data.extend(struct.pack('>B', 10))
-            format_id_data = FormatId.encode(message.format_id)
-            data.extend(struct.pack('>I', len(format_id_data)))
-            data.extend(format_id_data)
+        for v in message.get("field1", []):
+            writer.uint32(10).string(v)
 
-        if message.lj != 0:
-            data.extend(struct.pack('>Bi', 16, message.lj))
+        if "field2" in message and message["field2"] is not None:
+            writer.uint32(18).int32(message["field2"])
 
-        if message.sequence_number != 0:
-            data.extend(struct.pack('>Bi', 24, message.sequence_number))
+        if "field3" in message and message["field3"] is not None:
+            writer.uint32(26).int32(message["field3"])
 
-        if message.field4 is not None:
-            data.extend(struct.pack('>B', 34))
-            field4_data = Lo_Field4.encode(message.field4)
-            data.extend(struct.pack('>I', len(field4_data)))
-            data.extend(field4_data)
+        if "field4" in message and message["field4"] is not None:
+            writer.uint32(32).int32(message["field4"])
 
-        if message.mz != 0:
-            data.extend(struct.pack('>Bi', 40, message.mz))
+        if "field5" in message and message["field5"] is not None:
+            writer.uint32(40).int32(message["field5"])
 
-        return bytes(data)
+        if "field6" in message and message["field6"] is not None:
+            writer.uint32(50).int32(message["field6"])
+
+        return writer
 
     @staticmethod
-    def decode(data):
+    def decode(input_data, length=None):
+        reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
+        end = reader.len if length is None else reader.pos + length
         message = Lo()
-        pos = 0
 
-        while pos < len(data):
-            field_number, wire_type = struct.unpack('>BB', data[pos:pos + 2])
-            pos += 2
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3
 
-            if wire_type == 2:  # Length-delimited
-                length = struct.unpack('>I', data[pos:pos + 4])[0]
-                pos += 4
-                field_data = data[pos:pos + length]
-                pos += length
-
-                if field_number == 1:
-                    message.format_id = FormatId.decode(field_data)
-                elif field_number == 4:
-                    message.field4 = Lo_Field4.decode(field_data)
-
-            elif wire_type == 0:  # Varint
-                if field_number == 2:
-                    message.lj = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
-                elif field_number == 3:
-                    message.sequence_number = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
-                elif field_number == 5:
-                    message.mz = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
+            if field_number == 1 and tag == 10:
+                message.format_id = FormatId.decode(reader, reader.uint32())
+                continue
+            elif field_number == 2 and tag == 16:
+                message.Lj = reader.int32()
+                continue
+            elif field_number == 3 and tag == 24:
+                message.sequenceNumber = reader.int32()
+                continue
+            elif field_number == 4 and tag == 34:
+                message.field4 = Lo_Field4.decode(reader, reader.uint32())
+                continue
+            elif field_number == 5 and tag == 40:
+                message.MZ = reader.int32()
+                continue
 
         return message
 
@@ -216,41 +216,40 @@ class Lo_Field4:
         self.field3: int = 0
 
     @staticmethod
-    def encode(message):
-        data = bytearray()
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
 
-        if message.field1 != 0:
-            data.extend(struct.pack('>Bi', 8, message.field1))
+        if "field1" in message and message["field1"] is not None:
+            writer.uint32(8).int32(message["field1"])
 
-        if message.field2 != 0:
-            data.extend(struct.pack('>Bi', 16, message.field2))
+        if "field2" in message and message["field2"] is not None:
+            writer.uint32(16).int32(message["field2"])
 
-        if message.field3 != 0:
-            data.extend(struct.pack('>Bi', 24, message.field3))
+        if "field3" in message and message["field3"] is not None:
+            writer.uint32(24).int32(message["field3"])
 
-        return bytes(data)
+        return writer
 
     @staticmethod
-    def decode(data):
+    def decode(input_data, length=None):
+        reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
+        end = reader.len if length is None else reader.pos + length
         message = Lo_Field4()
-        pos = 0
 
-        while pos < len(data):
-            field_number = struct.unpack('>B', data[pos:pos + 1])[0]
-            pos += 1
-            wire_type = field_number & 0x7
-            field_number >>= 3
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3  # Varint
 
-            if wire_type == 0:  # Varint
-                if field_number == 1:
-                    message.field1 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
-                elif field_number == 2:
-                    message.field2 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
-                elif field_number == 3:
-                    message.field3 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
+            if field_number == 1 and tag == 8:
+                message.field1 = reader.int32()
+                continue
+            elif field_number == 2 and tag == 16:
+                message.field2 = reader.int32()
+                continue
+            elif field_number == 3 and tag == 24:
+                message.field3 = reader.int32()
+                continue
 
         return message
 
@@ -265,68 +264,49 @@ class OQa:
         self.field6: str = ""
 
     @staticmethod
-    def encode(message):
-        data = bytearray()
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
 
-        for value in message.field1:
-            data.extend(struct.pack('>B', 10))
-            data.extend(struct.pack('>I', len(value)))
-            data.extend(value.encode('utf-8'))
+        if "field1" in message and message["field1"] is not None:
+            writer.uint32(8).int32(message["field1"])
 
-        if len(message.field2) > 0:
-            data.extend(struct.pack('>B', 18))
-            data.extend(struct.pack('>I', len(message.field2)))
-            data.extend(message.field2)
+        if "field2" in message and message["field2"] is not None:
+            writer.uint32(16).int32(message["field2"])
 
-        if message.field3 != "":
-            data.extend(struct.pack('>B', 26))
-            data.extend(struct.pack('>I', len(message.field3)))
-            data.extend(message.field3.encode('utf-8'))
+        if "field3" in message and message["field3"] is not None:
+            writer.uint32(24).int32(message["field3"])
 
-        if message.field4 != 0:
-            data.extend(struct.pack('>Bi', 32, message.field4))
-
-        if message.field5 != 0:
-            data.extend(struct.pack('>Bi', 40, message.field5))
-
-        if message.field6 != "":
-            data.extend(struct.pack('>B', 50))
-            data.extend(struct.pack('>I', len(message.field6)))
-            data.extend(message.field6.encode('utf-8'))
-
-        return bytes(data)
+        return writer
 
     @staticmethod
-    def decode(data):
+    def decode(input_data, length=None):
+        reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
+        end = reader.len if length is None else reader.pos + length
         message = OQa()
-        pos = 0
 
-        while pos < len(data):
-            field_number, wire_type = struct.unpack('>BB', data[pos:pos + 2])
-            pos += 2
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3
 
-            if wire_type == 2:  # Length-delimited
-                length = struct.unpack('>I', data[pos:pos + 4])[0]
-                pos += 4
-                field_data = data[pos:pos + length]
-                pos += length
-
-                if field_number == 1:
-                    message.field1.append(field_data.decode('utf-8'))
-                elif field_number == 2:
-                    message.field2 = field_data
-                elif field_number == 3:
-                    message.field3 = field_data.decode('utf-8')
-                elif field_number == 6:
-                    message.field6 = field_data.decode('utf-8')
-
-            elif wire_type == 0:  # Varint
-                if field_number == 4:
-                    message.field4 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
-                elif field_number == 5:
-                    message.field5 = struct.unpack('>i', data[pos:pos + 4])[0]
-                    pos += 4
+            if field_number == 1 and tag == 10:
+                message.field1.append(reader.string())
+                continue
+            elif field_number == 2 and tag == 18:
+                message.field2 = reader.bytes()
+                continue
+            elif field_number == 3 and tag == 26:
+                message.field3 = reader.string()
+                continue
+            elif field_number == 4 and tag == 32:
+                message.field4 = reader.int32()
+                continue
+            elif field_number == 5 and tag == 40:
+                message.field5 = reader.int32()
+                continue
+            elif field_number == 6 and tag == 50:
+                message.field6 = reader.string()
+                continue
 
         return message
 
@@ -338,48 +318,47 @@ class Pqa:
         self.clip_id: str = ""
 
     @staticmethod
-    def encode(message):
-        data = bytearray()
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
 
-        for format_id in message.formats:
-            data.extend(struct.pack('>B', 10))
-            format_id_data = FormatId.encode(format_id)
-            data.extend(struct.pack('>I', len(format_id_data)))
-            data.extend(format_id_data)
+        for v in message.get("formats", []):
+            FormatId.encode(v, writer.uint32(10).fork()).join()
 
-        for buffered_range in message.ud:
-            data.extend(struct.pack('>B', 18))
-            buffered_range_data = BufferedRange.encode(buffered_range)
-            data.extend(struct.pack('>I', len(buffered_range_data)))
-            data.extend(buffered_range_data)
+        for v in message.get("ud", []):
+            BufferedRange.encode(v, writer.uint32(18).fork()).join()
 
-        if message.clip_id != "":
-            data.extend(struct.pack('>B', 26))
-            data.extend(struct.pack('>I', len(message.clip_id)))
-            data.extend(message.clip_id.encode('utf-8'))
+        if "clipId" in message and message["clipId"] is not None:
+            writer.uint32(26).int32(message["clipId"])
 
-        return bytes(data)
+        return writer
 
     @staticmethod
-    def decode(data):
+    def decode(input_data, length=None):
+        reader = input_data if isinstance(input_data, BinaryReader) else BinaryReader(input_data)
         message = Pqa()
-        pos = 0
+        end = reader.len if length is None else reader.pos + length
 
-        while pos < len(data):
-            field_number, wire_type = struct.unpack('>BB', data[pos:pos + 2])
-            pos += 2
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3
 
-            if wire_type == 2:  # Length-delimited
-                length = struct.unpack('>I', data[pos:pos + 4])[0]
-                pos += 4
-                field_data = data[pos:pos + length]
-                pos += length
-
-                if field_number == 1:
-                    message.formats.append(FormatId.decode(field_data))
-                elif field_number == 2:
-                    message.ud.append(BufferedRange.decode(field_data))
-                elif field_number == 3:
-                    message.clip_id = field_data.decode('utf-8')
+            if field_number == 1 and tag == 10:
+                message.formats.append(FormatId.decode(reader, reader.uint32()))
+                continue
+            elif field_number == 2 and tag == 18:
+                message.ud.append(BufferedRange.decode(reader, reader.uint32()))
+                continue
+            elif field_number == 3 and tag == 26:
+                message.clip_id = reader.string()
+                continue
 
         return message
+
+def long_to_number(int64_value):
+    value = int(str(int64_value))
+    if value > (2 ** 53 - 1):
+        raise OverflowError("Value is larger than 9007199254740991")
+    if value < -(2 ** 53 - 1):
+        raise OverflowError("Value is smaller than -9007199254740991")
+    return value
