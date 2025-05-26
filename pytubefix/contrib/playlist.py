@@ -251,9 +251,13 @@ class Playlist(Sequence):
         try:
             # For some reason YouTube only returns the first 100 shorts of a playlist
             # token provided by the API doesn't seem to work even in the official player
-            continuation = videos[-1]['continuationItemRenderer'][
-                'continuationEndpoint'
-            ]['continuationCommand']['token']
+            try:
+                continuation = videos[-1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
+            except:
+                for command in videos[-1]['continuationItemRenderer']['continuationEndpoint']['commandExecutorCommand']['commands']:
+                    if 'continuationCommand' in command:
+                        continuation = command['continuationCommand']['token']
+                        break
             videos = videos[:-1]
         except (KeyError, IndexError):
             # if there is an error, no continuation is available
