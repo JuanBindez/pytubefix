@@ -159,7 +159,7 @@ def stream(url,
             except URLError as e:
                 # We only want to skip over timeout errors, and
                 # raise any other URLError exceptions
-                if not isinstance(e.reason, socket.timeout):
+                if not isinstance(e.reason, (socket.timeout, OSError)):
                     raise
             except http.client.IncompleteRead:
                 # Allow retries on IncompleteRead errors for unreliable connections
@@ -185,7 +185,8 @@ def stream(url,
                 chunk = response.read()
             except StopIteration:
                 return
-
+            except http.client.IncompleteRead as e:
+                chunk = e.partial
             if not chunk:
                 break
 
