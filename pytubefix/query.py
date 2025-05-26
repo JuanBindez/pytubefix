@@ -255,9 +255,9 @@ class StreamQuery(Sequence):
 
         """
         if isinstance(itag, int):
-            return self.itag_index.get(itag)
+            return self._filter([lambda s: not s.unprocessed_audio]).itag_index.get(itag)
         elif isinstance(itag, str) and itag.isdigit():
-            return self.itag_index.get(int(itag))
+            return self._filter([lambda s: not s.unprocessed_audio]).itag_index.get(int(itag))
 
     def get_by_resolution(self, resolution: str) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given resolution.
