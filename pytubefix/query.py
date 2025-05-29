@@ -36,6 +36,7 @@ class StreamQuery(Sequence):
         progressive=None,
         adaptive=None,
         is_dash=None,
+        is_drc=None,
         audio_track_name=None,
         custom_filter_functions=None,
     ):
@@ -115,6 +116,9 @@ class StreamQuery(Sequence):
         :param bool only_video:
             Excludes streams with audio tracks.
 
+        :param bool is_drc:
+            Include/exclude stable volume streams.
+
         :param audio_track_name:
             Name of the dubbed audio track
         :type type:
@@ -183,6 +187,9 @@ class StreamQuery(Sequence):
 
         if is_dash is not None:
             filters.append(lambda s: s.is_dash == is_dash)
+
+        if is_drc is not None:
+            filters.append(lambda s: s.is_drc == is_drc)
 
         return self._filter(filters)
 
@@ -255,9 +262,9 @@ class StreamQuery(Sequence):
 
         """
         if isinstance(itag, int):
-            return self._filter([lambda s: not s.unprocessed_audio]).itag_index.get(itag)
+            return self.itag_index.get(itag)
         elif isinstance(itag, str) and itag.isdigit():
-            return self._filter([lambda s: not s.unprocessed_audio]).itag_index.get(int(itag))
+            return self.itag_index.get(int(itag))
 
     def get_by_resolution(self, resolution: str) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given resolution.

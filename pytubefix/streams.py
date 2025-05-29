@@ -97,6 +97,7 @@ class Stream:
         self.is_3d = itag_profile["is_3d"]
         self.is_hdr = itag_profile["is_hdr"]
         self.is_live = itag_profile["is_live"]
+        self.is_drc = stream.get('isDrc', False)
         self._is_sabr = stream.get('is_sabr', False)
         self.durationMs = stream['approxDurationMs']
         self.last_Modified = stream['lastModified']
@@ -117,8 +118,6 @@ class Stream:
             self.audio_track_language_id_regionalized = None
             self.audio_track_language_id= None
 
-        self._unprocessed_audio: bool = self.xtags and 'audioTrack' not in stream
-
     @property
     def is_adaptive(self) -> bool:
         """Whether the stream is DASH.
@@ -136,13 +135,6 @@ class Stream:
         :rtype: bool
         """
         return not self.is_adaptive
-
-    @property
-    def unprocessed_audio(self) -> bool:
-        """
-        YouTube may upload dubbed audio streams that are not available
-        """
-        return self._unprocessed_audio
 
     @property
     def is_sabr(self) -> bool:

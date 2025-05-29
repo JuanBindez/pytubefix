@@ -111,14 +111,16 @@ class ServerAbrStream:
             'stickyResolution': int(self.stream.resolution.replace('p', '')) if video_format else 720,
             'playerTimeMs': 0,
             'visibility': 0,
+            'drcEnabled': self.stream.is_drc,
             # 0 = BOTH, 1 = AUDIO (video-only is no longer supported by YouTube)
             'enabledTrackTypesBitfield': 0 if video_format else 1
         }
-        while client_abr_state['playerTimeMs'] < self.totalDurationMs or self.maximum_reload_attempt > 0:
+        while client_abr_state['playerTimeMs'] < self.totalDurationMs and self.maximum_reload_attempt > 0:
             data = self.fetch_media(client_abr_state, audio_format, video_format)
 
             if data.get("sabr_error", None):
-                raise SABRError(data.get('sabr_error').type)
+                logger.debug(data.get('sabr_error').type)
+                self.reload()
 
             self.emit(data)
 
@@ -133,18 +135,20 @@ class ServerAbrStream:
                 sequence_numbers = [seq.get("sequenceNumber", 0) for seq in fmt["sequenceList"]]
                 self.previous_sequences[format_key] = sequence_numbers
 
-            protection_status: StreamProtectionStatus = data.get("stream_protection_status", None)
+
+            if (    not self.RELOAD and (
+                        main_format is None or
+                        ("sequenceList" in main_format and not main_format.get("sequenceList", None))
+                    )
+            ):
+                logger.debug("The Abr server did not return any chunks")
+                self.reload()
 
             if self.maximum_reload_attempt > 0 and self.RELOAD:
                 self.RELOAD = False
                 continue
             elif self.maximum_reload_attempt <= 0:
                 raise SABRError("Maximum reload attempts reached")
-
-            if main_format is None or ("sequenceList" in main_format and not main_format.get("sequenceList", None)):
-                raise SABRError(f"Error getting chunks. The Abr server did not return any chunks. Protection Status: "
-                           f"{protection_status.status if protection_status else None}, "
-                           f"{protection_status.field2 if protection_status else None}")
 
             if (
                     not main_format or
@@ -179,8 +183,10 @@ class ServerAbrStream:
             'field1000': []
         }).finish()
 
-        request = Request(self.server_abr_streaming_url, method="POST", data=bytes(body))
-
+        base_headers = {
+            "User-Agent": "Mozilla/5.0", "accept-language": "en-US,en", "Content-Type": "application/vnd.yt-ump",
+        }
+        request = Request(self.server_abr_streaming_url, headers=base_headers, method="POST", data=bytes(body))
         return self.parse_ump_response(bytes(urlopen(request).read()))
 
     def parse_ump_response(self, response):
@@ -228,24 +234,17 @@ class ServerAbrStream:
 
             elif part['type'] == PART.RELOAD_PLAYER_RESPONSE.value:
                 print("RELOAD_PLAYER_RESPONSE")
-                print(data)
-                self.RELOAD = True
-                self.maximum_reload_attempt -= 1
                 self.reload()
 
             elif part["type"] == PART.PLAYBACK_START_POLICY.value:
-                # Unknown purpose and format
                 pass
 
             elif part["type"] == PART.REQUEST_CANCELLATION_POLICY.value:
-                # Unknown purpose and format
                 pass
 
             elif part["type"] == PART.SABR_CONTEXT_UPDATE.value:
                 print("SABR_CONTEXT_UPDATE")
                 print(data)
-                self.RELOAD = True
-                self.maximum_reload_attempt -= 1
                 self.reload()
 
             else:
@@ -368,6 +367,10 @@ class ServerAbrStream:
 
     def reload(self):
         logger.debug("Refreshing SABR streaming URL")
+
+        self.RELOAD = True
+        self.maximum_reload_attempt -= 1
+
         self.youtube.vid_info = None
         refresh_url = self.youtube.server_abr_streaming_url
         if not refresh_url:
