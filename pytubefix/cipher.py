@@ -129,7 +129,7 @@ def get_throttling_function_name(js: str, js_url: str) -> str:
                                 (?:var\s+)?
                             )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
                             \((?P<argname>[a-zA-Z0-9_$]+)\)\s*\{
-                            (?:(?!\}[;\n]).)+
+                            (?:(?!\};(?![\]\)])).)+
                             \}\s*catch\(\s*[a-zA-Z0-9_$]+\s*\)\s*
                             \{\s*return\s+%s\[%d\]\s*\+\s*(?P=argname)\s*\}\s*return\s+[^}]+\}[;\n]
                         '''  % (re.escape(varname), k)
