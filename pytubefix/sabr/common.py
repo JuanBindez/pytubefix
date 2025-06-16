@@ -35,6 +35,7 @@ class FormatId:
         while reader.pos < end:
             tag = reader.uint32()
             field_no = tag >> 3
+
             if field_no == 1 and tag == 8:
                 message["itag"] = reader.int32()
                 continue

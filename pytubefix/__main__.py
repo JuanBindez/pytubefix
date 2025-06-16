@@ -265,8 +265,8 @@ class YouTube:
         try:
             self._pot = bot_guard.generate_po_token(visitor_data=self.visitor_data)
             logger.debug('PoToken generated successfully')
-        except (FileNotFoundError, CalledProcessError):
-            logger.warning('Unable to run botGuard. Skipping poToken generation')
+        except Exception as e:
+            logger.warning('Unable to run botGuard. Skipping poToken generation, reason: ' + e.__str__())
         return self._pot
 
     @property
