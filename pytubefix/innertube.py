@@ -38,7 +38,7 @@ _default_clients = {
                     'clientName': 'WEB',
                     'osName': 'Windows',
                     'osVersion': '10.0',
-                    'clientVersion': '2.20250122.01.00',
+                    'clientVersion': '2.20250523.01.00',
                     'platform': 'DESKTOP'
                 }
             }
@@ -46,7 +46,7 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0',
             'X-Youtube-Client-Name': '1',
-            'X-Youtube-Client-Version': '2.20250122.01.00'
+            'X-Youtube-Client-Version': '2.20250523.01.00'
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         'require_js_player': True,

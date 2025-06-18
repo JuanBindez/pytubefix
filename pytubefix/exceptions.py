@@ -25,6 +25,14 @@ class HTMLParseError(PytubeFixError):
 class ExtractError(PytubeFixError):
     """Data extraction based exception."""
 
+class SABRError(PytubeFixError):
+    def __init__(self, msg: str):
+        self.msg = msg
+        super().__init__(self.msg)
+
+    @property
+    def error_string(self):
+        return self.msg
 
 class RegexMatchError(ExtractError):
     """Regex pattern did not return any matches."""
