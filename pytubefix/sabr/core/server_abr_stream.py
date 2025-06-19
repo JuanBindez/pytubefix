@@ -148,7 +148,7 @@ class ServerAbrStream:
                 self.RELOAD = False
                 continue
             elif self.maximum_reload_attempt <= 0:
-                raise SABRError("Maximum reload attempts reached")
+                raise SABRError("SABR Maximum reload attempts reached")
 
             if (
                     not main_format or

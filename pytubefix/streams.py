@@ -106,7 +106,7 @@ class Stream:
 
         self.includes_multiple_audio_tracks: bool = 'audioTrack' in stream
         if self.includes_multiple_audio_tracks:
-            self.is_default_audio_track = stream['audioTrack']['audioIsDefault']
+            self.is_default_audio_track = "original" in stream['audioTrack']['displayName']
             self.audio_track_name_regionalized = str(stream['audioTrack']['displayName']).replace(" original", "")
             self.audio_track_name = self.audio_track_name_regionalized.split(" ")[0]
             self.audio_track_language_id_regionalized= str(stream['audioTrack']['id']).split(".")[0]
