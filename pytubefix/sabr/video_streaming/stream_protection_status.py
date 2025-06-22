@@ -1,5 +1,7 @@
 # All credits to https://github.com/LuanRT/googlevideo
 
+from enum import Enum
+
 from pytubefix.sabr.proto import BinaryReader, BinaryWriter
 
 
@@ -40,3 +42,8 @@ class StreamProtectionStatus:
                 break
             reader.skip(tag & 7)
         return message
+
+    class Status(Enum):
+        OK = 1
+        ATTESTATION_PENDING = 2
+        ATTESTATION_REQUIRED = 3
