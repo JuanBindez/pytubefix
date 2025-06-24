@@ -642,7 +642,7 @@ class YouTube:
                 'decoratedPlayerBarRenderer']['decoratedPlayerBarRenderer']['playerBar'][
                 'multiMarkersPlayerBarRenderer']['markersMap']
             for marker in markers_map:
-                if marker['key'].upper() == 'DESCRIPTION_CHAPTERS':
+                if marker['key'].upper() == 'DESCRIPTION_CHAPTERS' or marker['key'].upper() == 'AUTO_CHAPTERS':
                     chapters_data = marker['value']['chapters']
                     break
         except (KeyError, IndexError):
