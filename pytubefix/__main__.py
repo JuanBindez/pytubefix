@@ -377,6 +377,9 @@ class YouTube:
                 ):
                     raise exceptions.MembersOnly(video_id=self.video_id)
 
+                elif 'Join this channel to get access to members-only content and other exclusive perks.' in reason:
+                    raise exceptions.MembersOnly(video_id=self.video_id)
+
                 elif reason == 'This live stream recording is not available.':
                     raise exceptions.RecordingUnavailable(video_id=self.video_id)
 
