@@ -3,10 +3,10 @@
 set -e
 
 VERSION=9
-MINOR=0
-PATCH=1
+MINOR=2
+PATCH=2
 EXTRAVERSION=""
-NOTES="(fix #486 -> to check)"
+NOTES="(#505)"
 BRANCH="main"
 
 if [[ -z $PATCH ]]; then
