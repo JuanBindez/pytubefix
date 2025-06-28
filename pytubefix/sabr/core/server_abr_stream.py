@@ -134,55 +134,61 @@ class ServerAbrStream:
         while client_abr_state['playerTimeMs'] < self.totalDurationMs:
             data = self.fetch_media(client_abr_state, audio_format, video_format)
 
-            # TODO: Refactor and improve error messages
-
-            if data.get("sabr_error", None):
-                logger.debug(data.get('sabr_error').type)
+            if data.get("sabr_error"):
+                logger.debug("SABR error type: %s", data["sabr_error"].type)
                 self.reload()
 
             self.emit(data)
 
-            if data.get('sabr_context_update'):
+            if data.get("sabr_context_update"):
                 if self.maximum_reload_attempt > 0:
                     continue
                 else:
-                    raise SABRError("SABR An error occurred while trying to update the context")
+                    raise SABRError("SABR failed to update context after exhausting reload attempts")
 
-            if client_abr_state['enabledTrackTypesBitfield'] == 0:
+            # Determine main format
+            if client_abr_state["enabledTrackTypesBitfield"] == 0:
                 main_format = next(
-                    (fmt for fmt in data['initialized_formats'] if "video" in (fmt.get("mimeType") or "")),
-                    None)
+                    (fmt for fmt in data.get("initialized_formats", []) if "video" in (fmt.get("mimeType") or "")),
+                    None
+                )
             else:
                 main_format = data['initialized_formats'][0] if data['initialized_formats'] else None
 
-            for fmt in data['initialized_formats']:
+            # Register sequence numbers
+            for fmt in data.get("initialized_formats", []):
                 format_key = fmt["formatKey"]
-                sequence_numbers = [seq.get("sequenceNumber", 0) for seq in fmt["sequenceList"]]
+                sequence_numbers = [seq.get("sequenceNumber", 0) for seq in fmt.get("sequenceList", [])]
                 self.previous_sequences[format_key] = sequence_numbers
 
-            if (not self.RELOAD and (
+            # Check if server returned usable chunks
+            if not self.RELOAD and (
                     main_format is None or
-                    ("sequenceList" in main_format and not main_format.get("sequenceList", None))
-            )
+                    not main_format.get("sequenceList")
             ):
-                logger.debug("The Abr server did not return any chunks")
+                logger.debug("SABR No chunks returned by the ABR server, triggering reload")
                 self.reload()
 
-            if self.maximum_reload_attempt > 0 and self.RELOAD:
-                self.RELOAD = False
-                continue
-            elif self.maximum_reload_attempt <= 0:
-                raise SABRError(
-                    f"SABR Maximum reload attempts reached. Stream Protection Status: PoToken {self.stream_protection_status}")
+            # Handle reload attempts
+            if self.RELOAD:
+                if self.maximum_reload_attempt > 0:
+                    self.RELOAD = False
+                    continue
+                else:
+                    raise SABRError(
+                        f"SABR Maximum reload attempts reached. Stream protection status: PoToken {self.stream_protection_status}"
+                    )
 
+            # Check for end of media
             if (
                     not main_format or
                     main_format["sequenceCount"] == main_format["sequenceList"][-1].get("sequenceNumber")
             ):
                 break
 
+            # Update client player time
             total_sequence_duration = sum(seq.get("durationMs", 0) for seq in main_format["sequenceList"])
-            client_abr_state['playerTimeMs'] += total_sequence_duration
+            client_abr_state["playerTimeMs"] += total_sequence_duration
 
     def fetch_media(self, client_abr_state, audio_format, video_format):
         body = VideoPlaybackAbrRequest.encode({
@@ -193,7 +199,7 @@ class ServerAbrStream:
             'videoPlaybackUstreamerConfig': self.base64_to_u8(self.video_playback_ustreamer_config),
             'streamerContext': {
                 'sabrContexts': [
-                    {"type": ctx["type"], "value": ctx["value"]}
+                    ctx
                     for ctx in self.sabr_context_updates.values() if ctx["type"] in self.sabr_contexts_to_send
                 ],
                 'field6': [],
@@ -363,6 +369,12 @@ class ServerAbrStream:
 
     def process_snackbar_message(self):
         skip = self.sabr_context_updates[self.sabr_contexts_to_send[-1]].get("skip", 1000) / 1000
+
+        if skip >= 60:
+            raise SABRError("SABR The maximum time to skip the ad (1 minute) has been exceeded.")
+
+        logger.warning(f"SABR YouTube is forcing ads, wait {skip} seconds to skip")
+
         sleep(skip)
         self.maximum_reload_attempt -= 1
 
