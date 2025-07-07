@@ -1,6 +1,7 @@
 # All credits to https://github.com/LuanRT/googlevideo
 
 import enum
+import sys
 import base64
 import logging
 from enum import Enum
@@ -71,6 +72,12 @@ class PART(Enum):
 
 # Reference https://github.com/coletdjnz/yt-dlp-dev/blob/5c0c2963396009a92101bc6e038b61844368409d/yt_dlp/extractor/youtube/_streaming/sabr/part.py
 class PoTokenStatus(enum.Enum):
+    if sys.version_info > (3, 13):
+        def _generate_next_value_(name, start, count, last_values):
+            # First value is None, increment from 1
+            if count == 0:
+                return None
+            return count  
     UNKNOWN = None
     OK = enum.auto()               # PO Token is provided and valid
     MISSING = enum.auto()          # PO Token is not provided, and is required. A PO Token should be provided ASAP
