@@ -78,6 +78,7 @@ class PoTokenStatus(enum.Enum):
             if count == 0:
                 return None
             return count  
+        
     UNKNOWN = None
     OK = enum.auto()               # PO Token is provided and valid
     MISSING = enum.auto()          # PO Token is not provided, and is required. A PO Token should be provided ASAP
