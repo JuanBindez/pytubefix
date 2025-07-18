@@ -33,7 +33,7 @@ classifiers = [
 	"Topic :: Terminals",
 	"Topic :: Utilities",
 ]
-dependencies = []
+dependencies = ["aiohttp >=3.12.13"]
 
 [project.urls]
 "Homepage" = "https://github.com/juanbindez/pytubefix"
