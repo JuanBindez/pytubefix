@@ -16,6 +16,8 @@ class PytubeFixError(Exception):
 
 class MaxRetriesExceeded(PytubeFixError):
     """Maximum number of retries exceeded."""
+    def __init__(self):
+        super().__init__("Maximum number of retries exceeded")
 
 
 class HTMLParseError(PytubeFixError):
