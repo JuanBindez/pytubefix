@@ -71,7 +71,7 @@ class PART(Enum):
 
 # Reference https://github.com/coletdjnz/yt-dlp-dev/blob/5c0c2963396009a92101bc6e038b61844368409d/yt_dlp/extractor/youtube/_streaming/sabr/part.py
 class PoTokenStatus(enum.Enum):
-    UNKNOWN = None
+    UNKNOWN = -1
     OK = enum.auto()               # PO Token is provided and valid
     MISSING = enum.auto()          # PO Token is not provided, and is required. A PO Token should be provided ASAP
     INVALID = enum.auto()          # PO Token is provided, but is invalid. A new one should be generated ASAP
@@ -98,7 +98,7 @@ class ServerAbrStream:
         self.previous_sequences = {}
         self.RELOAD = False
         self.maximum_reload_attempt = 4
-        self.stream_protection_status = PoTokenStatus(None).name
+        self.stream_protection_status = PoTokenStatus.UNKNOWN.name
         self.sabr_contexts_to_send = []
         self.sabr_context_updates = dict()
 
@@ -383,18 +383,18 @@ class ServerAbrStream:
         protection_status = StreamProtectionStatus.decode(data).status
 
         if protection_status == StreamProtectionStatus.Status.OK.value:
-            result_status = PoTokenStatus.OK.value if self.po_token else PoTokenStatus.NOT_REQUIRED.value
+            result_status = PoTokenStatus.OK.name if self.po_token else PoTokenStatus.NOT_REQUIRED.name
 
         elif protection_status == StreamProtectionStatus.Status.ATTESTATION_PENDING.value:
-            result_status = PoTokenStatus.PENDING.value if self.po_token else PoTokenStatus.PENDING_MISSING.value
+            result_status = PoTokenStatus.PENDING.name if self.po_token else PoTokenStatus.PENDING_MISSING.name
 
         elif protection_status == StreamProtectionStatus.Status.ATTESTATION_REQUIRED.value:
-            result_status = PoTokenStatus.INVALID.value if self.po_token else PoTokenStatus.MISSING.value
+            result_status = PoTokenStatus.INVALID.name if self.po_token else PoTokenStatus.MISSING.name
 
         else:
-            result_status = None
+            result_status = PoTokenStatus.UNKNOWN.name
 
-        self.stream_protection_status = PoTokenStatus(result_status).name
+        self.stream_protection_status = result_status
 
         logger.debug(f"Stream Protection Status: PoToken {self.stream_protection_status}")
 
