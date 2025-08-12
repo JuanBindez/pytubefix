@@ -171,13 +171,14 @@ for video in results.videos:
 ```python
 from pytubefix.contrib.search import Search, Filter
 
-filters = {
-    'upload_date': Filter.get_upload_date('Today'),
-    'type': Filter.get_type("Video"),
-    'duration': Filter.get_duration("Under 4 minutes"),
-    'features': [Filter.get_features("4K"), Filter.get_features("Creative Commons")],
-    'sort_by': Filter.get_sort_by("Upload date")
-}
+filters = (
+    Filter.create()
+        .upload_date(Filter.UploadDate.TODAY)
+        .type(Filter.Type.VIDEO)
+        .duration(Filter.Duration.UNDER_4_MINUTES)
+        .feature([Filter.Features.CREATIVE_COMMONS, Filter.Features._4K])
+        .sort_by(Filter.SortBy.UPLOAD_DATE)
+     )
 
 s = Search('music', filters=filters)
 for video in s.videos:
