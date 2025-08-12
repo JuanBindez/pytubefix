@@ -115,7 +115,8 @@ class YouTube:
 
         # content fetched from innertube/player
         self._vid_info: Optional[Dict] = None
-        self._vid_details: Optional[Dict] = None
+        self._next_endpoint: Optional[Dict] = None
+        self._video_details: Optional[Dict] = None
 
         # the html of /watch?v=<video_id>
         self._watch_html: Optional[str] = None
@@ -536,15 +537,15 @@ class YouTube:
         self._vid_info = value
 
     @property
-    def vid_details(self):
+    def next_endpoint(self):
         """Parse the raw vid details and return the parsed result.
 
         The official player sends a request to the `next` endpoint to obtain some details of the video.
 
         :rtype: Dict[Any, Any]
         """
-        if self._vid_details:
-            return self._vid_details
+        if self._next_endpoint:
+            return self._next_endpoint
 
         innertube = InnerTube(
             client='TV' if self.use_oauth else 'WEB',
@@ -556,17 +557,15 @@ class YouTube:
             po_token_verifier=self.po_token_verifier
         )
         innertube_response = innertube.next(self.video_id)
-        self._vid_details = innertube_response
-        return self._vid_details
+        self._next_endpoint = innertube_response
+        return self._next_endpoint
 
-    @vid_details.setter
-    def vid_details(self, value):
-        self._vid_details = value
+    @next_endpoint.setter
+    def next_endpoint(self, value):
+        self._next_endpoint = value
 
     def age_check(self):
         """If the video has any age restrictions, you must confirm that you wish to continue.
-
-        Originally the WEB client was used, but with the implementation of PoToken we switched to MWEB.
         """
 
         self.client = 'TV'
@@ -583,6 +582,8 @@ class YouTube:
         if innertube.require_js_player:
             innertube.innertube_context.update(self.signature_timestamp)
 
+        innertube.insert_visitor_data(visitor_data=self.visitor_data)
+
         innertube.verify_age(self.video_id)
 
         innertube_response = innertube.player(self.video_id)
@@ -597,6 +598,28 @@ class YouTube:
                 raise exceptions.AgeCheckRequiredError(self.video_id)
 
         self._vid_info = innertube_response
+
+    @property
+    def video_details(self):
+        if self._video_details:
+            return self._video_details
+
+        innertube_response = InnerTube(
+            client='WEB',
+            use_oauth=self.use_oauth,
+            allow_cache=self.allow_oauth_cache,
+            token_file=self.token_file,
+            oauth_verifier=self.oauth_verifier,
+            use_po_token=self.use_po_token,
+            po_token_verifier=self.po_token_verifier
+        ).player(self.video_id)
+
+        self._video_details = innertube_response.get("videoDetails", {})
+        return self._video_details
+
+    @video_details.setter
+    def video_details(self, value):
+        self._video_details = value
 
     @property
     def caption_tracks(self) -> List[pytubefix.Caption]:
@@ -754,7 +777,7 @@ class YouTube:
         :rtype: str
         """
         thumbnail_details = (
-            self.vid_info.get("videoDetails", {})
+            self.video_details
             .get("thumbnail", {})
             .get("thumbnails")
         )
@@ -786,7 +809,7 @@ class YouTube:
 
         :rtype: str
         """
-        self._author = self.vid_info.get("videoDetails", {}).get(
+        self._author = self.video_details.get(
             "author", "unknown"
         )
 
@@ -796,12 +819,11 @@ class YouTube:
         try:
             # Some clients may not return the title in the `player` endpoint,
             # so if it is not found we will look for it in the `next` endpoint
-            if 'title' in self.vid_info['videoDetails']:
-                self._title = self.vid_info['videoDetails']['title']
-                logger.debug('Found title in vid_info')
+            if 'title' in self.video_details:
+                self._title = self.video_details['title']
             else:
-                if 'singleColumnWatchNextResults' in self.vid_details['contents']:
-                    contents = self.vid_details['contents'][
+                if 'singleColumnWatchNextResults' in self.next_endpoint['contents']:
+                    contents = self.next_endpoint['contents'][
                         'singleColumnWatchNextResults'][
                         'results'][
                         'results'][
@@ -817,26 +839,28 @@ class YouTube:
 
                 # The type of video with this structure is not yet known.
                 # First reported in: https://github.com/JuanBindez/pytubefix/issues/351
-                elif 'twoColumnWatchNextResults' in self.vid_details['contents']:
-                    self._title = self.vid_details['contents'][
+                elif 'twoColumnWatchNextResults' in self.next_endpoint['contents']:
+                    contents = self.next_endpoint['contents'][
                         'twoColumnWatchNextResults'][
                         'results'][
                         'results'][
-                        'contents'][0][
-                        'videoPrimaryInfoRenderer'][
-                        'title'][
-                        'runs'][0][
-                        'text']
+                        'contents']
+                    for videoPrimaryInfoRenderer in contents:
+                        if 'videoPrimaryInfoRenderer' in videoPrimaryInfoRenderer:
+                            self. _title = videoPrimaryInfoRenderer[
+                                'videoPrimaryInfoRenderer'][
+                                'title'][
+                                'runs'][0][
+                                'text']
+                            break
 
-                logger.debug('Found title in vid_details')
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
             raise exceptions.PytubeFixError(
                 (
-                    f'Exception while accessing title of {self.watch_url}. '
-                    'Please file a bug report at https://github.com/JuanBindez/pytubefix'
+                    f'Exception while accessing title of {self.watch_url} in {self.client} client.'
                 )
             ) from e
 
@@ -853,7 +877,16 @@ class YouTube:
 
         :rtype: str
         """
-        return self.vid_info.get("videoDetails", {}).get("shortDescription")
+
+        description = self.video_details.get("shortDescription")
+        if description is None:
+            # TV client structure
+            results =  self.next_endpoint['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            for c in results:
+                if 'videoSecondaryInfoRenderer' in c:
+                    description = c['videoSecondaryInfoRenderer']['attributedDescription']['content']
+                    break
+        return description
 
     @property
     def rating(self) -> float:
@@ -862,7 +895,7 @@ class YouTube:
         :rtype: float
 
         """
-        return self.vid_info.get("videoDetails", {}).get("averageRating")
+        return self.video_details.get("averageRating")
 
     @property
     def length(self) -> int:
@@ -870,7 +903,7 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
+        return int(self.video_details.get('lengthSeconds'))
 
     @property
     def views(self) -> int:
@@ -878,7 +911,7 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
+        return int(self.video_details.get("viewCount", "0"))
 
     @property
     def author(self) -> str:
@@ -887,7 +920,7 @@ class YouTube:
         """
         if self._author:
             return self._author
-        self._author = self.vid_info.get("videoDetails", {}).get(
+        self._author = self.video_details.get(
             "author", "unknown"
         )
         return self._author
@@ -903,7 +936,7 @@ class YouTube:
 
         :rtype: List[str]
         """
-        return self.vid_info.get('videoDetails', {}).get('keywords', [])
+        return self.video_details.get('keywords', [])
 
     @property
     def channel_id(self) -> str:
@@ -911,7 +944,7 @@ class YouTube:
 
         :rtype: str
         """
-        return self.vid_info.get('videoDetails', {}).get('channelId', None)
+        return self.video_details.get('channelId', None)
 
     @property
     def channel_url(self) -> str:
@@ -928,21 +961,31 @@ class YouTube:
         :rtype: str
         """
         try:
-            return self.vid_details[
+            likes = '0'
+            contents = self.next_endpoint[
                 'contents'][
                 'twoColumnWatchNextResults'][
                 'results'][
                 'results'][
-                'contents'][
-                0][
-                'videoPrimaryInfoRenderer'][
-                'videoActions'][
-                'menuRenderer'][
-                'topLevelButtons'][
-                0][
-                'segmentedLikeDislikeButtonViewModel'][
-                'likeCountEntity'][
-                'likeCountIfLikedNumber']
+                'contents']
+            for c in contents:
+                if 'videoPrimaryInfoRenderer' in c:
+                    likes = c['videoPrimaryInfoRenderer'][
+                    'videoActions'][
+                    'menuRenderer'][
+                    'topLevelButtons'][
+                    0][
+                    'segmentedLikeDislikeButtonViewModel'][
+                    'likeButtonViewModel'][
+                    'likeButtonViewModel'][
+                    'toggleButtonViewModel'][
+                    'toggleButtonViewModel'][
+                    'defaultButtonViewModel'][
+                    'buttonViewModel'][
+                    'accessibilityText']
+                    break
+
+            return ''.join([char for char in likes if char.isdigit()])
         except (KeyError, IndexError):
             return None
 
@@ -990,3 +1033,7 @@ class YouTube:
         :rtype: :class:`YouTube <YouTube>`
         """
         return YouTube(f"https://www.youtube.com/watch?v={video_id}")
+
+    @staticmethod
+    def enable_debug_logging():
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
