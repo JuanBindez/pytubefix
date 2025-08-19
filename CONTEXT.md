@@ -124,9 +124,3 @@ pytubefix/
    - Identify bottlenecks
    - Implement optimizations
    - Benchmark changes
-
-## Additional Resources
-
-- [YouTube Data API Documentation](https://developers.google.com/youtube/v3)
-- [Python Package Guidelines](https://packaging.python.org/tutorials/packaging-projects/)
-- [AsyncIO Documentation](https://docs.python.org/3/library/asyncio.html)
