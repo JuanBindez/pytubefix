@@ -908,18 +908,8 @@ class YouTube:
         :rtype: str
         """
 
+        # TODO: Implement correctly for the TV client
         _author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
-        if _author == 'unknown':
-            try:
-                _author = self.vid_details['microformat'][
-                    'microformatDataRenderer'][
-                    'videoDetails'][
-                    'comments'][
-                    0][
-                    'author'][
-                    'alternateName']
-            except KeyError:
-                _author = 'unknown'
 
         self._author = _author
         return self._author
