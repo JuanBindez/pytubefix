@@ -821,25 +821,27 @@ class YouTube:
                 # The type of video with this structure is not yet known.
                 # First reported in: https://github.com/JuanBindez/pytubefix/issues/351
                 elif 'twoColumnWatchNextResults' in self.vid_details['contents']:
-                    self._title = self.vid_details['contents'][
+                    contents = self.vid_details['contents'][
                         'twoColumnWatchNextResults'][
                         'results'][
                         'results'][
-                        'contents'][0][
-                        'videoPrimaryInfoRenderer'][
-                        'title'][
-                        'runs'][0][
-                        'text']
+                        'contents']
+                    for videoPrimaryInfoRenderer in contents:
+                        if 'videoPrimaryInfoRenderer' in videoPrimaryInfoRenderer:
+                            self._title = videoPrimaryInfoRenderer[
+                                'videoPrimaryInfoRenderer'][
+                                'title'][
+                                'runs'][0][
+                                'text']
+                            break
 
-                logger.debug('Found title in vid_details')
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
             raise exceptions.PytubeFixError(
                 (
-                    f'Exception while accessing title of {self.watch_url}. '
-                    'Please file a bug report at https://github.com/JuanBindez/pytubefix'
+                    f'Exception while accessing title of {self.watch_url} in {self.client} client.'
                 )
             ) from e
 
@@ -856,7 +858,15 @@ class YouTube:
 
         :rtype: str
         """
-        return self.vid_info.get("videoDetails", {}).get("shortDescription")
+        description = self.vid_info.get("videoDetails", {}).get("shortDescription")
+        if description is None:
+            # TV client structure
+            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            for c in results:
+                if 'videoSecondaryInfoRenderer' in c:
+                    description = c['videoSecondaryInfoRenderer']['attributedDescription']['content']
+                    break
+        return description
 
     @property
     def rating(self) -> float:
@@ -881,18 +891,30 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
+        view = int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
+        if not view:
+            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            for c in results:
+                if 'videoPrimaryInfoRenderer' in c:
+                    simple_text = c['videoPrimaryInfoRenderer'][
+                        'viewCount'][
+                        'videoViewCountRenderer'][
+                        'viewCount'][
+                        'simpleText']
+                    view = int(''.join([char for char in simple_text if char.isdigit()]))
+                    break
+        return view
 
     @property
     def author(self) -> str:
         """Get the video author.
         :rtype: str
         """
-        if self._author:
-            return self._author
-        self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
-        )
+
+        # TODO: Implement correctly for the TV client
+        _author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
+
+        self._author = _author
         return self._author
 
     @author.setter
@@ -931,21 +953,30 @@ class YouTube:
         :rtype: str
         """
         try:
-            return self.vid_details[
+            likes = '0'
+            contents = self.vid_details[
                 'contents'][
                 'twoColumnWatchNextResults'][
                 'results'][
-                'results'][
-                'contents'][
-                0][
-                'videoPrimaryInfoRenderer'][
-                'videoActions'][
-                'menuRenderer'][
-                'topLevelButtons'][
-                0][
-                'segmentedLikeDislikeButtonViewModel'][
-                'likeCountEntity'][
-                'likeCountIfLikedNumber']
+                'results']['contents']
+            for c in contents:
+                if 'videoPrimaryInfoRenderer' in c:
+                    likes = c['videoPrimaryInfoRenderer'][
+                    'videoActions'][
+                    'menuRenderer'][
+                    'topLevelButtons'][
+                    0][
+                    'segmentedLikeDislikeButtonViewModel'][
+                    'likeButtonViewModel'][
+                    'likeButtonViewModel'][
+                    'toggleButtonViewModel'][
+                    'toggleButtonViewModel'][
+                    'defaultButtonViewModel'][
+                    'buttonViewModel'][
+                    'accessibilityText']
+                    break
+
+            return ''.join([char for char in likes if char.isdigit()])
         except (KeyError, IndexError):
             return None
 
