@@ -247,7 +247,8 @@ class YouTube:
         try:
             self._visitor_data = innertube_response['responseContext']['visitorData']
         except KeyError:
-            self._visitor_data = innertube_response['responseContext']['serviceTrackingParams'][0]['params'][6]['value']
+            p_dicts = innertube_response['responseContext']['serviceTrackingParams'][0]['params']
+            self._visitor_data = next(p for p in p_dicts if p['key'] == 'visitor_data')['value']
         logger.debug('VisitorData obtained successfully')
 
         return self._visitor_data
