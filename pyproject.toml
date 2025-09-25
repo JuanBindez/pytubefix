@@ -52,3 +52,5 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "pytubefix" = ["botGuard/vm/*.js"]
+"pytubefix" = ["sig_nsig/vm/*.js"]
+
