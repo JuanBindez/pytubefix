@@ -1,6 +1,7 @@
 import subprocess
 import json
 import sys
+import os
 
 
 def _exposed(code: str, fun_name: str) -> str:
@@ -9,7 +10,6 @@ def _exposed(code: str, fun_name: str) -> str:
 
 
 def run_js_interpreter(full_code: str, fun_name: str, args: list):
-
     try:
         payload = {
             "full_code": _exposed(full_code, fun_name),
@@ -17,8 +17,11 @@ def run_js_interpreter(full_code: str, fun_name: str, args: list):
             "args": args
         }
 
+        # Build absolute path to runner.js inside the installed package
+        runner_path = os.path.join(os.path.dirname(__file__), "vm", "runner.js")
+
         process = subprocess.Popen(
-            ['node', 'sig_nsig/vm/runner.js'],
+            ['node', runner_path],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
