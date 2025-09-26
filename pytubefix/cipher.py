@@ -15,7 +15,7 @@ import re
 
 from pytubefix.exceptions import RegexMatchError, InterpretationError
 from pytubefix.jsinterp import JSInterpreter, extract_player_js_global_var
-from pytubefix.sig_nsig.run import run_js_interpreter
+from pytubefix.sig_nsig.node_runner import NodeRunner
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +30,12 @@ class Cipher:
         self._nsig_param_val = None
         self.sig_function_name = self.get_sig_function_name(js, js_url)
         self.nsig_function_name = self.get_nsig_function_name(js, js_url)
+
+        self.runner_sig = NodeRunner(js)
+        self.runner_sig.load_function(self.sig_function_name)
+
+        self.runner_nsig = NodeRunner(js)
+        self.runner_nsig.load_function(self.nsig_function_name)
 
         self.calculated_n = None
 
@@ -47,14 +53,14 @@ class Cipher:
         try:
             if self._nsig_param_val:
                 for param in self._nsig_param_val:
-                    nsig = run_js_interpreter(self.js, self.nsig_function_name, [param, n])
+                    nsig = self.runner_nsig.call([param, n])
                     if isinstance(nsig, str):
                         return nsig
                     continue
                 else:
                     raise InterpretationError(js_url=self.js_url)
             else:
-                return run_js_interpreter(self.js, self.nsig_function_name, [n])
+                return self.runner_nsig.call([n])
         except:
             raise InterpretationError(js_url=self.js_url)
 
@@ -69,9 +75,9 @@ class Cipher:
         """
         try:
             if self._sig_param_val:
-                return run_js_interpreter(self.js, self.sig_function_name, [self._sig_param_val, ciphered_signature])
+                return self.runner_sig.call([self._sig_param_val, ciphered_signature])
             else:
-                return run_js_interpreter(self.js, self.sig_function_name, [ciphered_signature])
+                return self.runner_sig.call([ciphered_signature])
         except:
             raise InterpretationError(js_url=self.js_url)
 
