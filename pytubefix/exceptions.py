@@ -55,13 +55,14 @@ class RegexMatchError(ExtractError):
 
 
 class InterpretationError(PytubeFixError):
-    def __init__(self, js_url: str):
+    def __init__(self, js_url: str, reason=None):
         self.js_url = js_url
+        self.reason = reason
         super().__init__(self.error_string)
 
     @property
     def error_string(self):
-        return f'Error interpreting player js: {self.js_url}'
+        return f'Error interpreting player js: {self.js_url}' + f' reason: {self.reason}' if self.reason else ''
 
 ### Video Unavailable Errors ###
 # There are really 3 types of errors thrown
