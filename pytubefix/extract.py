@@ -517,9 +517,6 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
 
         stream_manifest[i]["url"] = url
 
-    cipher.runner_sig.close()
-    cipher.runner_nsig.close()
-
 
 def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
     """Apply various in-place transforms to YouTube's media stream data.
