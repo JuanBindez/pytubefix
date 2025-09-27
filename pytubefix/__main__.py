@@ -156,6 +156,7 @@ class YouTube:
 
         self._author = None
         self._title = None
+        self._original_title = None
         self._publish_date = None
 
         self.use_oauth = use_oauth
@@ -484,12 +485,27 @@ class YouTube:
 
         :rtype: Dict[Any, Any]
         """
+
         if self._vid_info:
             return self._vid_info
 
-        def call_innertube():
+        self.vid_info = self.vid_info_client()
+
+        return self._vid_info
+
+    @vid_info.setter
+    def vid_info(self, value):
+        self._vid_info = value
+
+    #added to reduce code duplication
+    def vid_info_client(self, optional_client=None):
+
+        if optional_client is None:
+            optional_client = self.client
+
+        def call_innertube(optional_client):
             innertube = InnerTube(
-                client=self.client,
+                client=optional_client,
                 use_oauth=self.use_oauth,
                 allow_cache=self.allow_oauth_cache,
                 token_file=self.token_file,
@@ -502,7 +518,7 @@ class YouTube:
 
             # Automatically generates a poToken
             if innertube.require_po_token and not self.use_po_token:
-                logger.debug(f"The {self.client} client requires poToken to obtain functional streams")
+                logger.debug(f"The {optional_client} client requires poToken to obtain functional streams")
                 logger.debug("Automatically generating poToken")
                 innertube.insert_po_token(visitor_data=self.visitor_data, po_token=self.pot)
             elif not self.use_po_token:
@@ -516,7 +532,7 @@ class YouTube:
                 self.po_token = innertube.access_po_token or self.pot
             return response
 
-        innertube_response = call_innertube()
+        innertube_response = call_innertube(optional_client)
         for client in self.fallback_clients:
             # Some clients are unable to access certain types of videos
             # If the video is unavailable for the current client, attempts will be made with fallback clients
@@ -529,15 +545,10 @@ class YouTube:
             else:
                 break
 
-        self._vid_info = innertube_response
-        if not self._vid_info:
+        if not innertube_response:
             raise pytubefix.exceptions.InnerTubeResponseError(self.video_id, self.client)
 
-        return self._vid_info
-
-    @vid_info.setter
-    def vid_info(self, value):
-        self._vid_info = value
+        return innertube_response
 
     @property
     def vid_details(self):
@@ -852,6 +863,31 @@ class YouTube:
     def title(self, value):
         """Sets the title value."""
         self._title = value
+
+    @property
+    def original_title(self):
+
+        if self._original_title:
+            return self._original_title
+
+        try:
+            if self.client == 'WEB':
+                if 'microformat' in self.vid_info:
+                    self._original_title = self.vid_info['microformat']['playerMicroformatRenderer']['title']['simpleText']
+            else:
+                self._original_title = self.vid_info_client("WEB")['microformat']['playerMicroformatRenderer']['title']['simpleText']
+        except KeyError as e:
+            # Check_availability will raise the correct exception in most cases
+            #  if it doesn't, ask for a report.
+            self.check_availability()
+            raise exceptions.PytubeFixError(
+                (
+                    f'Exception while accessing original title of {self.watch_url} in {self.client} client.'
+                )
+            ) from e
+
+        return self._original_title
+
 
     @property
     def description(self) -> str:
