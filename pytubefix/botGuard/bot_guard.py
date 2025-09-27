@@ -1,26 +1,18 @@
 import os
 import subprocess
 import sys
-import shutil
-from typing import Optional
+import nodejs_wheel.executable
 
 PLATFORM = sys.platform
 
-NODE = 'node' if PLATFORM in ['linux', 'darwin'] else 'node.exe'
+NODE_DIR = nodejs_wheel.executable.ROOT_DIR
 
-def _find_node_path() -> Optional[str]:
-    """Try multiple ways to find Node.js path."""
-    local_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), f'binaries/{NODE}')
-    if os.path.isfile(local_path):
-        return local_path
-    
-    system_path = shutil.which(NODE)
-    if system_path:
-        return system_path
-        
-    return NODE
+def _node_path() -> str:
+    suffix = ".exe" if os.name == "nt" else ""
+    bin_dir = NODE_DIR if os.name == "nt" else os.path.join(NODE_DIR, "bin")
+    return os.path.join(bin_dir, 'node' + suffix)
 
-NODE_PATH = _find_node_path()
+NODE_PATH = _node_path()
 VM_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vm/botGuard.js')
 
 def generate_po_token(visitor_data: str) -> str:
