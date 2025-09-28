@@ -156,8 +156,9 @@ class BotDetection(VideoUnavailable):
     @property
     def error_string(self):
         return (
-            f'{self.video_id} This request was detected as a bot. Use `use_po_token=True` or switch to WEB client to view. '
-            f'See more details at https://github.com/JuanBindez/pytubefix/pull/209')
+            f'{self.video_id} This request was detected as a bot.'
+            f'DO NOT OPEN AN ISSUE!'
+            f'See more details at https://pytubefix.readthedocs.io/en/latest/user/po_token.html')
 
 
 class PoTokenRequired(VideoUnavailable):
@@ -176,7 +177,7 @@ class PoTokenRequired(VideoUnavailable):
     def error_string(self):
         return (
             f'{self.video_id} The {self.client_name} client requires PoToken to obtain functional streams, '
-            f'See more details at https://github.com/JuanBindez/pytubefix/pull/209')
+            f'See more details at https://pytubefix.readthedocs.io/en/latest/user/po_token.html')
 
 
 class LoginRequired(VideoUnavailable):
