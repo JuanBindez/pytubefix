@@ -89,7 +89,7 @@ _default_clients = {
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         'require_js_player': True,
-        'require_po_token': False
+        'require_po_token': True
     },
 
     'WEB_CREATOR': {
