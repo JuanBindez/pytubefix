@@ -1,3 +1,4 @@
 typing_extensions
 sphinx-rtd-theme
 aiohttp
+nodejs_wheel
