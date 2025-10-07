@@ -1,7 +1,7 @@
 .. _pot_token:
 
 PoToken
-===========
+=======
 
 The proof of origin (PO) token is a parameter that YouTube requires to be sent with video playback requests from some clients. Without it, format URL requests from affected customers may return HTTP error 403, error with bot detection, or result in your account or IP address being blocked.
 
