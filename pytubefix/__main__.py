@@ -541,7 +541,7 @@ class YouTube:
                 logger.warning(f"{self.client} client returned: This video is not available")
                 self.client = client
                 logger.warning(f"Switching to client: {client}")
-                innertube_response = call_innertube()
+                innertube_response = call_innertube(client)
             else:
                 break
 
