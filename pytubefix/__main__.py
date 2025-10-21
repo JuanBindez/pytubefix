@@ -918,6 +918,8 @@ class YouTube:
 
         :rtype: int
         """
+        # Ensure we have valid metadata before accessing videoDetails:
+        self.check_availability()
         return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
 
     @property
