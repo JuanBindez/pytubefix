@@ -82,17 +82,20 @@ class VideoUnavailable(PytubeFixError):
     Call this if you can't group the error by known error type and it is not important to the developer.
     """
 
-    def __init__(self, video_id: str):
+    def __init__(self, video_id: str, status: str = None, reason: str = None, developer_message: str = None):
         """
         :param str video_id:
             A YouTube video identifier.
         """
         self.video_id = video_id
+        self.status = status
+        self.reason = reason
+        self.developer_message = developer_message
         super().__init__(self.error_string)
 
     @property
     def error_string(self):
-        return f'{self.video_id} is unavailable'
+        return f'{self.video_id} is unavailable [Status: {self.status}] [Reason: {self.reason}]'
 
 ## 2. Known Error Type, Extra info useful for user ##
 
@@ -157,7 +160,7 @@ class BotDetection(VideoUnavailable):
     def error_string(self):
         return (
             f'{self.video_id} This request was detected as a bot.'
-            f'DO NOT OPEN AN ISSUE!'
+            f' DO NOT OPEN AN ISSUE! '
             f'See more details at https://pytubefix.readthedocs.io/en/latest/user/po_token.html')
 
 
@@ -341,7 +344,7 @@ class UnknownVideoError(VideoUnavailable):
             'and provide the above log output.'
         )
 
-        super().__init__(self.video_id)
+        super().__init__(self.error_string)
 
     @property
     def error_string(self):
