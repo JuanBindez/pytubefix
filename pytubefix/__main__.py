@@ -395,7 +395,7 @@ class YouTube:
                 ):
                     raise exceptions.VideoRegionBlocked(video_id=self.video_id)
                 else:
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoUnavailable(video_id=self.video_id, status=status, reason=reason, developer_message=f'Video unplayable')
 
             elif status == 'LOGIN_REQUIRED':
                 if reason == (
@@ -420,15 +420,15 @@ class YouTube:
 
             elif status == 'ERROR':
                 if reason == 'Video unavailable':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoUnavailable(video_id=self.video_id, status=status, reason=reason, developer_message=f'Video unavailable')
                 elif reason == 'This video is private':
                     raise exceptions.VideoPrivate(video_id=self.video_id)
                 elif reason == 'This video is unavailable':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoUnavailable(video_id=self.video_id, status=status, reason=reason, developer_message=f'Video unavailable')
                 elif reason == 'This video has been removed by the uploader':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoUnavailable(video_id=self.video_id, status=status, reason=reason, developer_message=f'Video unavailable')
                 elif reason == 'This video is no longer available because the YouTube account associated with this video has been terminated.':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoUnavailable(video_id=self.video_id, status=status, reason=reason, developer_message=f'Video unavailable')
                 else:
                     raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown reason type for Error status')
             elif status == 'LIVE_STREAM':
