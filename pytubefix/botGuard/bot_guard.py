@@ -15,24 +15,17 @@ def _node_path() -> str:
 NODE_PATH = _node_path()
 VM_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vm/botGuard.js')
 
-def generate_po_token(visitor_data: str) -> str:
+def generate_po_token(video_id: str) -> str:
     """
     Run nodejs to generate poToken through botGuard.
-    
-    Raises:
-        RuntimeError: If Node.js is not available
+
     """
     try:
         result = subprocess.check_output(
-            [NODE_PATH, VM_PATH, visitor_data],
+            [NODE_PATH, VM_PATH, video_id],
             stderr=subprocess.PIPE
         ).decode()
         return result.replace("\n", "")
-    except FileNotFoundError as e:
-        raise RuntimeError(
-            f"Node.js is required but not found. Tried path: {NODE_PATH}\n"
-            "Please install Node.js or ensure it's in your PATH."
-        ) from e
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
             f"Failed to execute botGuard.js: {e.stderr.decode().strip()}"

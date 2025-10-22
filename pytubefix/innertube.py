@@ -38,7 +38,7 @@ _default_clients = {
                     'clientName': 'WEB',
                     'osName': 'Windows',
                     'osVersion': '10.0',
-                    'clientVersion': '2.20250523.01.00',
+                    'clientVersion': '2.20251021.01.00',
                     'platform': 'DESKTOP'
                 }
             }
@@ -46,7 +46,7 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0',
             'X-Youtube-Client-Name': '1',
-            'X-Youtube-Client-Version': '2.20250523.01.00'
+            'X-Youtube-Client-Version': '2.20251021.01.00'
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         'require_js_player': True,
@@ -79,7 +79,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'WEB_REMIX',
-                    'clientVersion': '1.20240403.01.00'
+                    'clientVersion': '1.20251013.03.00'
                 }
             }
         },
@@ -133,7 +133,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'MWEB',
-                    'clientVersion': '2.20241202.07.00'
+                    'clientVersion': '2.20251014.06.00'
                 }
             }
         },
