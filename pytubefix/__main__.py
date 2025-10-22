@@ -390,10 +390,10 @@ class YouTube:
                         'Sign in to your primary account to confirm your age.'
                 ):
                     raise exceptions.AgeCheckRequiredAccountError(video_id=self.video_id)
-                elif reason == (
-                        'The uploader has not made this video available in your country'
-                ):
+                elif reason == ('The uploader has not made this video available in your country'):
                     raise exceptions.VideoRegionBlocked(video_id=self.video_id)
+                elif "blocked it in your country on copyright grounds" in reason:
+                    raise exceptions.VideoBlockedByCopyright(video_id=self.video_id, reason=reason)
                 else:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
 
@@ -426,9 +426,9 @@ class YouTube:
                 elif reason == 'This video is unavailable':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
                 elif reason == 'This video has been removed by the uploader':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoRemovedByUploader(video_id=self.video_id, reason=reason)
                 elif reason == 'This video is no longer available because the YouTube account associated with this video has been terminated.':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.AccountTerminated(video_id=self.video_id, reason=reason)
                 else:
                     raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown reason type for Error status')
             elif status == 'LIVE_STREAM':
@@ -918,6 +918,7 @@ class YouTube:
 
         :rtype: int
         """
+        self.check_availability()
         return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
 
     @property
