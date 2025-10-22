@@ -94,7 +94,76 @@ class VideoUnavailable(PytubeFixError):
     def error_string(self):
         return f'{self.video_id} is unavailable'
 
+
+
+
 ## 2. Known Error Type, Extra info useful for user ##
+
+class VideoBlockedByCopyright(VideoUnavailable):
+    """Raised when a video is blocked in the user's country on copyright grounds."""
+
+    def __init__(self, video_id: str, reason: str = None):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str reason:
+            The reason for the error (optional).
+        """
+        self.video_id = video_id
+        self.reason = reason or "This video contains content that is blocked in your country on copyright grounds."
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f'{self.video_id} {self.reason}'
+
+
+
+
+class VideoRemovedByUploader(VideoUnavailable):
+    """Raised when a video has been removed by the uploader."""
+
+    def __init__(self, video_id: str, reason: str = None):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str reason:
+            The reason for the error (optional).
+        """
+        self.video_id = video_id
+        self.reason = reason or "This video has been removed by the uploader"
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f'{self.video_id} {self.reason}'
+
+
+
+
+
+class AccountTerminated(VideoUnavailable):
+    """Raised when the YouTube account associated with a video has been terminated."""
+
+    def __init__(self, video_id: str, reason: str = None):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str reason:
+            The reason for the error (optional).
+        """
+        self.video_id = video_id
+        self.reason = reason or (
+            "This video is no longer available because the YouTube account "
+            "associated with this video has been terminated."
+        )
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f'{self.video_id} {self.reason}'
+
+
 
 class VideoPrivate(VideoUnavailable):
     def __init__(self, video_id: str):
@@ -157,7 +226,7 @@ class BotDetection(VideoUnavailable):
     def error_string(self):
         return (
             f'{self.video_id} This request was detected as a bot.'
-            f'DO NOT OPEN AN ISSUE!'
+            f' DO NOT OPEN AN ISSUE! '
             f'See more details at https://pytubefix.readthedocs.io/en/latest/user/po_token.html')
 
 
