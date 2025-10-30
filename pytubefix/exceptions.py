@@ -99,6 +99,48 @@ class VideoUnavailable(PytubeFixError):
 
 ## 2. Known Error Type, Extra info useful for user ##
 
+class VideoRemovedByYouTubeForViolatingTOS(VideoUnavailable):
+    """Raised when a video has been removed for violating YouTube's Community Guidelines or Terms of Service."""
+
+    def __init__(self, video_id: str, reason: str = None):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str reason:
+            Optional reason text from YouTube.
+        """
+        self.video_id = video_id
+        self.reason = reason or "This video has been removed for violating YouTube's Community Guidelines."
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f"{self.video_id} {self.reason}"
+
+
+
+
+class LiveStreamEnded(VideoUnavailable):
+    """Raised when the live event has already ended."""
+
+    def __init__(self, video_id: str, reason: str = None):
+        """
+        :param str video_id:
+            A YouTube video identifier.
+        :param str reason:
+            Reason for the error, defaults to a standard message.
+        """
+        self.video_id = video_id
+        self.reason = reason or "This live event has ended."
+        super().__init__(self.video_id)
+
+    @property
+    def error_string(self):
+        return f'{self.video_id} {self.reason}'
+
+
+
+
 class VideoBlockedByCopyright(VideoUnavailable):
     """Raised when a video is blocked in the user's country on copyright grounds."""
 
