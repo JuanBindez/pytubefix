@@ -1,4 +1,5 @@
 # All credits to https://github.com/LuanRT/googlevideo
+from enum import Enum
 
 from pytubefix.sabr.proto import BinaryWriter, BinaryReader
 from pytubefix.sabr.video_streaming.playback_cookie import PlaybackCookie
@@ -221,12 +222,7 @@ class StreamerContext_GLDeviceInfo:
 
         return message
 
-class StreamerContext_Fqa:
-
-    def __init__(self):
-        self.type = 0
-        self.value = None
-
+class StreamerContextUpdate:
     @staticmethod
     def encode(message: dict, writer=None):
         if writer is None:
@@ -234,8 +230,9 @@ class StreamerContext_Fqa:
 
         if message.get("type", 0):
             writer.uint32(8).int32(message["type"])
+
         if message.get("value", 0):
-            writer.uint32(18).bytes(message["value"])
+            StreamerContextUpdateValue.encode(message["value"], writer.uint32(18).fork()).join()
 
         return writer
 
@@ -243,17 +240,26 @@ class StreamerContext_Fqa:
     def decode(data, length=None):
         reader = data if isinstance(data, BinaryReader) else BinaryReader(data)
         end = reader.len if length is None else reader.pos + length
-        message = StreamerContext_Fqa()
+        message = dict()
 
         while reader.pos < end:
             tag = reader.uint32()
             field_number = tag >> 3
 
             if field_number == 1 and tag == 8:
-                message.type = reader.int32()
+                message["type"] = reader.int32()
                 continue
-            elif field_number == 2 and tag == 18:
-                message.value = reader.int32()
+            elif field_number == 2 and tag == 16:
+                message["scope"] = reader.int32()
+                continue
+            elif field_number == 3 and tag == 26:
+                message["value"] = StreamerContextUpdateValue.decode(reader, reader.uint32())
+                continue
+            elif field_number == 4 and tag == 32:
+                message["sendByDefault"] = reader.bool()
+                continue
+            elif field_number == 5 and tag == 40:
+                message["writePolicy"] = reader.int32()
                 continue
 
             elif (tag & 7) == 4 or tag == 0:
@@ -262,6 +268,96 @@ class StreamerContext_Fqa:
                 reader.skip(tag & 7)
 
         return message
+
+    class SabrContextWritePolicy(Enum):
+        SABR_CONTEXT_WRITE_POLICY_UNSPECIFIED = 0
+        SABR_CONTEXT_WRITE_POLICY_OVERWRITE = 1
+        SABR_CONTEXT_WRITE_POLICY_KEEP_EXISTING = 2
+
+class StreamerContextUpdateValue:
+    @staticmethod
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
+
+        if message.get("field1", 0):
+            StreamerContextUpdateField1.encode(message["field1"], writer.uint32(10).fork()).join()
+        if message.get("field2", 0):
+            writer.uint32(18).bytes(message["field2"])
+        if message.get("field3", 0):
+            writer.uint32(40).int32(message["field3"])
+
+        return writer
+
+    @staticmethod
+    def decode(data, length=None):
+        reader = data if isinstance(data, BinaryReader) else BinaryReader(data)
+        end = reader.len if length is None else reader.pos + length
+        message = dict()
+
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3
+
+            if field_number == 1 and tag == 10:
+                message["field1"] = StreamerContextUpdateField1.decode(reader, reader.uint32())
+                continue
+            elif field_number == 2 and tag == 18:
+                message["field2"] = reader.bytes()
+                continue
+            elif field_number == 5 and tag == 40:
+                message["field3"] = reader.int32()
+                continue
+
+            elif (tag & 7) == 4 or tag == 0:
+                break
+            else:
+                reader.skip(tag & 7)
+
+        return message
+
+class StreamerContextUpdateField1:
+    @staticmethod
+    def encode(message: dict, writer=None):
+        if writer is None:
+            writer = BinaryWriter()
+
+        if message.get("timestamp", 0):
+            writer.uint32(8).int64(message["timestamp"])
+        if message.get("skip", 0):
+            writer.uint32(16).int32(message["skip"])
+        if message.get("fiedl3", 0):
+            writer.uint32(26).bytes(message["fiedl3"])
+
+        return writer
+
+    @staticmethod
+    def decode(data, length=None):
+        reader = data if isinstance(data, BinaryReader) else BinaryReader(data)
+        end = reader.len if length is None else reader.pos + length
+        message = dict()
+
+        while reader.pos < end:
+            tag = reader.uint32()
+            field_number = tag >> 3
+
+            if field_number == 1 and tag == 8:
+                message["timestamp"] = reader.int64()
+                continue
+            elif field_number == 2 and tag == 16:
+                message["skip"] = reader.int32()
+                continue
+            elif field_number == 3 and tag == 26:
+                message["fiedl3"] = reader.bytes()
+                continue
+
+            elif (tag & 7) == 4 or tag == 0:
+                break
+            else:
+                reader.skip(tag & 7)
+
+        return message
+
 
 class StreamerContext_Gqa:
 
@@ -356,7 +452,7 @@ class StreamerContext:
         self.poToken = None
         self.playbackCookie = None
         self.gp = None
-        self.field5 = []
+        self.sabrContexts = []
         self.field6 = []
         self.field6 = ""
         self.field6 = []
@@ -379,8 +475,8 @@ class StreamerContext:
         if message.get("gp"):
             writer.uint32(34).bytes(message["gp"])
 
-        for v in message.get("field5", []):
-            StreamerContext_Fqa.encode(v, writer.uint32(42).fork()).join()
+        for v in message.get("sabrContexts", []):
+            StreamerContextUpdate.encode(v, writer.uint32(42).fork()).join()
 
         writer.uint32(50).fork()
         for v in message.get("field6", []):
@@ -418,10 +514,10 @@ class StreamerContext:
                 message.gp = reader.bytes()
                 continue
             if field_number == 5 and tag == 42:
-                message.field5.append(StreamerContext_Fqa.decode(reader, reader.uint32()))
+                message.sabrContexts.append(StreamerContextUpdate.decode(reader, reader.uint32())) # sabrContexts
                 continue
             if field_number == 6 and tag == 48:
-                message.field6.append(reader.int32())
+                message.field6.append(reader.int32()) # unsentSabrContexts
                 continue
             if field_number == 6 and tag == 50:
                 end2 = reader.uint32() + reader.pos

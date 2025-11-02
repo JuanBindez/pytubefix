@@ -96,16 +96,6 @@ class YouTube:
             (optional) Verifier to be used for getting oauth tokens. 
             Verification URL and User-Code will be passed to it respectively.
             (if passed, else default verifier will be used)
-        :param bool use_po_token:
-            (Optional) Prompt the user to use the proof of origin token on YouTube.
-            It must be sent with the API along with the linked visitorData and
-            then passed as a `po_token` query parameter to affected clients.
-            If allow_oauth_cache is set to True, the user should only be prompted once.
-            (Do not use together with `use_oauth=True`)
-        :param Callable po_token_verifier:
-            (Optional) Verified used to obtain the visitorData and po_token.
-            The verifier will return the visitorData and po_token respectively.
-            (if passed, else default verifier will be used)
         """
         # js fetched by js_url
         self._js: Optional[str] = None
@@ -136,7 +126,7 @@ class YouTube:
         self.watch_url = f"https://youtube.com/watch?v={self.video_id}"
         self.embed_url = f"https://www.youtube.com/embed/{self.video_id}"
 
-        self.client = 'WEB' if use_po_token else client
+        self.client = client
 
         # oauth can only be used by the TV and TV_EMBED client.
         self.client = 'TV' if use_oauth else self.client
@@ -156,6 +146,7 @@ class YouTube:
 
         self._author = None
         self._title = None
+        self._original_title = None
         self._publish_date = None
 
         self.use_oauth = use_oauth
@@ -163,8 +154,14 @@ class YouTube:
         self.token_file = token_file
         self.oauth_verifier = oauth_verifier
 
+
+        # TODO: This does not work, remove poToken manually in the next update
+        # https://github.com/FreeTubeApp/FreeTube/pull/8137
         self.use_po_token = use_po_token
         self.po_token_verifier = po_token_verifier
+
+        if self.use_po_token or self.po_token_verifier:
+            logger.warning("`use_po_token` and `po_token_verifier` is deprecated and will be removed soon.")
 
         self.po_token = None
         self._pot = None
@@ -247,7 +244,8 @@ class YouTube:
         try:
             self._visitor_data = innertube_response['responseContext']['visitorData']
         except KeyError:
-            self._visitor_data = innertube_response['responseContext']['serviceTrackingParams'][0]['params'][6]['value']
+            p_dicts = innertube_response['responseContext']['serviceTrackingParams'][0]['params']
+            self._visitor_data = next(p for p in p_dicts if p['key'] == 'visitor_data')['value']
         logger.debug('VisitorData obtained successfully')
 
         return self._visitor_data
@@ -261,9 +259,9 @@ class YouTube:
         """
         if self._pot:
             return self._pot
-        logger.debug('Invoking botGuard')
+        logger.debug('Running botGuard')
         try:
-            self._pot = bot_guard.generate_po_token(visitor_data=self.visitor_data)
+            self._pot = bot_guard.generate_po_token(video_id=self.video_id)
             logger.debug('PoToken generated successfully')
         except Exception as e:
             logger.warning('Unable to run botGuard. Skipping poToken generation, reason: ' + e.__str__())
@@ -377,6 +375,9 @@ class YouTube:
                 ):
                     raise exceptions.MembersOnly(video_id=self.video_id)
 
+                elif 'Join this channel to get access to members-only content and other exclusive perks.' in reason:
+                    raise exceptions.MembersOnly(video_id=self.video_id)
+
                 elif reason == 'This live stream recording is not available.':
                     raise exceptions.RecordingUnavailable(video_id=self.video_id)
 
@@ -385,10 +386,10 @@ class YouTube:
                         'Sign in to your primary account to confirm your age.'
                 ):
                     raise exceptions.AgeCheckRequiredAccountError(video_id=self.video_id)
-                elif reason == (
-                        'The uploader has not made this video available in your country'
-                ):
+                elif reason == ('The uploader has not made this video available in your country'):
                     raise exceptions.VideoRegionBlocked(video_id=self.video_id)
+                elif "blocked it in your country on copyright grounds" in reason:
+                    raise exceptions.VideoBlockedByCopyright(video_id=self.video_id, reason=reason)
                 else:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
 
@@ -421,9 +422,9 @@ class YouTube:
                 elif reason == 'This video is unavailable':
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
                 elif reason == 'This video has been removed by the uploader':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.VideoRemovedByUploader(video_id=self.video_id, reason=reason)
                 elif reason == 'This video is no longer available because the YouTube account associated with this video has been terminated.':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
+                    raise exceptions.AccountTerminated(video_id=self.video_id, reason=reason)
                 else:
                     raise exceptions.UnknownVideoError(video_id=self.video_id, status=status, reason=reason, developer_message=f'Unknown reason type for Error status')
             elif status == 'LIVE_STREAM':
@@ -483,9 +484,24 @@ class YouTube:
         if self._vid_info:
             return self._vid_info
 
-        def call_innertube():
+        self._vid_info = self.vid_info_client()
+
+        return self._vid_info
+
+    @vid_info.setter
+    def vid_info(self, value):
+        self._vid_info = value
+
+    def vid_info_client(self, optional_client=None):
+
+        if optional_client is None:
+            if self._vid_info:
+                return self._vid_info
+            optional_client = self.client
+
+        def call_innertube(optional_client):
             innertube = InnerTube(
-                client=self.client,
+                client=optional_client,
                 use_oauth=self.use_oauth,
                 allow_cache=self.allow_oauth_cache,
                 token_file=self.token_file,
@@ -498,9 +514,9 @@ class YouTube:
 
             # Automatically generates a poToken
             if innertube.require_po_token and not self.use_po_token:
-                logger.debug(f"The {self.client} client requires poToken to obtain functional streams")
+                logger.debug(f"The {optional_client} client requires poToken to obtain functional streams")
                 logger.debug("Automatically generating poToken")
-                innertube.insert_po_token(visitor_data=self.visitor_data, po_token=self.pot)
+                innertube.insert_visitor_data(visitor_data=self.visitor_data)
             elif not self.use_po_token:
                 # from 01/22/2025 all clients must send the visitorData in the API request
                 innertube.insert_visitor_data(visitor_data=self.visitor_data)
@@ -512,7 +528,7 @@ class YouTube:
                 self.po_token = innertube.access_po_token or self.pot
             return response
 
-        innertube_response = call_innertube()
+        innertube_response = call_innertube(optional_client)
         for client in self.fallback_clients:
             # Some clients are unable to access certain types of videos
             # If the video is unavailable for the current client, attempts will be made with fallback clients
@@ -521,19 +537,14 @@ class YouTube:
                 logger.warning(f"{self.client} client returned: This video is not available")
                 self.client = client
                 logger.warning(f"Switching to client: {client}")
-                innertube_response = call_innertube()
+                innertube_response = call_innertube(client)
             else:
                 break
 
-        self._vid_info = innertube_response
-        if not self._vid_info:
+        if not innertube_response:
             raise pytubefix.exceptions.InnerTubeResponseError(self.video_id, self.client)
 
-        return self._vid_info
-
-    @vid_info.setter
-    def vid_info(self, value):
-        self._vid_info = value
+        return innertube_response
 
     @property
     def vid_details(self):
@@ -818,25 +829,27 @@ class YouTube:
                 # The type of video with this structure is not yet known.
                 # First reported in: https://github.com/JuanBindez/pytubefix/issues/351
                 elif 'twoColumnWatchNextResults' in self.vid_details['contents']:
-                    self._title = self.vid_details['contents'][
+                    contents = self.vid_details['contents'][
                         'twoColumnWatchNextResults'][
                         'results'][
                         'results'][
-                        'contents'][0][
-                        'videoPrimaryInfoRenderer'][
-                        'title'][
-                        'runs'][0][
-                        'text']
+                        'contents']
+                    for videoPrimaryInfoRenderer in contents:
+                        if 'videoPrimaryInfoRenderer' in videoPrimaryInfoRenderer:
+                            self._title = videoPrimaryInfoRenderer[
+                                'videoPrimaryInfoRenderer'][
+                                'title'][
+                                'runs'][0][
+                                'text']
+                            break
 
-                logger.debug('Found title in vid_details')
         except KeyError as e:
             # Check_availability will raise the correct exception in most cases
             #  if it doesn't, ask for a report.
             self.check_availability()
             raise exceptions.PytubeFixError(
                 (
-                    f'Exception while accessing title of {self.watch_url}. '
-                    'Please file a bug report at https://github.com/JuanBindez/pytubefix'
+                    f'Exception while accessing title of {self.watch_url} in {self.client} client.'
                 )
             ) from e
 
@@ -848,12 +861,43 @@ class YouTube:
         self._title = value
 
     @property
+    def original_title(self):
+
+        if self._original_title:
+            return self._original_title
+
+        try:
+            if self.client == 'WEB':
+                self._original_title = self.vid_info['microformat']['playerMicroformatRenderer']['title']['simpleText']
+            else:
+                self._original_title = self.vid_info_client("WEB")['microformat']['playerMicroformatRenderer']['title']['simpleText']
+        except KeyError as e:
+            # Check_availability will raise the correct exception in most cases
+            #  if it doesn't, ask for a report.
+            self.check_availability()
+            raise exceptions.PytubeFixError(
+                (
+                    f'Exception while accessing original title of {self.watch_url} in {self.client} client.'
+                )
+            ) from e
+
+        return self._original_title
+
+    @property
     def description(self) -> str:
         """Get the video description.
 
         :rtype: str
         """
-        return self.vid_info.get("videoDetails", {}).get("shortDescription")
+        description = self.vid_info.get("videoDetails", {}).get("shortDescription")
+        if description is None:
+            # TV client structure
+            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            for c in results:
+                if 'videoSecondaryInfoRenderer' in c:
+                    description = c['videoSecondaryInfoRenderer']['attributedDescription']['content']
+                    break
+        return description
 
     @property
     def rating(self) -> float:
@@ -870,6 +914,7 @@ class YouTube:
 
         :rtype: int
         """
+        self.check_availability()
         return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
 
     @property
@@ -878,18 +923,30 @@ class YouTube:
 
         :rtype: int
         """
-        return int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
+        view = int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
+        if not view:
+            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            for c in results:
+                if 'videoPrimaryInfoRenderer' in c:
+                    simple_text = c['videoPrimaryInfoRenderer'][
+                        'viewCount'][
+                        'videoViewCountRenderer'][
+                        'viewCount'][
+                        'simpleText']
+                    view = int(''.join([char for char in simple_text if char.isdigit()]))
+                    break
+        return view
 
     @property
     def author(self) -> str:
         """Get the video author.
         :rtype: str
         """
-        if self._author:
-            return self._author
-        self._author = self.vid_info.get("videoDetails", {}).get(
-            "author", "unknown"
-        )
+
+        # TODO: Implement correctly for the TV client
+        _author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
+
+        self._author = _author
         return self._author
 
     @author.setter
@@ -928,21 +985,30 @@ class YouTube:
         :rtype: str
         """
         try:
-            return self.vid_details[
+            likes = '0'
+            contents = self.vid_details[
                 'contents'][
                 'twoColumnWatchNextResults'][
                 'results'][
-                'results'][
-                'contents'][
-                0][
-                'videoPrimaryInfoRenderer'][
-                'videoActions'][
-                'menuRenderer'][
-                'topLevelButtons'][
-                0][
-                'segmentedLikeDislikeButtonViewModel'][
-                'likeCountEntity'][
-                'likeCountIfLikedNumber']
+                'results']['contents']
+            for c in contents:
+                if 'videoPrimaryInfoRenderer' in c:
+                    likes = c['videoPrimaryInfoRenderer'][
+                    'videoActions'][
+                    'menuRenderer'][
+                    'topLevelButtons'][
+                    0][
+                    'segmentedLikeDislikeButtonViewModel'][
+                    'likeButtonViewModel'][
+                    'likeButtonViewModel'][
+                    'toggleButtonViewModel'][
+                    'toggleButtonViewModel'][
+                    'defaultButtonViewModel'][
+                    'buttonViewModel'][
+                    'accessibilityText']
+                    break
+
+            return ''.join([char for char in likes if char.isdigit()])
         except (KeyError, IndexError):
             return None
 

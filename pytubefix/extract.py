@@ -488,7 +488,7 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
             logger.debug("signature found, skip decipher")
 
         else:
-            signature = cipher.get_signature(ciphered_signature=stream["s"])
+            signature = cipher.get_sig(ciphered_signature=stream["s"])
 
             logger.debug(
                 "finished descrambling signature for itag=%s", stream["itag"]
@@ -505,7 +505,7 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
 
             # Check if any previous stream decrypted the parameter
             if initial_n not in discovered_n:
-                discovered_n[initial_n] = cipher.get_throttling(initial_n)
+                discovered_n[initial_n] = cipher.get_nsig(initial_n)
             else:
                 logger.debug('Parameter n found skipping decryption')
 
@@ -516,6 +516,9 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
         url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'  # noqa:E501
 
         stream_manifest[i]["url"] = url
+
+    cipher.runner_sig.close()
+    cipher.runner_nsig.close()
 
 
 def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
