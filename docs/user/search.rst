@@ -149,20 +149,22 @@ The .channel method will return only the channels::
 Using Filters
 =============
 
-It wouldn't be very practical for the user or developer to have to manually retrieve the custom filter from YouTube whenever they want to do a search, so the Filter class will do all the work of providing all the available filters, combining them, coding them in protobuf and send to the Search class, all we need to do is import it and create a dictionary with the necessary filters::
-    
+The YouTube API allows content filtering using a dictionary encoded in protobuf.
+Pytubefix enables the use of these filters in a simple and fast way:
+
     >>> from pytubefix.contrib.search import Search, Filter
     >>> 
     >>> 
-    >>> filters = {
-    ...     'upload_date': Filter.get_upload_date('Today'),
-    ...     'type': Filter.get_type("Video"),
-    ...     'duration': Filter.get_duration("Under 4 minutes"),
-    ...     'features': [Filter.get_features("4K"), Filter.get_features("Creative Commons")],
-    ...     'sort_by': Filter.get_sort_by("Upload date")
-    ... }
+    >>> filters = (
+    ...     Filter.create()
+    ...         .upload_date(Filter.UploadDate.TODAY)
+    ...         .type(Filter.Type.VIDEO)
+    ...         .duration(Filter.Duration.UNDER_4_MINUTES)
+    ...         .feature([Filter.Features.CREATIVE_COMMONS, Filter.Features._4K])
+    ...         .sort_by(Filter.SortBy.UPLOAD_DATE)
+    ...     )
     >>> 
-    >>> s = Search('music', filters=f)
+    >>> s = Search('music', filters=filters)
     >>> for c in s.videos:
     ...     print(c.watch_url)
     ... 
