@@ -57,6 +57,172 @@ class Filter:
         self._sort_by = None
         self._features = set()
 
+        # TODO: Remove legacy implementation
+
+        ################################# legacy implementation ####################################
+
+        self.filters = {
+            'upload_date': None,
+            'type': None,
+            'duration': None,
+            'features': [],
+            'sort_by': None
+        }
+
+    def set_filters(self, filter_dict):
+        """
+        Applies multiple filters at once using a dictionary.
+        """
+        for category, value in filter_dict.items():
+            if category == 'features':
+                if isinstance(value, list):
+                    logger.debug("Filter features is a list")
+                    self.filters['features'].extend(value)
+                else:
+                    self.filters['features'].append(value)
+            else:
+                self.filters[category] = value
+
+    def clear_filters(self):
+        """
+        Clear all filters
+        """
+        for category in self.filters:
+            if category == 'features':
+                self.filters[category] = []
+            else:
+                self.filters[category] = None
+
+    def get_filters_params(self):
+        """
+        Combines selected filters into a final structure
+        """
+        combined = {}
+
+        if self.filters['sort_by']:
+            combined.update(self.filters['sort_by'])
+
+        combined[2] = {}
+
+        if self.filters['type']:
+            combined[2].update(self.filters['type'])
+
+        if self.filters['duration']:
+            combined[2].update(self.filters['duration'])
+
+        if self.filters['features']:
+            for feature in self.filters['features']:
+                combined[2].update(feature)
+
+        if self.filters['upload_date']:
+            combined[2].update(self.filters['upload_date'])
+
+        combined[2] = dict(sorted(combined.get(2, {}).items()))
+
+        logger.debug(f"Combined filters: {combined}")
+
+        encoded_filters = encode_protobuf(str(combined))
+
+        logger.debug(f"Filter encoded in protobuf: {encoded_filters}")
+
+        return encoded_filters
+
+    @staticmethod
+    def get_upload_date(option: str) -> dict:
+        """
+        Last Hour,
+        Today,
+        This Week,
+        This Month,
+        This Year
+        """
+        filters = {
+            "Last Hour": {1: 1},
+            "Today": {1: 2},
+            "This Week": {1: 3},
+            "This Month": {1: 4},
+            "This Year": {1: 5},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_type(option: str) -> dict:
+        """
+        Video,
+        Channel,
+        Playlist,
+        Movie
+        """
+        filters = {
+            "Video": {2: 1},
+            "Channel": {2: 2},
+            "Playlist": {2: 3},
+            "Movie": {2: 4},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_duration(option: str) -> dict:
+        """
+        Under 4 minutes,
+        Over 20 minutes,
+        4 - 20 minutes
+        """
+        filters = {
+            "Under 4 minutes": {3: 1},
+            "Over 20 minutes": {3: 2},
+            "4 - 20 minutes": {3: 3},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_features(option: str) -> dict:
+        """
+        Live,
+        4K,
+        HD,
+        Subtitles/CC,
+        Creative Commons,
+        360,
+        VR180,
+        3D,
+        HDR,
+        Location,
+        Purchased
+        """
+        filters = {
+            "Live": {8: 1},
+            "4K": {14: 1},
+            "HD": {4: 1},
+            "Subtitles/CC": {5: 1},
+            "Creative Commons": {6: 1},
+            "360": {15: 1},
+            "VR180": {26: 1},
+            "3D": {7: 1},
+            "HDR": {25: 1},
+            "Location": {23: 1},
+            "Purchased": {9: 1},
+        }
+        return filters.get(option)
+
+    @staticmethod
+    def get_sort_by(option: str) -> dict:
+        """
+        Relevance,
+        Upload date,
+        View count,
+        Rating
+        """
+        filters = {
+            "Relevance": {1: 0},
+            "Upload date": {1: 2},
+            "View count": {1: 3},
+            "Rating": {1: 1},
+        }
+        return filters.get(option)
+
+    ################################# legacy implementation ####################################
+
     @classmethod
     def create(cls):
         return cls()
@@ -105,6 +271,8 @@ class Filter:
 
         if group_2:
             result[2] = group_2
+
+        logger.debug(f"Combined filters: {result}")
 
         return str(result)
 
@@ -198,7 +366,18 @@ class Search:
         if filters:
             logger.debug("Filters found, starting combination")
 
-            self.filter = encode_protobuf(filters.merge())
+            # TODO: 
+            if isinstance(filters, dict):
+                logging.warning("This filter implementation is obsolete and will be removed soon. "
+                                "Please refer to the documentation for the new implementation. "
+                                "https://pytubefix.readthedocs.io/en/latest/user/search.html")
+                filter_protobuf = Filter()
+                filter_protobuf.set_filters(filters)
+                self.filter = filter_protobuf.get_filters_params()
+
+            else:
+                self.filter = encode_protobuf(filters.merge())
+                logger.debug(f"Filter encoded in protobuf: {self.filter}")
 
     @property
     def completion_suggestions(self):
