@@ -328,11 +328,8 @@ class AsyncYouTube:
             )
             self._fmt_streams.append(video)
     
-    
-        title = getattr(self, "title", None)
-        length = getattr(self, "length", None)
-        self.stream_monostate.title = title
-        self.stream_monostate.duration = length
+        self.stream_monostate.title = await self.title()
+        self.stream_monostate.duration = await self.length()
     
         return self._fmt_streams
 
