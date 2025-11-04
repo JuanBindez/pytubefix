@@ -897,7 +897,7 @@ class YouTube:
         except Exception as e:
             raise exceptions.PyTubeFixError(
                     (
-                        f'Exception occured while accessing vid_details_content of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
+                        f'Exception: accessing vid_details_content of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
                     )
             ) from e
         return results
@@ -1006,11 +1006,7 @@ class YouTube:
         """
         try:
             likes = '0'
-            contents = self.vid_details[
-                'contents'][
-                'twoColumnWatchNextResults'][
-                'results'][
-                'results']['contents']
+            contents = self.vid_details_content()
             for c in contents:
                 if 'videoPrimaryInfoRenderer' in c:
                     likes = c['videoPrimaryInfoRenderer'][
@@ -1029,8 +1025,13 @@ class YouTube:
                     break
 
             return ''.join([char for char in likes if char.isdigit()])
-        except (KeyError, IndexError):
-            return None
+        except (KeyError, IndexError) as e:
+            raise exceptions.PyTubeFixError(
+                    (
+                        f'Exception: accessing likes of {self.watch_url} in {self.client}'
+                    )
+            ) from e
+        return None
 
     @property
     def metadata(self) -> Optional[YouTubeMetadata]:
