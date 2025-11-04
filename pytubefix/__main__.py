@@ -890,6 +890,19 @@ class YouTube:
 
         return self._original_title
 
+    def vid_details_content(self) -> list:
+        try:
+            contents = self.vid_details['contents']
+            results = contents[list(contents.keys())[0]]['results']['results']['contents']
+        except Exception as e:
+            raise exceptions.PyTubeFixError(
+                    (
+                        f'Exception occured while accessing vid_details_content of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
+                    )
+            ) from e
+        return results
+
+
     @property
     def description(self) -> str:
         """Get the video description.
@@ -899,15 +912,7 @@ class YouTube:
         description = self.vid_info.get("videoDetails", {}).get("shortDescription")
         if description is None:
             # TV client structure
-            try:
-                contents = self.vid_details['contents']
-                results = contents[list(contents.keys())[0]]['results']['results']['contents']
-            except Exception as e:
-                raise exceptions.PyTubeFixError(
-                        (
-                            f'Exception occured while accessing description of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
-                        )
-                ) from e
+            results = self.vid_details_content()
             for c in results:
                 if 'videoSecondaryInfoRenderer' in c:
                     description = c['videoSecondaryInfoRenderer']['attributedDescription']['content']
@@ -940,7 +945,7 @@ class YouTube:
         """
         view = int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
         if not view:
-            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            results = self.vid_details_content()
             for c in results:
                 if 'videoPrimaryInfoRenderer' in c:
                     simple_text = c['videoPrimaryInfoRenderer'][
