@@ -899,7 +899,15 @@ class YouTube:
         description = self.vid_info.get("videoDetails", {}).get("shortDescription")
         if description is None:
             # TV client structure
-            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            try:
+                contents = self.vid_details['contents']
+                results = contents[list(contents.keys())[0]]['results']['results']['contents']
+            except Exception as e:
+                raise exceptions.PyTubeFixError(
+                        (
+                            f'Exception occured while accessing description of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
+                        )
+                ) from e
             for c in results:
                 if 'videoSecondaryInfoRenderer' in c:
                     description = c['videoSecondaryInfoRenderer']['attributedDescription']['content']
