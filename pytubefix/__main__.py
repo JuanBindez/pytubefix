@@ -896,15 +896,53 @@ class YouTube:
 
         :rtype: str
         """
+        # 1) Prefer the player payload (most stable across layouts)
         description = self.vid_info.get("videoDetails", {}).get("shortDescription")
-        if description is None:
-            # TV client structure
-            results = self.vid_details['contents']['twoColumnWatchNextResults']['results']['results']['contents']
-            for c in results:
-                if 'videoSecondaryInfoRenderer' in c:
-                    description = c['videoSecondaryInfoRenderer']['attributedDescription']['content']
-                    break
-        return description
+        if description:
+            return description
+        
+        # 2) Fall back to parsing the "next" response (varies by layout)
+        details = self.vid_details.get('contents', {})
+        
+        candidates = []
+        # WEB/TV classic layout
+        if 'twoColumnWatchNextResults' in details:
+            try:
+                candidates = details['twoColumnWatchNextResults']['results']['results']['contents']
+            except Exception:
+                candidates = []
+        
+        # Single-column layout (seen on Music/embeds/some experiments)
+        if not candidates and 'singleColumnWatchNextResults' in details:
+            try:
+                sc = details['singleColumnWatchNextResults']['results']['results']['contents']
+                # Flatten itemSectionRenderer blocks to get to renderers quickly
+                tmp = []
+                for c in sc:
+                    if 'itemSectionRenderer' in c:
+                        tmp.extend(c['itemSectionRenderer'].get('contents', []))
+                    else:
+                        tmp.append(c)
+                candidates = tmp
+            except Exception:
+                candidates = []
+        
+        # Look for the secondary info renderer and extract its description
+        for c in candidates or []:
+            vsir = c.get('videoSecondaryInfoRenderer')
+            if not vsir:
+                continue
+            # Newer layouts prefer attributedDescription; older sometimes use description.simpleText
+            description = (
+                vsir.get('attributedDescription', {}).get('content') or
+                vsir.get('description', {}).get('simpleText')
+            )
+            if description:
+                return description
+        
+        # 3) Last resort: microformat (older but sometimes present)
+        mf = self.vid_info.get('microformat', {}).get('playerMicroformatRenderer', {})
+        return mf.get('description', {}).get('simpleText')
 
     @property
     def rating(self) -> float:
