@@ -798,6 +798,9 @@ class YouTube:
         """Sets the publish date."""
         self._publish_date = value
 
+    def vid_engagement_items(self) -> list:
+        return self.vid_details['engagementPanels'][1]['engagementPanelSectionListRenderer']['content']['structuredDescriptionContentRenderer']['items']
+
     @property
     def title(self) -> str:
         """Get the video title.
@@ -810,6 +813,9 @@ class YouTube:
 
         if self._title:
             return self._title
+
+        if self.use_oauth == True:
+            self._title = self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['title']['runs'][0]['text']
 
         try:
             # Some clients may not return the title in the `player` endpoint,
@@ -910,6 +916,10 @@ class YouTube:
         :rtype: str
         """
         description = self.vid_info.get("videoDetails", {}).get("shortDescription")
+
+        if self.use_oauth == True:
+            description = self.vid_engagement_items()[2]['expandableVideoDescriptionBodyRenderer']['descriptionBodyText']['runs'][0]['text']
+
         if description is None:
             # TV client structure
             results = self.vid_details_content()
@@ -944,6 +954,11 @@ class YouTube:
         :rtype: int
         """
         view = int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
+
+        if self.use_oauth == True:
+            simple_text = self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['views']['simpleText']
+            view = int(''.join([char for char in simple_text if char.isdigit()]))
+
         if not view:
             results = self.vid_details_content()
             for c in results:
@@ -965,6 +980,10 @@ class YouTube:
 
         # TODO: Implement correctly for the TV client
         _author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
+
+        if self.use_oauth == True:
+            _author = self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['channel']['simpleText']
+
 
         self._author = _author
         return self._author
@@ -1004,6 +1023,10 @@ class YouTube:
 
         :rtype: str
         """
+        
+        if self.use_oauth == True:
+            return self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['factoid'][0]['factoidRenderer']['value']['simpleText']
+
         try:
             likes = '0'
             contents = self.vid_details_content()
