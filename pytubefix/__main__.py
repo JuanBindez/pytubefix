@@ -799,7 +799,16 @@ class YouTube:
         self._publish_date = value
 
     def vid_engagement_items(self) -> list:
-        return self.vid_details['engagementPanels'][1]['engagementPanelSectionListRenderer']['content']['structuredDescriptionContentRenderer']['items']
+        for i in range(1,4):
+            try:
+                return self.vid_details['engagementPanels'][i]['engagementPanelSectionListRenderer']['content']['structuredDescriptionContentRenderer']['items']
+            except KeyError as e:
+                continue
+        raise exceptions.PytubeFixError(
+            (
+                f'Exception while accessing engagementPanel of {self.watch_url} in {self.client} client.'
+            )
+        ) from e
 
     @property
     def title(self) -> str:
