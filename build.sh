@@ -4,9 +4,9 @@ set -e
 
 VERSION=10
 MINOR=3
-PATCH=3
+PATCH=4
 EXTRAVERSION=""
-NOTES="(#558 #559 #561 #562)"
+NOTES="(#565)"
 BRANCH="main"
 
 if [[ -z $PATCH ]]; then
