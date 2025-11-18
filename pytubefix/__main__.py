@@ -799,7 +799,7 @@ class YouTube:
         self._publish_date = value
 
     def vid_engagement_items(self) -> list:
-        for i in range(1,4):
+        for i in range(len(self.vid_details.get('engagementPanels', []))):
             try:
                 return self.vid_details['engagementPanels'][i]['engagementPanelSectionListRenderer']['content']['structuredDescriptionContentRenderer']['items']
             except KeyError as e:
