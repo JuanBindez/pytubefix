@@ -799,16 +799,12 @@ class YouTube:
         self._publish_date = value
 
     def vid_engagement_items(self) -> list:
-        for i in range(len(self.vid_details.get('engagementPanels', []))):
+        for i in self.vid_details.get('engagementPanels', []):
             try:
-                return self.vid_details['engagementPanels'][i]['engagementPanelSectionListRenderer']['content']['structuredDescriptionContentRenderer']['items']
+                return i['engagementPanelSectionListRenderer']['content']['structuredDescriptionContentRenderer']['items']
             except KeyError as e:
                 continue
-        raise exceptions.PytubeFixError(
-            (
-                f'Exception while accessing engagementPanel of {self.watch_url} in {self.client} client.'
-            )
-        ) from e
+        return None
 
     @property
     def title(self) -> str:
@@ -824,7 +820,9 @@ class YouTube:
             return self._title
 
         if self.use_oauth == True:
-            self._title = self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['title']['runs'][0]['text']
+            self._title = self.vid_engagement_items()
+            if self._title != None:
+                self._title = self._title[0]['videoDescriptionHeaderRenderer']['title']['runs'][0]['text']
 
         try:
             # Some clients may not return the title in the `player` endpoint,
@@ -927,7 +925,9 @@ class YouTube:
         description = self.vid_info.get("videoDetails", {}).get("shortDescription")
 
         if self.use_oauth == True:
-            description = self.vid_engagement_items()[2]['expandableVideoDescriptionBodyRenderer']['descriptionBodyText']['runs'][0]['text']
+            description = self.vid_engagement_items()
+            if description != None:
+                description = description[2]['expandableVideoDescriptionBodyRenderer']['descriptionBodyText']['runs'][0]['text']
 
         if description is None:
             # TV client structure
@@ -965,8 +965,10 @@ class YouTube:
         view = int(self.vid_info.get("videoDetails", {}).get("viewCount", "0"))
 
         if self.use_oauth == True:
-            simple_text = self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['views']['simpleText']
-            view = int(''.join([char for char in simple_text if char.isdigit()]))
+            simple_text = self.vid_engagement_items()
+            if simple_text != None:
+                simple_text = simple_text[0]['videoDescriptionHeaderRenderer']['views']['simpleText']
+                view = int(''.join([char for char in simple_text if char.isdigit()]))
 
         if not view:
             results = self.vid_details_content()
@@ -991,8 +993,9 @@ class YouTube:
         _author = self.vid_info.get("videoDetails", {}).get("author", "unknown")
 
         if self.use_oauth == True:
-            _author = self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['channel']['simpleText']
-
+            _author = self.vid_engagement_items()
+            if _author:
+                _author = _author[0]['videoDescriptionHeaderRenderer']['channel']['simpleText']
 
         self._author = _author
         return self._author
@@ -1034,7 +1037,9 @@ class YouTube:
         """
         
         if self.use_oauth == True:
-            return self.vid_engagement_items()[0]['videoDescriptionHeaderRenderer']['factoid'][0]['factoidRenderer']['value']['simpleText']
+            likes = self.vid_engagement_items()
+            if likes != None:
+                return likes[0]['videoDescriptionHeaderRenderer']['factoid'][0]['factoidRenderer']['value']['simpleText']
 
         try:
             likes = '0'
