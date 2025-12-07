@@ -263,6 +263,40 @@ def install_proxy(proxy_handler: Dict[str, str]) -> None:
     request.install_opener(opener)
 
 
+def remove_proxy() -> None:
+    """Remove previously installed proxy and restore default opener."""
+    opener = request.build_opener()
+    request.install_opener(opener)
+
+
+def temporarily_disable_proxy(proxy_handler: Optional[Dict[str, str]] = None):
+    """Context manager to temporarily disable proxy during downloads.
+
+    :param Dict[str, str] proxy_handler:
+        Optional proxy handler to restore after context exits.
+        If None, no proxy will be restored.
+
+    Usage:
+        with temporarily_disable_proxy(proxy_handler):
+            # Download without proxy
+            stream.download()
+    """
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _context():
+        # Remove proxy temporarily
+        remove_proxy()
+        try:
+            yield
+        finally:
+            # Restore proxy after download if one was provided
+            if proxy_handler:
+                install_proxy(proxy_handler)
+
+    return _context()
+
+
 def uniqueify(duped_list: List) -> List:
     """Remove duplicate items from a list, while maintaining list order.
 

@@ -19,7 +19,7 @@ from urllib.parse import parse_qs
 from pathlib import Path
 
 from pytubefix import extract, request
-from pytubefix.helpers import target_directory
+from pytubefix.helpers import target_directory, temporarily_disable_proxy
 from pytubefix.itags import get_format_profile
 from pytubefix.monostate import Monostate
 from pytubefix.file_system import file_system_verify
@@ -387,52 +387,69 @@ class Stream:
         bytes_remaining = self.filesize
         logger.debug(f'downloading ({self.filesize} total bytes) file to {file_path}')
 
-        def write_chunk(chunk_, bytes_remaining_):
-            # send to the on_progress callback.
-            self.on_progress(chunk_, fh, bytes_remaining_)
+        # Get proxy settings from monostate YouTube instance
+        youtube_instance = getattr(self._monostate, 'youtube', None)
+        use_proxy = youtube_instance.use_proxy_on_download if youtube_instance else True
+        proxies = youtube_instance.proxies if youtube_instance else None
 
+        # Determine if we should disable proxy for download
+        should_disable_proxy = proxies and not use_proxy
 
-        with open(file_path, "wb") as fh:
-            try:
-                if not self.is_sabr:
-                    for chunk in request.stream(
-                        self.url,
-                        timeout=timeout,
-                        max_retries=max_retries
-                    ):
-                        if interrupt_checker is not None and interrupt_checker() == True:
-                            logger.debug('interrupt_checker returned True, causing to force stop the downloading')
-                            return
-                        # reduce the (bytes) remainder by the length of the chunk.
-                        bytes_remaining -= len(chunk)
-                        write_chunk(chunk, bytes_remaining)
-                else:
-                    logger.debug('This stream is SABR. Starting ServerAbrStream')
-                    ServerAbrStream(stream=self, write_chunk=write_chunk, monostate=self._monostate).start()
+        def download_stream():
+            nonlocal bytes_remaining
+            with open(file_path, "wb") as fh:
+                def write_chunk(chunk_, bytes_remaining_):
+                    # send to the on_progress callback.
+                    self.on_progress(chunk_, fh, bytes_remaining_)
 
-            except HTTPError as e:
-                if e.code != 404:
-                    raise
-            except StopIteration:
-                if not self.is_sabr:
-                    # Some adaptive streams need to be requested with sequence numbers
-                    for chunk in request.seq_stream(
-                        self.url,
-                        timeout=timeout,
-                        max_retries=max_retries
-                    ):
-                        if interrupt_checker is not None and interrupt_checker() == True:
-                            logger.debug('interrupt_checker returned True, causing to force stop the downloading')
-                            return
-                        # reduce the (bytes) remainder by the length of the chunk.
-                        bytes_remaining -= len(chunk)
-                        write_chunk(chunk, bytes_remaining)
-                else:
-                    logger.debug('This stream is SABR. Starting ServerAbrStream')
-                    ServerAbrStream(stream=self, write_chunk=write_chunk, monostate=self._monostate).start()
+                try:
+                    if not self.is_sabr:
+                        for chunk in request.stream(
+                            self.url,
+                            timeout=timeout,
+                            max_retries=max_retries
+                        ):
+                            if interrupt_checker is not None and interrupt_checker() == True:
+                                logger.debug('interrupt_checker returned True, causing to force stop the downloading')
+                                return
+                            # reduce the (bytes) remainder by the length of the chunk.
+                            bytes_remaining -= len(chunk)
+                            write_chunk(chunk, bytes_remaining)
+                    else:
+                        logger.debug('This stream is SABR. Starting ServerAbrStream')
+                        ServerAbrStream(stream=self, write_chunk=write_chunk, monostate=self._monostate).start()
 
-            self.on_complete(file_path)
-            return file_path
+                except HTTPError as e:
+                    if e.code != 404:
+                        raise
+                except StopIteration:
+                    if not self.is_sabr:
+                        # Some adaptive streams need to be requested with sequence numbers
+                        for chunk in request.seq_stream(
+                            self.url,
+                            timeout=timeout,
+                            max_retries=max_retries
+                        ):
+                            if interrupt_checker is not None and interrupt_checker() == True:
+                                logger.debug('interrupt_checker returned True, causing to force stop the downloading')
+                                return
+                            # reduce the (bytes) remainder by the length of the chunk.
+                            bytes_remaining -= len(chunk)
+                            write_chunk(chunk, bytes_remaining)
+                    else:
+                        logger.debug('This stream is SABR. Starting ServerAbrStream')
+                        ServerAbrStream(stream=self, write_chunk=write_chunk, monostate=self._monostate).start()
+
+                self.on_complete(file_path)
+                return file_path
+
+        # Execute download with or without proxy based on settings
+        if should_disable_proxy:
+            logger.debug('Temporarily disabling proxy for download')
+            with temporarily_disable_proxy(proxies):
+                return download_stream() 
+        else:
+            return download_stream()
 
     def get_file_path(
         self,
