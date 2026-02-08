@@ -47,7 +47,7 @@ class Caption:
     @property
     def json_captions(self) -> dict:
         """Download and parse the json caption tracks."""
-        if 'ftm=' in self.url:
+        if 'fmt=' in self.url:
             json_captions_url = self.url.replace('fmt=srv3', 'fmt=json3')
         else:
             json_captions_url = f'{self.url}&fmt=json3'
