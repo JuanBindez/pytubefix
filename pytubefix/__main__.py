@@ -63,6 +63,7 @@ class YouTube:
             oauth_verifier: Optional[Callable[[str, str], None]] = None,
             use_po_token: Optional[bool] = False,
             po_token_verifier: Optional[Callable[[None], Tuple[str, str]]] = None,
+            use_proxy_on_download: Optional[bool] = True,
     ):
         """Construct a :class:`YouTube <YouTube>`.
 
@@ -96,6 +97,9 @@ class YouTube:
             (optional) Verifier to be used for getting oauth tokens.
             Verification URL and User-Code will be passed to it respectively.
             (if passed, else default verifier will be used)
+        :param bool use_proxy_on_download:
+            (Optional) Whether to use proxy during downloads. If False, proxy will be temporarily
+            disabled during stream downloads and restored after. Defaults to True.
         """
         # js fetched by js_url
         self._js: Optional[str] = None
@@ -140,6 +144,9 @@ class YouTube:
         self.stream_monostate = Monostate(
             on_progress=on_progress_callback, on_complete=on_complete_callback, youtube=self
         )
+
+        self.proxies = proxies
+        self.use_proxy_on_download = use_proxy_on_download
 
         if proxies:
             install_proxy(proxies)
