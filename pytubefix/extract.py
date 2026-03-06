@@ -275,6 +275,13 @@ def js_url(html: str) -> str:
         base_js = get_ytplayer_config(html)['assets']['js']
     except (KeyError, RegexMatchError):
         base_js = get_ytplayer_js(html)
+
+    broken_ids = ["6c5cb4f4", "44899b31"]
+    for bid in broken_ids:
+        if bid in base_js:
+            base_js = base_js.replace(bid, "9f4cc5e4")
+            break
+        
     return f"https://youtube.com{base_js}"
 
 
