@@ -14,6 +14,7 @@ import json
 import logging
 import re
 import time
+from typing import Optional
 
 from pytubefix.exceptions import RegexMatchError, InterpretationError
 from pytubefix.jsinterp import JSInterpreter, extract_player_js_global_var
@@ -252,7 +253,12 @@ class Cipher:
                             if func_name:
                                 n_func = func_name.group("funcname")
                                 logger.debug(f"Nfunc name (strategy 1 - _w8_): {n_func}")
-                                self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
+                                xor_params = self._extract_xor_branch_nsig_params(js, n_func, varname)
+                                if xor_params is not None:
+                                    logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
+                                    self._nsig_param_val = xor_params
+                                else:
+                                    self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
                                 return n_func
 
             # Strategy 2: var XX = [YY] with 2-3 char names (fast, common)
@@ -365,6 +371,85 @@ class Cipher:
         except Exception as e:
             raise e
 
+
+    @staticmethod
+    def _extract_xor_branch_nsig_params(js: str, func_name: str, global_var_name: str) -> Optional[list]:
+        """For XOR-branch nsig functions like ws(X, F, Q, n) where I=F^X controls branching,
+        compute the correct (X, F) control parameters by decoding XOR constants from the function body.
+
+        Returns a list [[X, F]] on success, or None if this is not an XOR-branch function.
+        """
+        # Find the function definition
+        func_def = re.search(
+            r'(?:function\s+%s|(?:var\s+)?%s\s*=\s*function)\s*\(' % (
+                re.escape(func_name), re.escape(func_name)), js)
+        if not func_def:
+            return None
+
+        # Extract function body by brace counting
+        func_start = func_def.start()
+        depth = 0
+        func_end = func_start
+        for i in range(func_start, min(func_start + 50000, len(js))):
+            if js[i] == '{':
+                depth += 1
+            elif js[i] == '}':
+                depth -= 1
+                if depth == 0:
+                    func_end = i + 1
+                    break
+        body = js[func_start:func_end]
+
+        # Check for XOR-branch pattern: var I=F^X (the hallmark of this obfuscation)
+        if not re.search(r'var\s+[A-Za-z]\s*=\s*[A-Za-z]\s*\^\s*[A-Za-z]\b', body):
+            return None
+
+        # Find the nsig branch: !(X-9>>3) which triggers when X in [9..16]
+        nsig_branch_m = re.search(r'!\s*\([A-Za-z]\s*-\s*9\s*>>\s*3\)', body)
+        if not nsig_branch_m:
+            return None
+
+        # In the nsig branch, the first operation is Z=Q[N[I^k1]](N[I^k2])
+        # where N[I^k1]='split' and N[I^k2]=''
+        # This decodes to n.split('')
+        split_op = re.search(
+            r'[A-Za-z]=([A-Za-z])\[%s\[[A-Za-z]\^(\d+)\]\]\(%s\[[A-Za-z]\^(\d+)\]\)' % (
+                re.escape(global_var_name), re.escape(global_var_name)),
+            body[nsig_branch_m.start():]
+        )
+        if not split_op:
+            return None
+
+        k1 = int(split_op.group(2))
+        k2 = int(split_op.group(3))
+
+        # Reconstruct the global array to find 'split' index
+        try:
+            from pytubefix.jsinterp import extract_player_js_global_var, JSInterpreter
+            _, _, code = extract_player_js_global_var(js)
+            global_arr = JSInterpreter(js).interpret_expression(code, {}, 100)
+        except Exception:
+            return None
+
+        if 'split' not in global_arr or '' not in global_arr:
+            return None
+
+        split_idx = global_arr.index('split')
+        empty_idx = global_arr.index('')
+
+        # I = split_idx ^ k1; verify N[I^k2] == ''
+        I = split_idx ^ k1
+        if (I ^ k2) != empty_idx:
+            return None
+
+        # Use X=9 (smallest value satisfying the nsig branch !(X-9>>3))
+        X = 9
+        F = I ^ X
+        logger.debug(
+            f"XOR-branch nsig detected: I={I}, X={X}, F={F} "
+            f"(k1={k1}, split_idx={split_idx})"
+        )
+        return [[X, F]]
 
     @staticmethod
     def _extract_nsig_param_val(code: str, func_name: str) -> list:
