@@ -558,10 +558,43 @@ class Cipher:
                     break
 
         if X is None:
-            # Pattern 2: complex conditions like (l+1^25)<l&&(l-5^12)>=l
-            # Use heuristic candidates that cover common branch ranges
-            X = 21
-            F = I ^ X
+            # Pattern 2: complex conditions like (P-4^25)>=P&&(P+8^10)<P
+            # Extract the condition text and brute-force evaluate it.
+            for pname in param_names:
+                # Look for conditions involving this parameter near the split.
+                # These appear as comparisons with && between them.
+                cond_pattern = re.compile(
+                    r'\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
+                    + re.escape(pname) + r'\s*&&\s*'
+                    r'\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
+                    + re.escape(pname)
+                )
+                cond_m = cond_pattern.search(pre_split)
+                if not cond_m:
+                    continue
+                cond_text = cond_m.group(0)
+                # Evaluate the condition for candidate values
+                for x_candidate in range(0, 256):
+                    try:
+                        # Replace the parameter name with the candidate value
+                        expr = re.sub(
+                            r'\b' + re.escape(pname) + r'\b',
+                            str(x_candidate), cond_text
+                        )
+                        # JS operators ^, &, |, >>, <<, +, -, >=, <=, <, >, ==
+                        # are the same in Python for integers. && -> and
+                        expr = expr.replace('&&', ' and ').replace('||', ' or ')
+                        if eval(expr):  # noqa: S307 — safe: only digits and operators
+                            X = x_candidate
+                            F = I ^ X
+                            break
+                    except Exception:
+                        continue
+                if X is not None:
+                    break
+
+        if X is None:
+            return None
 
         logger.debug(
             f"XOR-branch nsig detected: I={I}, X={X}, F={F} "
