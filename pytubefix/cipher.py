@@ -221,45 +221,109 @@ class Cipher:
                 logger.debug(f"Global Obj name is: {varname}")
                 global_obj = JSInterpreter(js).interpret_expression(code, {}, 100)
                 logger.debug("Successfully interpreted global object")
+
+                w8_idx = None
                 for k, val in enumerate(global_obj):
                     if val.endswith('_w8_'):
+                        w8_idx = k
                         logger.debug(f"_w8_ found in index {k}")
-                        nsig_patterns = [
-                            r'''(?xs)
-                                [;\n](?:
-                                    (?P<f>function\s+)|
-                                    (?:var\s+)?
-                                )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
-                                \(\s*(?:[a-zA-Z0-9_$]+\s*,\s*)?(?P<argname>[a-zA-Z0-9_$]+)(?:\s*,\s*[a-zA-Z0-9_$]+)*\s*\)\s*\{
-                                (?:(?!(?<!\{)\};(?![\]\)])).)*
-                                \}\s*catch\(\s*[a-zA-Z0-9_$]+\s*\)\s*
-                                \{\s*(?:return\s+|[\w=]+)%s\[%d\]\s*\+\s*(?P=argname)\s*[\};].*?\s*return\s+[^}]+\}[;\n]
-                            '''  % (re.escape(varname), k),
-                            # Relaxed: function referencing varname[k]
-                            r'''(?xs)
-                                [;\n](?:
-                                    (?P<f>function\s+)|
-                                    (?:var\s+)?
-                                )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
-                                \([^)]*\)\s*\{
-                                (?:(?!(?<!\{)\};).)*?
-                                %s\[%d\]
-                                (?:(?!(?<!\{)\};).)*?
-                                \}[;\n]
-                            ''' % (re.escape(varname), k),
-                        ]
-                        for np_ in nsig_patterns:
-                            func_name = re.search(np_, js)
-                            if func_name:
-                                n_func = func_name.group("funcname")
-                                logger.debug(f"Nfunc name (strategy 1 - _w8_): {n_func}")
-                                xor_params = self._extract_xor_branch_nsig_params(js, n_func, varname)
-                                if xor_params is not None:
-                                    logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
-                                    self._nsig_param_val = xor_params
-                                else:
-                                    self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
-                                return n_func
+                        break
+
+                if w8_idx is not None:
+                    # Strategy 1a: Find via catch block with XOR reference
+                    # Pattern: catch(x) { VAR = GLOBAL[xor_var ^ CONST] + arg; break a }
+                    xor_catch = re.compile(
+                        r'catch\s*\([^)]+\)\s*\{\s*'
+                        r'[A-Za-z0-9_$]+\s*=\s*'
+                        + re.escape(varname) +
+                        r'\[([A-Za-z0-9_$]+)\^(\d+)\]\s*\+\s*([A-Za-z0-9_$]+)\s*;\s*break\s+a\s*\}'
+                    )
+                    for cm in xor_catch.finditer(js):
+                        xor_var = cm.group(1)
+                        w8_const = int(cm.group(2))
+                        arg_var = cm.group(3)
+
+                        # Find enclosing function
+                        search_start = max(0, cm.start() - 5000)
+                        func_area = js[search_start:cm.start()]
+                        fms = list(re.finditer(
+                            r'(?:([a-zA-Z0-9_$]+)\s*=\s*function|function\s+([a-zA-Z0-9_$]+))\s*\(([^)]*)\)',
+                            func_area
+                        ))
+                        if not fms:
+                            continue
+
+                        last = fms[-1]
+                        n_func = last.group(1) or last.group(2)
+                        actual_start = search_start + last.start()
+
+                        # Verify: function must have var xor_var = param ^ param
+                        depth = 0
+                        func_end = actual_start
+                        for i in range(actual_start, min(actual_start + 50000, len(js))):
+                            if js[i] == '{':
+                                depth += 1
+                            elif js[i] == '}':
+                                depth -= 1
+                                if depth == 0:
+                                    func_end = i + 1
+                                    break
+                        body = js[actual_start:func_end]
+
+                        if not re.search(r'var\s+' + re.escape(xor_var) + r'\s*=\s*[A-Za-z0-9_$]+\s*\^\s*[A-Za-z0-9_$]+', body):
+                            continue
+
+                        logger.debug(f"Nfunc name (strategy 1a - _w8_ XOR catch): {n_func}")
+                        xor_params = self._extract_xor_branch_nsig_params(
+                            js, n_func, varname, global_obj, body, xor_var, arg_var
+                        )
+                        if xor_params is not None:
+                            logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
+                            self._nsig_param_val = xor_params
+                        else:
+                            self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
+                        return n_func
+
+                    # Strategy 1b: Find via catch block with direct index reference
+                    # Pattern: catch(x) { VAR = GLOBAL[index] + argname; break a }
+                    nsig_patterns = [
+                        r'''(?xs)
+                            [;\n](?:
+                                (?P<f>function\s+)|
+                                (?:var\s+)?
+                            )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
+                            \(\s*(?:[a-zA-Z0-9_$]+\s*,\s*)?(?P<argname>[a-zA-Z0-9_$]+)(?:\s*,\s*[a-zA-Z0-9_$]+)*\s*\)\s*\{
+                            (?:(?!(?<!\{)\};(?![\]\)])).)*
+                            \}\s*catch\(\s*[a-zA-Z0-9_$]+\s*\)\s*
+                            \{\s*(?:return\s+|[\w=]+)%s\[%d\]\s*\+\s*(?P=argname)\s*[\};].*?\s*return\s+[^}]+\}[;\n]
+                        '''  % (re.escape(varname), w8_idx),
+                        # Relaxed: function referencing varname[w8_idx]
+                        r'''(?xs)
+                            [;\n](?:
+                                (?P<f>function\s+)|
+                                (?:var\s+)?
+                            )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
+                            \([^)]*\)\s*\{
+                            (?:(?!(?<!\{)\};).)*?
+                            %s\[%d\]
+                            (?:(?!(?<!\{)\};).)*?
+                            \}[;\n]
+                        ''' % (re.escape(varname), w8_idx),
+                    ]
+                    for np_ in nsig_patterns:
+                        func_name = re.search(np_, js)
+                        if func_name:
+                            n_func = func_name.group("funcname")
+                            logger.debug(f"Nfunc name (strategy 1b - _w8_ direct): {n_func}")
+                            xor_params = self._extract_xor_branch_nsig_params(
+                                js, n_func, varname, global_obj
+                            )
+                            if xor_params is not None:
+                                logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
+                                self._nsig_param_val = xor_params
+                            else:
+                                self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
+                            return n_func
 
             # Strategy 2: var XX = [YY] with 2-3 char names (fast, common)
             pattern = r"var\s*[a-zA-Z0-9$_]{2,3}\s*=\s*\[(?P<funcname>[a-zA-Z0-9$_]{2,})\]"
@@ -373,78 +437,132 @@ class Cipher:
 
 
     @staticmethod
-    def _extract_xor_branch_nsig_params(js: str, func_name: str, global_var_name: str) -> Optional[list]:
-        """For XOR-branch nsig functions like ws(X, F, Q, n) where I=F^X controls branching,
-        compute the correct (X, F) control parameters by decoding XOR constants from the function body.
+    def _extract_xor_branch_nsig_params(
+        js: str, func_name: str, global_var_name: str, global_arr: list,
+        body: Optional[str] = None, xor_var: Optional[str] = None,
+        arg_var: Optional[str] = None
+    ) -> Optional[list]:
+        """For XOR-branch nsig functions where I=param1^param2 controls branching,
+        compute the correct control parameters by decoding XOR constants from the function body.
+
+        The nsig branch's first operation is always n.split(''), which appears as:
+        arg[GLOBAL[xor_var ^ k1]](GLOBAL[xor_var ^ k2]) where GLOBAL[I^k1]='split', GLOBAL[I^k2]=''
 
         Returns a list [[X, F]] on success, or None if this is not an XOR-branch function.
         """
-        # Find the function definition
-        func_def = re.search(
-            r'(?:function\s+%s|(?:var\s+)?%s\s*=\s*function)\s*\(' % (
-                re.escape(func_name), re.escape(func_name)), js)
-        if not func_def:
+        if body is None:
+            func_def = re.search(
+                r'(?:function\s+%s|(?:var\s+)?%s\s*=\s*function)\s*\(' % (
+                    re.escape(func_name), re.escape(func_name)), js)
+            if not func_def:
+                return None
+
+            func_start = func_def.start()
+            depth = 0
+            func_end = func_start
+            for i in range(func_start, min(func_start + 50000, len(js))):
+                if js[i] == '{':
+                    depth += 1
+                elif js[i] == '}':
+                    depth -= 1
+                    if depth == 0:
+                        func_end = i + 1
+                        break
+            body = js[func_start:func_end]
+
+        # Check for XOR-branch pattern: var X = Y ^ Z
+        xor_m = re.search(r'var\s+([A-Za-z0-9_$]+)\s*=\s*([A-Za-z0-9_$]+)\s*\^\s*([A-Za-z0-9_$]+)', body)
+        if not xor_m:
             return None
 
-        # Extract function body by brace counting
-        func_start = func_def.start()
-        depth = 0
-        func_end = func_start
-        for i in range(func_start, min(func_start + 50000, len(js))):
-            if js[i] == '{':
-                depth += 1
-            elif js[i] == '}':
-                depth -= 1
-                if depth == 0:
-                    func_end = i + 1
-                    break
-        body = js[func_start:func_end]
-
-        # Check for XOR-branch pattern: var I=F^X (the hallmark of this obfuscation)
-        if not re.search(r'var\s+[A-Za-z]\s*=\s*[A-Za-z]\s*\^\s*[A-Za-z]\b', body):
-            return None
-
-        # Find the nsig branch: !(X-9>>3) which triggers when X in [9..16]
-        nsig_branch_m = re.search(r'!\s*\([A-Za-z]\s*-\s*9\s*>>\s*3\)', body)
-        if not nsig_branch_m:
-            return None
-
-        # In the nsig branch, the first operation is Z=Q[N[I^k1]](N[I^k2])
-        # where N[I^k1]='split' and N[I^k2]=''
-        # This decodes to n.split('')
-        split_op = re.search(
-            r'[A-Za-z]=([A-Za-z])\[%s\[[A-Za-z]\^(\d+)\]\]\(%s\[[A-Za-z]\^(\d+)\]\)' % (
-                re.escape(global_var_name), re.escape(global_var_name)),
-            body[nsig_branch_m.start():]
-        )
-        if not split_op:
-            return None
-
-        k1 = int(split_op.group(2))
-        k2 = int(split_op.group(3))
-
-        # Reconstruct the global array to find 'split' index
-        try:
-            from pytubefix.jsinterp import extract_player_js_global_var, JSInterpreter
-            _, _, code = extract_player_js_global_var(js)
-            global_arr = JSInterpreter(js).interpret_expression(code, {}, 100)
-        except Exception:
-            return None
+        if xor_var is None:
+            xor_var = xor_m.group(1)
 
         if 'split' not in global_arr or '' not in global_arr:
             return None
-
         split_idx = global_arr.index('split')
         empty_idx = global_arr.index('')
 
-        # I = split_idx ^ k1; verify N[I^k2] == ''
-        I = split_idx ^ k1
-        if (I ^ k2) != empty_idx:
+        # Find the split operation: arg[GLOBAL[xor_var ^ k1]](GLOBAL[xor_var ^ k2])
+        # or arg[GLOBAL[xor_var ^ k1]](GLOBAL[k2]) — some players use direct index for k2.
+        # GLOBAL[I^k1] must be 'split' and GLOBAL[...k2] must be ''.
+        # Multiple matches may exist; iterate and validate each one.
+        if arg_var:
+            arg_pat = re.escape(arg_var)
+        else:
+            arg_pat = r'[A-Za-z0-9_$]+'
+        gv = re.escape(global_var_name)
+        xv = re.escape(xor_var)
+        split_patterns = [
+            # Both k1 and k2 are XOR'd: arg[G[xor^k1]](G[xor^k2])
+            re.compile(
+                arg_pat + r'\[' + gv + r'\[' + xv + r'\^(\d+)\]\]\(' +
+                gv + r'\[' + xv + r'\^(\d+)\]\)'
+            ),
+            # Only k1 is XOR'd, k2 is direct: arg[G[xor^k1]](G[k2])
+            re.compile(
+                arg_pat + r'\[' + gv + r'\[' + xv + r'\^(\d+)\]\]\(' +
+                gv + r'\[(\d+)\]\)'
+            ),
+        ]
+
+        I = None
+        for pat_idx, pattern in enumerate(split_patterns):
+            for split_op in pattern.finditer(body):
+                k1 = int(split_op.group(1))
+                k2_raw = int(split_op.group(2))
+                I_candidate = split_idx ^ k1
+                if pat_idx == 0:
+                    # k2 is XOR'd
+                    check_idx = I_candidate ^ k2_raw
+                else:
+                    # k2 is direct index
+                    check_idx = k2_raw
+                if 0 <= check_idx < len(global_arr) and global_arr[check_idx] == '':
+                    I = I_candidate
+                    break
+            if I is not None:
+                break
+
+        if I is None:
             return None
 
-        # Use X=9 (smallest value satisfying the nsig branch !(X-9>>3))
-        X = 9
-        F = I ^ X
+        # Find valid X value by evaluating the branch condition.
+        # var xor = p1 ^ p2; the branch selector is one of p1, p2.
+        param_names = [xor_m.group(2), xor_m.group(3)]
+        split_pos = split_op.start()
+        pre_split = body[:split_pos]
+
+        # Pattern 1: !(P-C>>S) — older style, e.g. !(X-9>>3)
+        X = None
+        for pname in param_names:
+            branch_m = re.search(
+                r'!\s*\(' + re.escape(pname) + r'\s*-\s*(\d+)\s*>>\s*(\d+)\)',
+                pre_split
+            )
+            if branch_m:
+                center = int(branch_m.group(1))
+                shift = int(branch_m.group(2))
+                # pname is the branch-selector; the other param = I ^ pname
+                for x_candidate in range(0, 256):
+                    if not ((x_candidate - center) >> shift):
+                        X = x_candidate
+                        break
+                if X is not None:
+                    # Determine which param is the branch selector
+                    other = param_names[1] if pname == param_names[0] else param_names[0]
+                    # var xor = p1 ^ p2 => I = p1 ^ p2
+                    # If pname is p1 (first in XOR): F = I ^ X where X=pname_val
+                    # If pname is p2 (second in XOR): same logic
+                    F = I ^ X
+                    break
+
+        if X is None:
+            # Pattern 2: complex conditions like (l+1^25)<l&&(l-5^12)>=l
+            # Use heuristic candidates that cover common branch ranges
+            X = 21
+            F = I ^ X
+
         logger.debug(
             f"XOR-branch nsig detected: I={I}, X={X}, F={F} "
             f"(k1={k1}, split_idx={split_idx})"
