@@ -594,6 +594,51 @@ class Cipher:
                     break
 
         if X is None:
+            # Pattern 3: conditions comparing to constants, e.g. (N-3&8)<1&&(N+9&5)>=0
+            # Extract the labeled-block condition (if(...)a:{) which guards the nsig branch,
+            # then brute-force X while also avoiding any dangerous branch that calls U as a
+            # function (C=U(...)) — those branches crash Node.js when U is a string.
+            nsig_cond_m = re.search(r'if\s*\((.+?)\)\s*[a-zA-Z_$]:\{', body)
+            if nsig_cond_m:
+                nsig_cond = nsig_cond_m.group(1)
+                # Find the dangerous branch condition: COND&&(C=U(
+                danger_cond_m = re.search(
+                    r'\(([^)]+)\)\s*>=\s*(\d+)\s*&&\s*\(([^)]+)\)\s*<\s*(\d+)\s*&&\s*\(C\s*=\s*U\s*\(',
+                    body
+                )
+                danger_cond: Optional[str] = None
+                if danger_cond_m:
+                    danger_cond = '(%s)>=%s&&(%s)<%s' % (
+                        danger_cond_m.group(1),
+                        danger_cond_m.group(2),
+                        danger_cond_m.group(3),
+                        danger_cond_m.group(4),
+                    )
+
+                def _eval_cond(cond_text: str, var: str, val: int) -> bool:
+                    expr = re.sub(r'\b' + re.escape(var) + r'\b', str(val), cond_text)
+                    expr = expr.replace('&&', ' and ').replace('||', ' or ')
+                    return bool(eval(expr))  # noqa: S307 — safe: only digits and operators
+
+                for pname in param_names:
+                    if pname not in nsig_cond:
+                        continue
+                    for x_candidate in range(0, 256):
+                        try:
+                            if not _eval_cond(nsig_cond, pname, x_candidate):
+                                continue
+                            # Ensure the dangerous branch (U called as function) is not triggered
+                            if danger_cond and _eval_cond(danger_cond, pname, x_candidate):
+                                continue
+                            X = x_candidate
+                            F = I ^ X
+                            break
+                        except Exception:
+                            continue
+                    if X is not None:
+                        break
+
+        if X is None:
             return None
 
         logger.debug(
