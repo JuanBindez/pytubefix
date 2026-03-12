@@ -258,20 +258,17 @@ class Cipher:
                         actual_start = search_start + last.start()
 
                         # Verify: function must have var xor_var = param ^ param
-                        depth = 0
-                        func_end = actual_start
-                        for i in range(actual_start, min(actual_start + 50000, len(js))):
-                            if js[i] == '{':
-                                depth += 1
-                            elif js[i] == '}':
-                                depth -= 1
-                                if depth == 0:
-                                    func_end = i + 1
-                                    break
-                        body = js[actual_start:func_end]
-
-                        if not re.search(r'var\s+' + re.escape(xor_var) + r'\s*=\s*[A-Za-z0-9_$]+\s*\^\s*[A-Za-z0-9_$]+', body):
+                        # Use a small window after function header (the XOR init is near the top)
+                        header_area = js[actual_start:actual_start + 200]
+                        if not re.search(r'var\s+' + re.escape(xor_var) + r'\s*=\s*[A-Za-z0-9_$]+\s*\^\s*[A-Za-z0-9_$]+', header_area):
                             continue
+
+                        # For mega-functions (>50KB), use a window around the catch block
+                        # (the nsig branch) instead of the full function body.
+                        # The nsig branch and its labeled block are within ~2000 chars before the catch.
+                        branch_start = max(actual_start, cm.start() - 2000)
+                        branch_end = min(len(js), cm.end() + 200)
+                        body = js[actual_start:actual_start + 200] + js[branch_start:branch_end]
 
                         logger.debug(f"Nfunc name (strategy 1a - _w8_ XOR catch): {n_func}")
                         xor_params = self._extract_xor_branch_nsig_params(
@@ -555,8 +552,13 @@ class Cipher:
         split_pos = split_op.start()
         pre_split = body[:split_pos]
 
-        # Pattern 1: !(P-C>>S) — older style, e.g. !(X-9>>3)
+        # Find the labeled-block condition closest to the split operation.
+        # The nsig branch is: if(COND)a:{ ... split ... catch ... break a }
+        # We want the LAST if(...)label:{ before the split, which is the actual
+        # nsig branch guard (not an earlier unrelated branch).
         X = None
+
+        # Pattern 1: !(P-C>>S) — older style, e.g. !(X-9>>3)
         for pname in param_names:
             branch_m = re.search(
                 r'!\s*\(' + re.escape(pname) + r'\s*-\s*(\d+)\s*>>\s*(\d+)\)',
@@ -571,96 +573,38 @@ class Cipher:
                         X = x_candidate
                         break
                 if X is not None:
-                    # Determine which param is the branch selector
-                    other = param_names[1] if pname == param_names[0] else param_names[0]
-                    # var xor = p1 ^ p2 => I = p1 ^ p2
-                    # If pname is p1 (first in XOR): F = I ^ X where X=pname_val
-                    # If pname is p2 (second in XOR): same logic
                     F = I ^ X
                     break
 
         if X is None:
-            # Pattern 2: complex conditions like (P-4^25)>=P&&(P+8^10)<P
-            # Extract the condition text and brute-force evaluate it.
-            # Only match conditions in labeled blocks (if(...)a:{) to avoid matching wrong branches.
-            for pname in param_names:
-                # Look for labeled-block conditions: if((P...)&&(P...))a:{
-                cond_pattern = re.compile(
-                    r'if\s*\(\s*\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
-                    + re.escape(pname) + r'\s*&&\s*'
-                    r'\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
-                    + re.escape(pname) + r'\s*\)\s*[a-zA-Z_$]:\{'
-                )
-                cond_m = cond_pattern.search(pre_split)
-                if not cond_m:
-                    continue
-                # Extract just the condition part (without if( and )a:{)
-                full_match = cond_m.group(0)
-                cond_text = full_match[full_match.index('(')+1:full_match.rindex(')')].strip()
-                # Evaluate the condition for candidate values
-                for x_candidate in range(0, 256):
-                    try:
-                        # Replace the parameter name with the candidate value
-                        expr = re.sub(
-                            r'\b' + re.escape(pname) + r'\b',
-                            str(x_candidate), cond_text
-                        )
-                        # JS operators ^, &, |, >>, <<, +, -, >=, <=, <, >, ==
-                        # are the same in Python for integers. && -> and
-                        expr = expr.replace('&&', ' and ').replace('||', ' or ')
-                        if eval(expr):  # noqa: S307 — safe: only digits and operators
-                            X = x_candidate
-                            F = I ^ X
-                            break
-                    except Exception:
-                        continue
-                if X is not None:
-                    break
-
-        if X is None:
-            # Pattern 3: conditions comparing to constants, e.g. (N-3&8)<1&&(N+9&5)>=0
-            # Extract the labeled-block condition (if(...)a:{) which guards the nsig branch,
-            # then brute-force X while also avoiding any dangerous branch that calls U as a
-            # function (C=U(...)) — those branches crash Node.js when U is a string.
-            nsig_cond_m = re.search(r'if\s*\((.+?)\)\s*[a-zA-Z_$]:\{', body)
-            if nsig_cond_m:
-                nsig_cond = nsig_cond_m.group(1)
-                # Find the dangerous branch condition: COND&&(C=U(
-                danger_cond_m = re.search(
-                    r'\(([^)]+)\)\s*>=\s*(\d+)\s*&&\s*\(([^)]+)\)\s*<\s*(\d+)\s*&&\s*\(C\s*=\s*U\s*\(',
-                    body
-                )
-                danger_cond: Optional[str] = None
-                if danger_cond_m:
-                    danger_cond = '(%s)>=%s&&(%s)<%s' % (
-                        danger_cond_m.group(1),
-                        danger_cond_m.group(2),
-                        danger_cond_m.group(3),
-                        danger_cond_m.group(4),
-                    )
-
-                def _eval_cond(cond_text: str, var: str, val: int) -> bool:
-                    expr = re.sub(r'\b' + re.escape(var) + r'\b', str(val), cond_text)
-                    expr = expr.replace('&&', ' and ').replace('||', ' or ')
-                    return bool(eval(expr))  # noqa: S307 — safe: only digits and operators
-
+            # Collect ALL if(COND)label:{ conditions before the split,
+            # then try them in reverse order (closest to split first).
+            all_conds = list(re.finditer(
+                r'if\s*\((.+?)\)\s*[a-zA-Z_$]:\{', pre_split
+            ))
+            for cond_match in reversed(all_conds):
+                nsig_cond = cond_match.group(1)
                 for pname in param_names:
                     if pname not in nsig_cond:
                         continue
                     for x_candidate in range(0, 256):
                         try:
-                            if not _eval_cond(nsig_cond, pname, x_candidate):
-                                continue
-                            # Ensure the dangerous branch (U called as function) is not triggered
-                            if danger_cond and _eval_cond(danger_cond, pname, x_candidate):
-                                continue
-                            X = x_candidate
-                            F = I ^ X
-                            break
+                            expr = re.sub(
+                                r'\b' + re.escape(pname) + r'\b',
+                                str(x_candidate), nsig_cond
+                            )
+                            expr = expr.replace('&&', ' and ').replace('||', ' or ')
+                            expr = expr.replace('!', ' not ')
+                            if eval(expr):  # noqa: S307 — safe: only digits and operators
+                                X = x_candidate
+                                F = I ^ X
+                                break
                         except Exception:
                             continue
                     if X is not None:
                         break
+                if X is not None:
+                    break
 
         if X is None:
             return None
