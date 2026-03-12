@@ -504,6 +504,16 @@ class Cipher:
                 arg_pat + r'\[' + gv + r'\[' + xv + r'\^(\d+)\]\]\(' +
                 gv + r'\[(\d+)\]\)'
             ),
+            # k1 is direct, k2 is XOR'd: arg[G[k1]](G[xor^k2])
+            re.compile(
+                arg_pat + r'\[' + gv + r'\[(\d+)\]\]\(' +
+                gv + r'\[' + xv + r'\^(\d+)\]\)'
+            ),
+            # Both k1 and k2 are direct: arg[G[k1]](G[k2])
+            re.compile(
+                arg_pat + r'\[' + gv + r'\[(\d+)\]\]\(' +
+                gv + r'\[(\d+)\]\)'
+            ),
         ]
 
         I = None
@@ -511,12 +521,24 @@ class Cipher:
             for split_op in pattern.finditer(body):
                 k1 = int(split_op.group(1))
                 k2_raw = int(split_op.group(2))
-                I_candidate = split_idx ^ k1
-                if pat_idx == 0:
-                    # k2 is XOR'd
+
+                # Determine I_candidate and check_idx based on pattern type
+                if pat_idx == 0:  # Both XOR'd: arg[G[xor^k1]](G[xor^k2])
+                    I_candidate = split_idx ^ k1
                     check_idx = I_candidate ^ k2_raw
-                else:
-                    # k2 is direct index
+                elif pat_idx == 1:  # k1 XOR'd, k2 direct: arg[G[xor^k1]](G[k2])
+                    I_candidate = split_idx ^ k1
+                    check_idx = k2_raw
+                elif pat_idx == 2:  # k1 direct, k2 XOR'd: arg[G[k1]](G[xor^k2])
+                    if k1 != split_idx:
+                        continue  # k1 doesn't match split_idx, skip
+                    # I is determined by k2: xor^k2 = empty_idx => I = empty_idx ^ k2
+                    I_candidate = empty_idx ^ k2_raw
+                    check_idx = empty_idx
+                else:  # pat_idx == 3: Both direct: arg[G[k1]](G[k2])
+                    if k1 != split_idx or k2_raw != empty_idx:
+                        continue
+                    I_candidate = 0  # No XOR needed
                     check_idx = k2_raw
                 if 0 <= check_idx < len(global_arr) and global_arr[check_idx] == '':
                     I = I_candidate
@@ -560,19 +582,21 @@ class Cipher:
         if X is None:
             # Pattern 2: complex conditions like (P-4^25)>=P&&(P+8^10)<P
             # Extract the condition text and brute-force evaluate it.
+            # Only match conditions in labeled blocks (if(...)a:{) to avoid matching wrong branches.
             for pname in param_names:
-                # Look for conditions involving this parameter near the split.
-                # These appear as comparisons with && between them.
+                # Look for labeled-block conditions: if((P...)&&(P...))a:{
                 cond_pattern = re.compile(
-                    r'\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
+                    r'if\s*\(\s*\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
                     + re.escape(pname) + r'\s*&&\s*'
                     r'\(' + re.escape(pname) + r'[-+]\d+[\^&|]\d+\)\s*[<>=!]+\s*'
-                    + re.escape(pname)
+                    + re.escape(pname) + r'\s*\)\s*[a-zA-Z_$]:\{'
                 )
                 cond_m = cond_pattern.search(pre_split)
                 if not cond_m:
                     continue
-                cond_text = cond_m.group(0)
+                # Extract just the condition part (without if( and )a:{)
+                full_match = cond_m.group(0)
+                cond_text = full_match[full_match.index('(')+1:full_match.rindex(')')].strip()
                 # Evaluate the condition for candidate values
                 for x_candidate in range(0, 256):
                     try:
