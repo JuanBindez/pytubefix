@@ -276,7 +276,7 @@ def js_url(html: str) -> str:
     except (KeyError, RegexMatchError):
         base_js = get_ytplayer_js(html)
 
-    broken_ids = ["6c5cb4f4", "44899b31"]
+    broken_ids = ["6c5cb4f4", "44899b31", "7929661f", "74edf1a3"]
     for bid in broken_ids:
         if bid in base_js:
             base_js = base_js.replace(bid, "9f4cc5e4")
