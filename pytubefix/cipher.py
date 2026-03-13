@@ -271,8 +271,10 @@ class Cipher:
                         body = js[actual_start:actual_start + 200] + js[branch_start:branch_end]
 
                         logger.debug(f"Nfunc name (strategy 1a - _w8_ XOR catch): {n_func}")
+                        w8_xor_b = w8_const ^ w8_idx
                         xor_params = self._extract_xor_branch_nsig_params(
-                            js, n_func, varname, global_obj, body, xor_var, arg_var
+                            js, n_func, varname, global_obj, body, xor_var, arg_var,
+                            w8_xor_b=w8_xor_b
                         )
                         if xor_params is not None:
                             logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
@@ -437,7 +439,7 @@ class Cipher:
     def _extract_xor_branch_nsig_params(
         js: str, func_name: str, global_var_name: str, global_arr: list,
         body: Optional[str] = None, xor_var: Optional[str] = None,
-        arg_var: Optional[str] = None
+        arg_var: Optional[str] = None, w8_xor_b: Optional[int] = None
     ) -> Optional[list]:
         """For XOR-branch nsig functions where I=param1^param2 controls branching,
         compute the correct control parameters by decoding XOR constants from the function body.
@@ -535,7 +537,10 @@ class Cipher:
                 else:  # pat_idx == 3: Both direct: arg[G[k1]](G[k2])
                     if k1 != split_idx or k2_raw != empty_idx:
                         continue
-                    I_candidate = 0  # No XOR needed
+                    if w8_xor_b is not None:
+                        I_candidate = w8_xor_b
+                    else:
+                        I_candidate = 0  # No XOR needed
                     check_idx = k2_raw
                 if 0 <= check_idx < len(global_arr) and global_arr[check_idx] == '':
                     I = I_candidate
