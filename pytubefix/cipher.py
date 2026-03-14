@@ -581,6 +581,30 @@ class Cipher:
                     F = I ^ X
                     break
 
+        # Pattern 2: (P+C>>S)==V — newer style, e.g. (O+4>>3)==3 or O+4>>3==3
+        # This pattern appears in labeled blocks: if(O+4>>3==3)a:{...split...}
+        # So we need to search the entire function body, not just pre_split
+        if X is None:
+            for pname in param_names:
+                branch_m = re.search(
+                    r'if\s*\(\s*\(?' + re.escape(pname) + r'\s*\+\s*(\d+)\s*>>\s*(\d+)\)?\s*==\s*(\d+)\s*\)\s*[a-zA-Z_$]:\{',
+                    body
+                )
+                if branch_m:
+                    offset = int(branch_m.group(1))
+                    shift = int(branch_m.group(2))
+                    target = int(branch_m.group(3))
+                    # (pname + offset) >> shift == target
+                    # So: target * (2^shift) <= pname + offset < (target+1) * (2^shift)
+                    # Therefore: target * (2^shift) - offset <= pname < (target+1) * (2^shift) - offset
+                    min_val = target * (1 << shift) - offset
+                    max_val = (target + 1) * (1 << shift) - offset
+                    # Pick the minimum value to avoid conflicts with other branches
+                    X = min_val
+                    if 0 <= X < 256:
+                        F = I ^ X
+                        break
+
         if X is None:
             # Collect ALL if(COND)label:{ conditions before the split,
             # then try them in reverse order (closest to split first).
