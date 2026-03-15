@@ -132,7 +132,7 @@ class Channel(Playlist):
         if self._html_url != value:
             self._html = None
             self._initial_data = None
-            self.__class__.video_urls.fget.cache_clear()
+            super(Channel, self.__class__).video_urls.fget.cache_clear()  
             self._html_url = value
 
     @property
@@ -201,6 +201,12 @@ class Channel(Playlist):
         else:
             self._about_html = request.get(self.about_url)
             return self._about_html
+    
+    @property
+    def video_urls(self):
+        for video in self.videos_generator():
+            yield video.watch_url
+    
 
     def url_generator(self):
         """Generator that yields video URLs.
@@ -212,8 +218,10 @@ class Channel(Playlist):
                 yield obj
 
     def videos_generator(self):
-        for url in self.video_urls:
+        for url in super().video_urls:
             yield url
+    
+    
 
     def _get_active_tab(self, initial_data) -> dict:
         """ Receive the raw json and return the active page.
