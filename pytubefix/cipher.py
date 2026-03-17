@@ -605,6 +605,43 @@ class Cipher:
                         F = I ^ X
                         break
 
+        # Pattern 3: Compound conditions with && — e.g. (p-7|46)<p&&(p+4&56)>=p
+        # This pattern appears in players from 2025+ with multiple branch conditions
+        if X is None:
+            for pname in param_names:
+                # Match compound conditions: (P-C1|C2)<P&&(P+C3&C4)>=P
+                branch_m = re.search(
+                    r'if\s*\(\s*\(' + re.escape(pname) + r'-(\d+)\|(\d+)\)<' + re.escape(pname) +
+                    r'&&\(' + re.escape(pname) + r'\+(\d+)&(\d+)\)>=' + re.escape(pname) + r'\s*\)\s*[a-zA-Z_$]:\{',
+                    body
+                )
+                if branch_m:
+                    c1 = int(branch_m.group(1))
+                    c2 = int(branch_m.group(2))
+                    c3 = int(branch_m.group(3))
+                    c4 = int(branch_m.group(4))
+                    # Find a p value that satisfies both conditions:
+                    # (p-c1|c2)<p && (p+c3&c4)>=p
+                    # Also avoid p values that might trigger other branches:
+                    # - Avoid (p|24)==p (branch 1)
+                    # - Avoid p<<1&7==0 (branch 3)
+                    for x_candidate in range(1, 256):
+                        cond1 = ((x_candidate - c1) | c2) < x_candidate
+                        cond2 = ((x_candidate + c3) & c4) >= x_candidate
+                        # Check if this p would trigger other common branch patterns
+                        avoid_branch1 = (x_candidate | 24) == x_candidate
+                        avoid_branch3 = (x_candidate << 1) & 7 == 0
+                        if cond1 and cond2 and not avoid_branch1 and not avoid_branch3:
+                            X = x_candidate
+                            F = I ^ X
+                            logger.debug(
+                                f"Compound condition matched: ({pname}-{c1}|{c2})<{pname}&&"
+                                f"({pname}+{c3}&{c4})>={pname}, X={X}"
+                            )
+                            break
+                    if X is not None:
+                        break
+
         if X is None:
             # Collect ALL if(COND)label:{ conditions before the split,
             # then try them in reverse order (closest to split first).
