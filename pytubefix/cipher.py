@@ -268,7 +268,12 @@ class Cipher:
                         # The nsig branch and its labeled block are within ~2000 chars before the catch.
                         branch_start = max(actual_start, cm.start() - 2000)
                         branch_end = min(len(js), cm.end() + 200)
-                        body = js[actual_start:actual_start + 200] + js[branch_start:branch_end]
+                        # Avoid duplicating the header when the function is small
+                        # (branch_start <= actual_start + 200)
+                        if branch_start <= actual_start + 200:
+                            body = js[actual_start:branch_end]
+                        else:
+                            body = js[actual_start:actual_start + 200] + js[branch_start:branch_end]
 
                         logger.debug(f"Nfunc name (strategy 1a - _w8_ XOR catch): {n_func}")
                         w8_xor_b = w8_const ^ w8_idx
@@ -637,6 +642,63 @@ class Cipher:
                             logger.debug(
                                 f"Compound condition matched: ({pname}-{c1}|{c2})<{pname}&&"
                                 f"({pname}+{c3}&{c4})>={pname}, X={X}"
+                            )
+                            break
+                    if X is not None:
+                        break
+
+        # Pattern 4: Simple arithmetic range-check — e.g. P+3<38&&P+4>=26
+        # This pattern uses plain < and >= comparisons with constants
+        if X is None:
+            for pname in param_names:
+                branch_m = re.search(
+                    r'if\s*\(\s*' + re.escape(pname) + r'\+(\d+)<(\d+)&&'
+                    + re.escape(pname) + r'\+(\d+)>=(\d+)\s*\)\s*[a-zA-Z_$]:\{',
+                    body
+                )
+                if branch_m:
+                    off1 = int(branch_m.group(1))
+                    limit1 = int(branch_m.group(2))
+                    off2 = int(branch_m.group(3))
+                    limit2 = int(branch_m.group(4))
+                    # p+off1 < limit1 && p+off2 >= limit2
+                    # => p < limit1 - off1  AND  p >= limit2 - off2
+                    lo = limit2 - off2
+                    hi = limit1 - off1
+                    # Collect all OTHER branch conditions in the body to avoid conflicts
+                    all_branch_conds = list(re.finditer(
+                        r'if\s*\((.+?)\)\s*[a-zA-Z_$]:\{', body
+                    ))
+                    # Pick the highest valid p to minimize overlap with lower branches
+                    for x_candidate in range(hi - 1, lo - 1, -1):
+                        if x_candidate < 0:
+                            continue
+                        # Check that this p does NOT trigger other branches
+                        triggers_other = False
+                        for other_cond in all_branch_conds:
+                            cond_str = other_cond.group(1)
+                            if cond_str == branch_m.group(0).split('(', 1)[1].rsplit(')', 1)[0]:
+                                continue  # skip our own condition
+                            if pname not in cond_str:
+                                continue
+                            try:
+                                expr = re.sub(
+                                    r'\b' + re.escape(pname) + r'\b',
+                                    str(x_candidate), cond_str
+                                )
+                                expr = expr.replace('&&', ' and ').replace('||', ' or ')
+                                expr = expr.replace('!', ' not ')
+                                if eval(expr):  # noqa: S307
+                                    triggers_other = True
+                                    break
+                            except Exception:
+                                continue
+                        if not triggers_other:
+                            X = x_candidate
+                            F = I ^ X
+                            logger.debug(
+                                f"Range-check condition matched: {pname}+{off1}<{limit1}&&"
+                                f"{pname}+{off2}>={limit2}, range=[{lo},{hi}), X={X}"
                             )
                             break
                     if X is not None:
