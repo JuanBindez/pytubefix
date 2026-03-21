@@ -548,6 +548,11 @@ class Cipher:
                         I_candidate = 0  # No XOR needed
                     check_idx = k2_raw
                 if 0 <= check_idx < len(global_arr) and global_arr[check_idx] == '':
+                    # Validate I_candidate: if w8_xor_b is known (from the catch block),
+                    # the correct I must match it. This prevents picking a split operation
+                    # from a non-nsig branch that happens to also use split('').
+                    if w8_xor_b is not None and I_candidate != w8_xor_b:
+                        continue
                     I = I_candidate
                     break
             if I is not None:
