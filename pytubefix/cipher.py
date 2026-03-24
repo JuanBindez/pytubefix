@@ -712,11 +712,33 @@ class Cipher:
         if X is None:
             # Collect ALL if(COND)label:{ conditions before the split,
             # then try them in reverse order (closest to split first).
-            all_conds = list(re.finditer(
-                r'if\s*\((.+?)\)\s*[a-zA-Z_$]:\{', pre_split
-            ))
-            for cond_match in reversed(all_conds):
-                nsig_cond = cond_match.group(1)
+            # Use a more precise pattern that handles nested parentheses better:
+            # Look for if(...) followed immediately by label:{
+            # We search for all occurrences and manually extract the condition
+            all_conds = []
+            # Find all "if(" positions
+            for if_match in re.finditer(r'if\s*\(', pre_split):
+                if_start = if_match.end() - 1  # Position of opening (
+                # Find the matching closing ) by counting parentheses
+                depth = 0
+                cond_end = None
+                for i in range(if_start, len(pre_split)):
+                    if pre_split[i] == '(':
+                        depth += 1
+                    elif pre_split[i] == ')':
+                        depth -= 1
+                        if depth == 0:
+                            cond_end = i
+                            break
+                if cond_end is None:
+                    continue
+                # Check if followed by label:{
+                label_match = re.match(r'\s*([a-zA-Z_$]+)\s*:\s*\{', pre_split[cond_end + 1:])
+                if label_match:
+                    condition = pre_split[if_start + 1:cond_end]
+                    all_conds.append((if_match.start(), condition))
+
+            for _, nsig_cond in reversed(all_conds):
                 for pname in param_names:
                     if pname not in nsig_cond:
                         continue
