@@ -161,6 +161,12 @@ class Cipher:
         """
 
         function_patterns = [
+            # New obfuscated patterns (2026+)
+            # YouTube uses nested XOR-controlled multi-branch signature functions:
+            #   Player 4f48ea67: aM(12,2643,b4(8,4750,J.s))
+            # We need to extract the INNER function (b4), not the outer wrapper (aM)
+            # Pattern: outerFunc(p1,p2,INNER(p3,p4,J.s))
+            r'[a-zA-Z0-9$_]+\(\d+,\d+,(?P<sig>[a-zA-Z0-9$_]+)\((?P<param>\d+),(?P<param2>\d+),[a-zA-Z0-9$_.]+\.s\)\)',
             # New obfuscated patterns (2025+)
             # YouTube uses: sigFunc(num1,num2, wrapperFunc(..., N.s))
             #   TCE player:    BR(32,868,decodeURIComponent(e.s))
@@ -339,63 +345,83 @@ class Cipher:
 
             # Strategy 2.5: Multi-branch XOR nsig function (2025+ obfuscation)
             # YouTube now embeds the nsig transformation inside a multi-purpose
-            # function that uses XOR-controlled branching:
-            #   SX=function(r,p,I,S){var a=p^r; ... SX(a^CONST1,a^CONST2,I) ...}
-            # The function calls itself recursively with XOR'd constants to reach
+            # function that uses XOR-controlled branching. There are two variants:
+            #   Variant A (3-4 params): SX=function(r,p,I,S){var a=p^r; ... SX(a^C1,a^C2,I) ...}
+            #   Variant B (many params): Kv=function(n,d,r,H,D,...){var h=d^n; ... Kv(D^C1,D^C2,r) ...}
+            # The function may call itself recursively with XOR'd constants to reach
             # the nsig transformation branch.
             logger.debug('Trying multi-branch XOR nsig detection (strategy 2.5)')
-            xor_func_pattern = re.compile(
-                r'([a-zA-Z0-9_$]+)\s*=\s*function\s*\(r\s*,\s*p\s*,\s*I(?:\s*,\s*S)?\)\s*\{'
-                r'var\s+a\s*=\s*p\s*\^\s*r\b'
+
+            # Pattern A: function(r,p,I,S?) with var a=p^r
+            xor_func_pattern_a = re.compile(
+                r'([a-zA-Z0-9_$]+)\s*=\s*function\s*\(([a-zA-Z0-9_$]+)\s*,\s*([a-zA-Z0-9_$]+)\s*,\s*([a-zA-Z0-9_$]+)(?:\s*,\s*[a-zA-Z0-9_$]+)*\)\s*\{'
+                r'var\s+([a-zA-Z0-9_$]+)\s*=\s*\3\s*\^\s*\2\b'
             )
-            for xfm in xor_func_pattern.finditer(js):
-                candidate = xfm.group(1)
-                func_start = xfm.start()
-                # Check for self-recursive call with XOR'd constants
-                chunk = js[func_start:func_start + 500]
-                recursive = re.search(
-                    rf'{re.escape(candidate)}\(a\^(\d+)\s*,\s*a\^(\d+)\s*,',
-                    chunk
-                )
-                if not recursive:
-                    continue
+            # Pattern B: function(n,d,r,...) with var h=d^n (many parameters)
+            xor_func_pattern_b = re.compile(
+                r'([a-zA-Z0-9_$]+)\s*=\s*function\s*\(([a-zA-Z0-9_$]+)\s*,\s*([a-zA-Z0-9_$]+)\s*,\s*([a-zA-Z0-9_$]+)(?:\s*,\s*[a-zA-Z0-9_$]+){2,}\)\s*\{'
+                r'var\s+([a-zA-Z0-9_$]+)\s*=\s*\3\s*\^\s*\2\b'
+            )
 
-                # Get the full function body to validate nsig characteristics
-                depth = 0
-                func_end = func_start
-                for i in range(func_start, min(func_start + 50000, len(js))):
-                    if js[i] == '{':
-                        depth += 1
-                    elif js[i] == '}':
-                        depth -= 1
-                        if depth == 0:
-                            func_end = i + 1
-                            break
-                func_body = js[func_start:func_end]
+            for pattern in [xor_func_pattern_a, xor_func_pattern_b]:
+                for xfm in pattern.finditer(js):
+                    candidate = xfm.group(1)
+                    param1 = xfm.group(2)  # r or n
+                    param2 = xfm.group(3)  # p or d
+                    param3 = xfm.group(4)  # I or r
+                    xor_var = xfm.group(5)  # a or h
+                    func_start = xfm.start()
 
-                # Validate nsig characteristics: must have try/catch AND null
-                # (the big transformation array) AND substantial v[a^ references
-                has_try = 'try{' in func_body or 'try {' in func_body
-                has_null = func_body.count('null') >= 2
-                va_refs = len(re.findall(r'v\[a\^', func_body))
-
-                if has_try and has_null and va_refs > 20:
-                    c1 = int(recursive.group(1))
-                    c2 = int(recursive.group(2))
-                    a_val = c1 ^ c2
-
-                    # Generate control parameter pairs (r, p) that route to the
-                    # nsig transformation branch. Try several r values where
-                    # common branch conditions like (r>>1&6)>=5 are satisfied.
-                    self._nsig_param_val = []
-                    for r_val in [13, 14, 15, 12, 29, 30, 31, 28]:
-                        self._nsig_param_val.append([r_val, a_val ^ r_val])
-
-                    logger.debug(
-                        f"Nfunc name (strategy 2.5 - XOR multi-branch): {candidate}, "
-                        f"constants={c1},{c2}, a={a_val}"
+                    # Check for self-recursive call or direct call with XOR'd constants
+                    # Look for patterns like: candidate(a^C1,a^C2,I) or candidate(D^C1,D^C2,r)
+                    chunk = js[func_start:func_start + 1000]
+                    recursive = re.search(
+                        rf'{re.escape(candidate)}\(([a-zA-Z0-9_$]+)\^(\d+)\s*,\s*\1\^(\d+)\s*,',
+                        chunk
                     )
-                    return candidate
+                    if not recursive:
+                        continue
+
+                    # Get the full function body to validate nsig characteristics
+                    depth = 0
+                    func_end = func_start
+                    for i in range(func_start, min(func_start + 50000, len(js))):
+                        if js[i] == '{':
+                            depth += 1
+                        elif js[i] == '}':
+                            depth -= 1
+                            if depth == 0:
+                                func_end = i + 1
+                                break
+                    func_body = js[func_start:func_end]
+
+                    # Validate nsig characteristics: must have try/catch AND null
+                    # (the big transformation array) AND substantial array references
+                    has_try = 'try{' in func_body or 'try {' in func_body
+                    has_null = func_body.count('null') >= 2
+                    # Check for array references with XOR: v[a^, W[h^, T[m^, etc.
+                    xor_refs = len(re.findall(rf'\w\[{re.escape(xor_var)}\^', func_body))
+
+                    if has_try and has_null and xor_refs > 20:
+                        c1 = int(recursive.group(2))
+                        c2 = int(recursive.group(3))
+                        a_val = c1 ^ c2
+
+                        # Generate control parameter pairs (param1, param2) that route to the
+                        # nsig transformation branch. Try several param1 values where
+                        # common branch conditions are satisfied.
+                        # For functions with (n|72)==n branch: use values that satisfy this
+                        # but avoid (n&92)==n which may call r as a function.
+                        # For functions with (n>>1&6)>=5: use values like 13-15, 28-31.
+                        self._nsig_param_val = []
+                        for r_val in [73, 74, 75, 77, 78, 79, 13, 14, 15, 12, 29, 30, 31, 28, 1, 0]:
+                            self._nsig_param_val.append([r_val, a_val ^ r_val])
+
+                        logger.debug(
+                            f"Nfunc name (strategy 2.5 - XOR multi-branch): {candidate}, "
+                            f"constants={c1},{c2}, a={a_val}, params=({param1},{param2},{param3})"
+                        )
+                        return candidate
 
             # Strategy 3: Broader var=[func], validate it's nsig (has try/catch)
             logger.debug('Trying broader patterns with nsig validation')
@@ -764,11 +790,31 @@ class Cipher:
         if X is None:
             return None
 
+        # Generate multiple candidate parameter pairs to handle different branch conditions.
+        # Some branches may call r/W as a function or have other side effects, so we need
+        # to try alternative X values that still satisfy the nsig branch condition.
+        candidates = [[X, I ^ X]]
+
+        # For (n|72)==n branches, try values that satisfy this but avoid problematic branches
+        if (X | 72) == X:
+            # Try alternative values that satisfy (n|72)==n but not (n&92)==n
+            for alt_x in [73, 74, 75, 77, 78, 79, 104, 105, 106, 107, 108, 109, 110, 111]:
+                if (alt_x | 72) == alt_x and (alt_x & 92) != alt_x:
+                    candidates.append([alt_x, I ^ alt_x])
+
+        # For !((Q|4)>>4) branches (Q<16), try values that avoid (Q<<1&6)<1 branches
+        # This handles players where nsig branch is !((Q|4)>>4) which means (Q|4)<16
+        if X < 16:
+            # Try alternative values Q where !((Q|4)>>4) but not ((Q<<1&6)<1)
+            for alt_x in [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]:
+                if alt_x < 16 and (alt_x << 1 & 6) >= 1:
+                    candidates.append([alt_x, I ^ alt_x])
+
         logger.debug(
-            f"XOR-branch nsig detected: I={I}, X={X}, F={F} "
-            f"(k1={k1}, split_idx={split_idx})"
+            f"XOR-branch nsig detected: I={I}, X={X}, F={I^X} "
+            f"(k1={k1}, split_idx={split_idx}), candidates={len(candidates)}"
         )
-        return [[X, F]]
+        return candidates
 
     @staticmethod
     def _extract_nsig_param_val(code: str, func_name: str) -> list:
