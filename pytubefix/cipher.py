@@ -76,6 +76,90 @@ class Cipher:
                 raise
         raise last_exc
 
+    @staticmethod
+    def _normalize_nsig_params(params) -> list:
+        if params is None:
+            return []
+        if isinstance(params, list):
+            if params and all(isinstance(item, int) for item in params):
+                return [params]
+            return list(params)
+        return [params]
+
+    @staticmethod
+    def _is_valid_nsig_output(value) -> bool:
+        return isinstance(value, str) and 'error' not in value and '_w8_' not in value
+
+    def _run_nsig_candidates(self, params: list, n: str):
+        nsig = None
+        last_exc = None
+        working_param = None
+        for param in params:
+            try:
+                if isinstance(param, list):
+                    nsig = self._call_with_retry(
+                        self.runner_nsig, [*param, n], label="nsig"
+                    )
+                else:
+                    nsig = self._call_with_retry(
+                        self.runner_nsig, [param, n], label="nsig"
+                    )
+            except Exception as e:
+                last_exc = e
+                logger.debug("nsig candidate %s failed", param, exc_info=True)
+                continue
+            if self._is_valid_nsig_output(nsig):
+                working_param = param
+                break
+            last_exc = nsig
+            logger.debug("nsig candidate %s returned non-usable value: %r", param, nsig)
+        return nsig, last_exc, working_param
+
+    def _search_nsig_xor_candidates(self, probe_input: str, params: list) -> list:
+        xor_values = []
+        tested_pairs = set()
+        for param in params:
+            if (
+                isinstance(param, list)
+                and len(param) == 2
+                and all(isinstance(item, int) for item in param)
+            ):
+                pair = (param[0], param[1])
+                tested_pairs.add(pair)
+                xor_values.append(pair[0] ^ pair[1])
+
+        if not xor_values:
+            return []
+
+        transformed = []
+        plain_strings = []
+        seen_found = set()
+
+        for xor_value in dict.fromkeys(xor_values):
+            for first_arg in range(256):
+                pair = (first_arg, xor_value ^ first_arg)
+                if pair in tested_pairs or pair in seen_found:
+                    continue
+                try:
+                    output = self._call_with_retry(
+                        self.runner_nsig,
+                        [pair[0], pair[1], probe_input],
+                        label="nsig-probe",
+                    )
+                except Exception:
+                    continue
+                if not self._is_valid_nsig_output(output):
+                    continue
+                seen_found.add(pair)
+                if output != probe_input:
+                    transformed.append([pair[0], pair[1]])
+                    if len(transformed) >= 8:
+                        return transformed
+                else:
+                    plain_strings.append([pair[0], pair[1]])
+
+        return transformed or plain_strings
+
     def get_nsig(self, n: str):
         """Interpret the function that transforms the signature parameter `n`.
             The lack of this signature generates the 403 forbidden error.
@@ -88,27 +172,27 @@ class Cipher:
         nsig = None
         last_exc = None
         try:
-            if self._nsig_param_val:
-                for param in self._nsig_param_val:
-                    try:
-                        if isinstance(param, list):
-                            nsig = self._call_with_retry(
-                                self.runner_nsig, [*param, n], label="nsig"
-                            )
-                        else:
-                            nsig = self._call_with_retry(
-                                self.runner_nsig, [param, n], label="nsig"
-                            )
-                    except Exception as e:
-                        last_exc = e
-                        logger.debug("nsig candidate %s failed", param, exc_info=True)
-                        continue
-                    if isinstance(nsig, str) and 'error' not in nsig and '_w8_' not in nsig:
-                        # Cache the first working control pair for this player so
-                        # later nsig calls do not keep probing dead branches.
-                        if isinstance(self._nsig_param_val, list) and self._nsig_param_val:
-                            self._nsig_param_val = [param] if isinstance(param, list) else param
-                        break
+            params = self._normalize_nsig_params(self._nsig_param_val)
+            if params:
+                nsig, last_exc, working_param = self._run_nsig_candidates(params, n)
+                if working_param is None:
+                    recovered_params = self._search_nsig_xor_candidates(n, params)
+                    if recovered_params:
+                        logger.info(
+                            "Recovered nsig XOR params for %s: %s",
+                            self.js_url,
+                            recovered_params[0],
+                        )
+                        self._nsig_param_val = recovered_params
+                        nsig, last_exc, working_param = self._run_nsig_candidates(
+                            recovered_params, n
+                        )
+                if working_param is not None and isinstance(self._nsig_param_val, list):
+                    # Cache the first working control pair for this player so
+                    # later nsig calls do not keep probing dead branches.
+                    self._nsig_param_val = (
+                        [working_param] if isinstance(working_param, list) else working_param
+                    )
             else:
                 nsig = self._call_with_retry(
                     self.runner_nsig, [n], label="nsig"
@@ -116,7 +200,7 @@ class Cipher:
         except Exception as e:
             raise InterpretationError(js_url=self.js_url, reason=e)
 
-        if 'error' in nsig or '_w8_' in nsig or not isinstance(nsig, str):
+        if not self._is_valid_nsig_output(nsig):
             raise InterpretationError(
                 js_url=self.js_url,
                 reason=last_exc if last_exc is not None else nsig
