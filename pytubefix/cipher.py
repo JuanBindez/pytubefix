@@ -160,6 +160,123 @@ class Cipher:
 
         return transformed or plain_strings
 
+    def _find_function_body(self, func_name: str) -> Optional[str]:
+        func_def = re.search(
+            r'(?:function\s+%s|(?:var\s+)?%s\s*=\s*function)\s*\(' % (
+                re.escape(func_name), re.escape(func_name)
+            ),
+            self.js,
+        )
+        if not func_def:
+            return None
+
+        func_start = func_def.start()
+        depth = 0
+        func_end = func_start
+        for index in range(func_start, len(self.js)):
+            if self.js[index] == '{':
+                depth += 1
+            elif self.js[index] == '}':
+                depth -= 1
+                if depth == 0:
+                    func_end = index + 1
+                    break
+        return self.js[func_start:func_end]
+
+    def _derive_nsig_invariants(self, func_name: str) -> list:
+        if not isinstance(func_name, str) or not func_name:
+            return []
+
+        global_obj, varname, code = extract_player_js_global_var(self.js)
+        if not global_obj or not varname or not code:
+            return []
+
+        try:
+            global_arr = JSInterpreter(self.js).interpret_expression(code, {}, 100)
+        except Exception:
+            return []
+
+        w8_idx = None
+        for idx, value in enumerate(global_arr):
+            if isinstance(value, str) and value.endswith('_w8_'):
+                w8_idx = idx
+                break
+        if w8_idx is None:
+            return []
+
+        body = self._find_function_body(func_name)
+        if not body:
+            return []
+
+        header = body[:200]
+        xor_var_match = re.search(
+            r'var\s+(?P<xor>[A-Za-z0-9_$]+)\s*=\s*[A-Za-z0-9_$]+\s*\^\s*[A-Za-z0-9_$]+\b',
+            header,
+        )
+        preferred_xor = xor_var_match.group("xor") if xor_var_match else None
+
+        invariants = []
+        catch_pattern = re.compile(
+            r'catch\s*\([^)]+\)\s*\{\s*[A-Za-z0-9_$]+\s*=\s*'
+            + re.escape(varname)
+            + r'\[(?P<xor>[A-Za-z0-9_$]+)\^(?P<const>\d+)\]\s*\+\s*[A-Za-z0-9_$]+\s*;\s*break\s+[A-Za-z_$]+\s*\}'
+        )
+        for match in catch_pattern.finditer(body):
+            xor_var = match.group("xor")
+            if preferred_xor and xor_var != preferred_xor:
+                continue
+            invariant = int(match.group("const")) ^ w8_idx
+            if invariant not in invariants:
+                invariants.append(invariant)
+
+        return invariants
+
+    def _search_nsig_invariant_candidates(
+        self,
+        probe_input: str,
+        invariants: list[int],
+    ) -> list:
+        if not invariants:
+            return []
+
+        transformed = []
+        plain_strings = []
+        seen_pairs = set()
+
+        for invariant in invariants:
+            for first_arg in range(256):
+                pair = (first_arg, invariant ^ first_arg)
+                if pair in seen_pairs:
+                    continue
+                seen_pairs.add(pair)
+                try:
+                    first = self._call_with_retry(
+                        self.runner_nsig,
+                        [pair[0], pair[1], probe_input],
+                        label="nsig-probe",
+                    )
+                    second = self._call_with_retry(
+                        self.runner_nsig,
+                        [pair[0], pair[1], probe_input],
+                        label="nsig-probe",
+                    )
+                except Exception:
+                    continue
+                if (
+                    not self._is_valid_nsig_output(first)
+                    or not self._is_valid_nsig_output(second)
+                    or first != second
+                ):
+                    continue
+                if first != probe_input:
+                    transformed.append([pair[0], pair[1]])
+                    if len(transformed) >= 8:
+                        return transformed
+                else:
+                    plain_strings.append([pair[0], pair[1]])
+
+        return transformed or plain_strings
+
     def get_nsig(self, n: str):
         """Interpret the function that transforms the signature parameter `n`.
             The lack of this signature generates the 403 forbidden error.
@@ -177,6 +294,11 @@ class Cipher:
                 nsig, last_exc, working_param = self._run_nsig_candidates(params, n)
                 if working_param is None:
                     recovered_params = self._search_nsig_xor_candidates(n, params)
+                    if not recovered_params:
+                        recovered_params = self._search_nsig_invariant_candidates(
+                            n,
+                            self._derive_nsig_invariants(self.nsig_function_name),
+                        )
                     if recovered_params:
                         logger.info(
                             "Recovered nsig XOR params for %s: %s",
