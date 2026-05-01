@@ -255,7 +255,7 @@ if __name__ == '__main__':
 
 > Note: Always use callbacks to track progress; `download()` is synchronous.
 
--------
+---------
 
 
 ## Fetch Video Metadata
@@ -285,7 +285,7 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
----
+-------
 
 ## Retrieve Chapters and Key Moments
 
@@ -308,7 +308,7 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
----
+-------
 
 ## Create AsyncYouTube from Video ID
 
@@ -329,7 +329,8 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
----
+
+------
 
 ## Best Practices
 
@@ -339,5 +340,6 @@ if __name__ == '__main__':
 * Combine callbacks with asyncio for efficient non-blocking downloads.
 * Maintain consistent program structure with `main()` and `asyncio.run()` for readability and maintainability.
 
----
+-----
 
+TESTS PR ACTIONS
