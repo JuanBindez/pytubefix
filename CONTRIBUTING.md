@@ -30,6 +30,7 @@ Signed-off-by: Your Name <your.email@example.com>
 Assisted-by: AI Model Name [Tool Provider]
 
 Signed-off-by: Your Name <your.email@example.com>
+
 ---
 
 *By signing, you certify that you have manually reviewed the AI-generated code and assume full legal responsibility for it.*
