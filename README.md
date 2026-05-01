@@ -191,7 +191,7 @@ for video in s.videos:
 
 `AsyncYouTube` is a fully **asynchronous Python interface** built on **PyTubeFix**, intended for developers who require complete control over YouTube video data. It provides access to video streams, metadata, chapters, key moments, and more — all without blocking your event loop.
 
----
+------
 
 ### Quick Start Example
 
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
----
+-----
 
 ## Download a Specific Stream
 
@@ -255,7 +255,8 @@ if __name__ == '__main__':
 
 > Note: Always use callbacks to track progress; `download()` is synchronous.
 
----
+-------
+
 
 ## Fetch Video Metadata
 
