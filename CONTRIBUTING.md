@@ -14,7 +14,25 @@
 
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
 
+* **AI-Assisted Contributions:** If your patch was developed with the help of AI tools (like ChatGPT, Claude, or Copilot), you must document it following the Linux Kernel standards. Use the 'Assisted-by' tag wrapped by your 'Signed-off-by' signatures in the commit message (as shown below).
+
 * Before submitting, please read the [Numpy Contribution Guidelines](https://numpy.org/devdocs/dev/index.html) guide to know more about coding conventions and benchmarks.
+
+#### **Commit Message Standard for AI Tools**
+
+To maintain transparency and legal integrity, we follow the 2026 Linux Kernel documentation standards for AI-assisted code:
+
+---
+[Technical description of the changes]
+
+Signed-off-by: Your Name <your.email@example.com>
+
+Assisted-by: AI Model Name [Tool Provider]
+
+Signed-off-by: Your Name <your.email@example.com>
+---
+
+*By signing, you certify that you have manually reviewed the AI-generated code and assume full legal responsibility for it.*
 
 #### **Did you fix whitespace, format code, or make a purely cosmetic patch?**
 

@@ -6,7 +6,15 @@ VERSION=10
 MINOR=4
 PATCH=0
 EXTRAVERSION=""
-NOTES="(#591)"
+COMMIT="(#591
+
+
+Signed-off-by: Juan Bindez <juanbindez780@gmail.com>
+Assisted-by: Gemini 3 Flash [Google]
+Signed-off-by: Juan Bindez <juanbindez780@gmail.com>
+)"
+
+
 BRANCH="main"
 
 if [[ -z $PATCH ]]; then
@@ -27,7 +35,7 @@ else
 fi
 
 git add .
-git commit -m "$FULL_VERSION $NOTES"
+git commit -s -m "$FULL_VERSION $COMMIT"
 git push -u origin $BRANCH
 git tag v$FULL_VERSION
 git push --tags
