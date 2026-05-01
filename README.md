@@ -93,7 +93,7 @@ ys.download(output_path="path/to/directory")
 
 ---
 
-## Working with Subtitles/Caption Tracks
+### Working with Subtitles/Caption Tracks
 
 ### View Available Subtitles:
 
@@ -126,7 +126,7 @@ caption.save_captions("captions.txt")
 
 ---
 
-## Using Channels
+### Using Channels
 
 ### Get Channel Name:
 
@@ -151,7 +151,7 @@ for video in c.videos:
 
 ---
 
-## Search for Videos
+### Search for Videos
 
 ### Basic Search:
 
@@ -186,13 +186,13 @@ for video in s.videos:
 ```
 
 
-# AsyncYouTube — Advanced Guide with Complete Examples
+### AsyncYouTube — Advanced Guide with Complete Examples
 
 `AsyncYouTube` is a fully **asynchronous Python interface** built on **PyTubeFix**, intended for developers who require complete control over YouTube video data. It provides access to video streams, metadata, chapters, key moments, and more — all without blocking your event loop.
 
 ---
 
-## Quick Start Example
+### Quick Start Example
 
 A full program demonstrating basic usage:
 
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
 ---
 
-## Download a Specific Stream
+### Download a Specific Stream
 
 Complete example showing download with progress and completion callbacks:
 
@@ -256,7 +256,7 @@ if __name__ == '__main__':
 
 ---
 
-## Fetch Video Metadata
+### Fetch Video Metadata
 
 ```python
 import asyncio
@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
 ---
 
-## Retrieve Chapters and Key Moments
+### Retrieve Chapters and Key Moments
 
 ```python
 import asyncio
@@ -308,7 +308,7 @@ if __name__ == '__main__':
 
 ---
 
-## Create AsyncYouTube from Video ID
+### Create AsyncYouTube from Video ID
 
 ```python
 import asyncio
@@ -329,7 +329,7 @@ if __name__ == '__main__':
 
 ---
 
-## Best Practices
+### Best Practices
 
 * Always `await` asynchronous methods: `streams()`, `title()`, `views()`, `likes()`, `chapters()`, `key_moments()`.
 * Use `use_oauth=True` to handle age-restricted content; cache tokens to minimize repeated logins.
