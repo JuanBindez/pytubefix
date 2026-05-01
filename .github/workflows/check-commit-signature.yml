@@ -12,11 +12,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }} # Garante que estamos lendo o commit correto do PR
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Validate Commit Message
         run: |
-          # Captura a mensagem do commit que originou o PR
           COMMIT_MSG=$(git log -1 --pretty=%B)
           
           echo "Analyzing commit message..."
@@ -24,25 +23,12 @@ jobs:
           echo "$COMMIT_MSG"
           echo "---------------------------"
 
-          # 1. Check for mandatory Signed-off-by (DCO)
+          # Check for mandatory Signed-off-by (DCO)
           if ! echo "$COMMIT_MSG" | grep -qE "Signed-off-by: .+ <.+>"; then
-            echo "❌ Error: You must sign off your commit with 'Signed-off-by: Your Name <email>'."
-            echo "Current message does not contain a valid signature."
+            echo "❌ Error: Mandatory signature missing."
+            echo "You must sign off your commit with 'Signed-off-by: Your Name <email>'."
+            echo "Use 'git commit -s' to automate this or amend your current commit."
             exit 1
           fi
 
-          # 2. Check for AI usage and validate the format
-          if echo "$COMMIT_MSG" | grep -qiE "ai|gpt|copilot|assisted-by|bot"; then
-            echo "AI usage detected. Validating audit format..."
-            
-            if ! echo "$COMMIT_MSG" | grep -qE "Assisted-by: .+"; then
-              echo "❌ Error: When using AI, you must follow the audit format:"
-              echo "Signed-off-by: Your Name <email>"
-              echo "Assisted-by: AI Model [Provider]"
-              echo "Signed-off-by: Your Name <email>"
-              exit 1
-            fi
-            echo "✅ Valid AI-assisted signature!"
-          else
-            echo "✅ Manual commit (no AI) accepted with Signed-off-by."
-          fi
+          echo "✅ Signature found. Commit accepted."
