@@ -3,14 +3,11 @@
 set -e
 
 VERSION=10
-MINOR=4
+MINOR=5
 PATCH=0
 EXTRAVERSION=""
-COMMIT="(#591
+COMMIT="(#598 #599 -
 
-
-Signed-off-by: Juan Bindez <juanbindez780@gmail.com>
-Assisted-by: Gemini 3 Flash [Google]
 Signed-off-by: Juan Bindez <juanbindez780@gmail.com>
 )"
 
