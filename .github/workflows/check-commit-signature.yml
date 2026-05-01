@@ -12,17 +12,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }} # Garante que estamos lendo o commit correto do PR
 
       - name: Validate Commit Message
         run: |
+          # Captura a mensagem do commit que originou o PR
           COMMIT_MSG=$(git log -1 --pretty=%B)
           
           echo "Analyzing commit message..."
+          echo "---------------------------"
+          echo "$COMMIT_MSG"
+          echo "---------------------------"
 
           # 1. Check for mandatory Signed-off-by (DCO)
           if ! echo "$COMMIT_MSG" | grep -qE "Signed-off-by: .+ <.+>"; then
             echo "❌ Error: You must sign off your commit with 'Signed-off-by: Your Name <email>'."
-            echo "Use 'git commit -s' to automate this."
+            echo "Current message does not contain a valid signature."
             exit 1
           fi
 
