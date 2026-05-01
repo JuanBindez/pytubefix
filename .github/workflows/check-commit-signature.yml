@@ -1,4 +1,4 @@
-yamlname: Check Commit Signature
+name: Check Commit Signature
 
 on:
   pull_request:
@@ -26,14 +26,14 @@ jobs:
             exit 1
           fi
 
-          # 2. Check for AI usage and validate the "sandwich" format
+          # 2. Check for AI usage and validate the format
           if echo "$COMMIT_MSG" | grep -qiE "ai|gpt|copilot|assisted-by|bot"; then
             echo "AI usage detected. Validating audit format..."
             
             if ! echo "$COMMIT_MSG" | grep -qE "Assisted-by: .+"; then
               echo "❌ Error: When using AI, you must follow the audit format:"
               echo "Signed-off-by: Your Name <email>"
-              echo "Assisted-by: AI Name [Provider]"
+              echo "Assisted-by: AI Model [Provider]"
               echo "Signed-off-by: Your Name <email>"
               exit 1
             fi
