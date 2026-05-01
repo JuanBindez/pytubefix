@@ -26,7 +26,9 @@ To maintain transparency and legal integrity, we follow the 2026 Linux Kernel do
 [Technical description of the changes]
 
 Signed-off-by: Your Name <your.email@example.com>
+
 Assisted-by: AI Model Name [Tool Provider]
+
 Signed-off-by: Your Name <your.email@example.com>
 ---
 

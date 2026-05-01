@@ -1,0 +1,30 @@
+name: Welcome Contributor
+
+on:
+  pull_requests:
+    types: [opened]
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome Message
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            ## Welcome to pytubefix!
+
+            Thank you for your contribution! To maintain our project's integrity, please ensure your commits follow our **Commit Signing** rules:
+
+            1. **Mandatory Sign-off:** Every commit must include `Signed-off-by: Your Name <email>`. You can use `git commit -s` to do this automatically.
+            2. **AI Disclosure:** If you used AI (Copilot, ChatGPT, etc.), please use our audit format:
+               ```text
+               Signed-off-by: Your Name <email>
+               Assisted-by: AI Model [Provider]
+               Signed-off-by: Your Name <email>
+               ```
+
+            Our automated check will verify this. If it fails, you can fix it using `git commit --amend` and a force push. 
+
+            Happy coding!

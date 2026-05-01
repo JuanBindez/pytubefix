@@ -1,0 +1,43 @@
+yamlname: Check Commit Signature
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-signature:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Commit Message
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          echo "Analyzing commit message..."
+
+          # 1. Check for mandatory Signed-off-by (DCO)
+          if ! echo "$COMMIT_MSG" | grep -qE "Signed-off-by: .+ <.+>"; then
+            echo "❌ Error: You must sign off your commit with 'Signed-off-by: Your Name <email>'."
+            echo "Use 'git commit -s' to automate this."
+            exit 1
+          fi
+
+          # 2. Check for AI usage and validate the "sandwich" format
+          if echo "$COMMIT_MSG" | grep -qiE "ai|gpt|copilot|assisted-by|bot"; then
+            echo "AI usage detected. Validating audit format..."
+            
+            if ! echo "$COMMIT_MSG" | grep -qE "Assisted-by: .+"; then
+              echo "❌ Error: When using AI, you must follow the audit format:"
+              echo "Signed-off-by: Your Name <email>"
+              echo "Assisted-by: AI Name [Provider]"
+              echo "Signed-off-by: Your Name <email>"
+              exit 1
+            fi
+            echo "✅ Valid AI-assisted signature!"
+          else
+            echo "✅ Manual commit (no AI) accepted with Signed-off-by."
+          fi
