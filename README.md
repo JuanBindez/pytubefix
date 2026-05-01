@@ -124,7 +124,8 @@ caption = yt.captions['a.en']
 caption.save_captions("captions.txt")
 ```
 
----
+------
+
 
 ## Using Channels
 
@@ -186,13 +187,13 @@ for video in s.videos:
 ```
 
 
-# AsyncYouTube — Advanced Guide with Complete Examples
+## AsyncYouTube — Advanced Guide with Complete Examples
 
 `AsyncYouTube` is a fully **asynchronous Python interface** built on **PyTubeFix**, intended for developers who require complete control over YouTube video data. It provides access to video streams, metadata, chapters, key moments, and more — all without blocking your event loop.
 
 ---
 
-## Quick Start Example
+### Quick Start Example
 
 A full program demonstrating basic usage:
 
