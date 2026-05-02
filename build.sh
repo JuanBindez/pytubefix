@@ -3,16 +3,14 @@
 set -e
 
 VERSION=10
-MINOR=5
-PATCH=0
-EXTRAVERSION=""
-COMMIT="(#598 #599 -
+MINOR=6
+PATCH=
+EXTRAVERSION="rc1"
+COMMIT="
+(#616)
 
-Signed-off-by: Juan Bindez <juanbindez780@gmail.com>
-)"
-
-
-BRANCH="main"
+"
+BRANCH="dev"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
