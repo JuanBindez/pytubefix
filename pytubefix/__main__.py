@@ -911,11 +911,21 @@ class YouTube:
         try:
             contents = self.vid_details['contents']
             results = contents[list(contents.keys())[0]]['results']['results']['contents']
+        except KeyError as e:
+            # `vid_details` is `None`-or-missing-key when the Channel iterator
+            # returns a video whose details payload doesn't include `contents`.
+            # Surface the empty case as PyTubeFixError so callers can decide
+            # how to handle it (likes/dislikes/views catch and return 0 or
+            # raise; see #595 — looping over a Channel previously crashed
+            # mid-iteration on the first video without a details block).
+            raise exceptions.PyTubeFixError(
+                f'Exception: accessing vid_details_content of {self.watch_url} in {self.client}: missing key {e!s}'
+            ) from e
         except Exception as e:
             raise exceptions.PyTubeFixError(
-                    (
-                        f'Exception: accessing vid_details_content of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
-                    )
+                (
+                    f'Exception: accessing vid_details_content of {self.watch_url} in {self.client} and trying to use key in {contents.keys()}'
+                )
             ) from e
         return results
 
@@ -1072,6 +1082,12 @@ class YouTube:
                         f'Exception: accessing likes of {self.watch_url} in {self.client}'
                     )
             ) from e
+        except exceptions.PyTubeFixError:
+            # vid_details_content raises when the details payload is missing;
+            # skip videos where YouTube didn't return like counts (#595) and
+            # leave callers a deterministic empty value instead of crashing
+            # mid-iteration over a Channel.
+            return ''
         return None
 
     @property
