@@ -253,7 +253,7 @@ class Playlist(Sequence):
             # token provided by the API doesn't seem to work even in the official player
             try:
                 continuation = videos[-1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
-            except:
+            except Exception:
                 for command in videos[-1]['continuationItemRenderer']['continuationEndpoint']['commandExecutorCommand']['commands']:
                     if 'continuationCommand' in command:
                         continuation = command['continuationCommand']['token']
