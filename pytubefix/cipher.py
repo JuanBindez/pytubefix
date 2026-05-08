@@ -513,6 +513,62 @@ class Cipher:
                             self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
                         return n_func
 
+                    # Strategy 1a-bis: Find via catch block with DIRECT (non-XOR) index reference
+                    # Pattern: catch(x) { VAR = GLOBAL[w8_idx] + argname; break a }
+                    # Handles players (e.g. 8fb635c2) where the catch block uses u[w8_idx]
+                    # directly instead of u[xor_var^const].
+                    direct_catch = re.compile(
+                        r'catch\s*\([^)]+\)\s*\{\s*'
+                        r'[A-Za-z0-9_$]+\s*=\s*'
+                        + re.escape(varname) +
+                        r'\[(\d+)\]\s*\+\s*([A-Za-z0-9_$]+)\s*;\s*break\s+a\s*\}'
+                    )
+                    for cm in direct_catch.finditer(js):
+                        if int(cm.group(1)) != w8_idx:
+                            continue
+                        arg_var = cm.group(2)
+
+                        search_start = max(0, cm.start() - 5000)
+                        func_area = js[search_start:cm.start()]
+                        fms = list(re.finditer(
+                            r'(?:([a-zA-Z0-9_$]+)\s*=\s*function|function\s+([a-zA-Z0-9_$]+))\s*\(([^)]*)\)',
+                            func_area
+                        ))
+                        if not fms:
+                            continue
+
+                        last = fms[-1]
+                        n_func = last.group(1) or last.group(2)
+                        actual_start = search_start + last.start()
+
+                        header_area = js[actual_start:actual_start + 200]
+                        xor_header_m = re.search(
+                            r'var\s+([A-Za-z0-9_$]+)\s*=\s*[A-Za-z0-9_$]+\s*\^\s*[A-Za-z0-9_$]+',
+                            header_area
+                        )
+                        if not xor_header_m:
+                            continue
+                        xor_var_found = xor_header_m.group(1)
+
+                        branch_start = max(actual_start, cm.start() - 2000)
+                        branch_end = min(len(js), cm.end() + 1200)
+                        if branch_start <= actual_start + 200:
+                            body = js[actual_start:branch_end]
+                        else:
+                            body = js[actual_start:actual_start + 200] + js[branch_start:branch_end]
+
+                        logger.debug(f"Nfunc name (strategy 1a-bis - _w8_ direct catch): {n_func}")
+                        xor_params = self._extract_xor_branch_nsig_params(
+                            js, n_func, varname, global_obj, body, xor_var_found, arg_var,
+                            w8_xor_b=None
+                        )
+                        if xor_params is not None:
+                            logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
+                            self._nsig_param_val = xor_params
+                        else:
+                            self._nsig_param_val = self._extract_nsig_param_val(js, n_func)
+                        return n_func
+
                     # Strategy 1b: Find via catch block with direct index reference
                     # Pattern: catch(x) { VAR = GLOBAL[index] + argname; break a }
                     nsig_patterns = [
