@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubefix"
-version = "10.7.1"
+version = "10.7.2"
 authors = [
   { name="Juan Bindez", email="juanbindez780@gmail.com" },
 ]

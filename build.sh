@@ -4,12 +4,11 @@ set -e
 
 VERSION=10
 MINOR=7
-PATCH=1
+PATCH=2
 EXTRAVERSION=""
-COMMIT="(#628 #629)
+COMMIT="(#630 #631)
 
-Co-authored-by: Dilan Tsasi <tsasidilan@gmail.com>
-Tested-by: Justin Corey 'Muggwomp' <justincorey@mindgarden.cc>
+Fixes: #627
 "
 BRANCH="main"
 

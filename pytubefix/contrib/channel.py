@@ -217,13 +217,32 @@ class Channel(Playlist):
 
         :Yields: Video URLs
         """
+        for obj in self._object_generator():
+            if isinstance(obj, str):
+                yield self._video_url(obj) if obj.startswith("/watch") else obj
+                continue
+
+            watch_url = getattr(obj, "watch_url", None)
+            if watch_url:
+                yield watch_url
+
+    def _object_generator(self):
+        """Generator that yields extracted channel objects."""
         for page in self._paginate(self.html):
             for obj in page:
-                yield obj
+                yield from self._iter_extracted_objects(obj)
+
+    @staticmethod
+    def _iter_extracted_objects(obj):
+        """Flatten extracted channel objects."""
+        if isinstance(obj, list):
+            for item in obj:
+                yield from Channel._iter_extracted_objects(item)
+        elif obj:
+            yield obj
 
     def videos_generator(self):
-        for url in self.video_urls:
-            yield url
+        yield from self._object_generator()
 
     def _get_active_tab(self, initial_data) -> dict:
         """ Receive the raw json and return the active page.
