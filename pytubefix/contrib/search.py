@@ -390,7 +390,7 @@ class Search:
         if self._completion_suggestions:
             return self._completion_suggestions
         if self.results:
-            self._completion_suggestions = self._initial_results['refinements']
+            self._completion_suggestions = self._initial_results.get('refinements', [])
         return self._completion_suggestions
 
     def _get_results(self):
