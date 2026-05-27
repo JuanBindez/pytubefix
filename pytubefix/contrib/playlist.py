@@ -49,7 +49,7 @@ class Playlist(Sequence):
             then passed as a `po_token` query parameter to affected clients.
             If allow_oauth_cache is set to True, the user should only be prompted once.
         :param Callable po_token_verifier:
-            (Optional) Verified used to obtain the visitorData and po_token.
+            (Optional) Verifier used to obtain the visitorData and po_token.
             The verifier will return the visitorData and po_token respectively.
             (if passed, else default verifier will be used)
         """
