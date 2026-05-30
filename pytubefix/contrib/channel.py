@@ -390,6 +390,20 @@ class Channel(Playlist):
                            po_token_verifier=self.po_token_verifier
                            )
         except (KeyError, IndexError, TypeError):
+            # Fallback: handle lockupViewModel format (new YouTube JSON structure)
+            try:
+                video_id = x['richItemRenderer']['content']['lockupViewModel']['contentId']
+                return YouTube(f"/watch?v={video_id}",
+                               client=self.client,
+                               use_oauth=self.use_oauth,
+                               allow_oauth_cache=self.allow_oauth_cache,
+                               token_file=self.token_file,
+                               oauth_verifier=self.oauth_verifier,
+                               use_po_token=self.use_po_token,
+                               po_token_verifier=self.po_token_verifier
+                               )
+            except (KeyError, IndexError, TypeError):
+                pass
             return self._extract_shorts_id(x)
 
     def _extract_shorts_id(self, x: dict):
