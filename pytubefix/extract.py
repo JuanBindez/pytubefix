@@ -458,67 +458,75 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str, url_js: str)
 
     """
     cipher = Cipher(js=js, js_url=url_js)
-    discovered_n = dict()
-    for i, stream in enumerate(stream_manifest):
-        try:
-            url: str = stream["url"]
-        except KeyError:
-            live_stream = (
-                vid_info.get("playabilityStatus", {}, )
-                .get("liveStreamability")
-            )
-            if live_stream:
-                raise LiveStreamError("UNKNOWN")
+    try:
+        discovered_n = dict()
+        for i, stream in enumerate(stream_manifest):
+            try:
+                url: str = stream["url"]
+            except KeyError:
+                live_stream = (
+                    vid_info.get("playabilityStatus", {}, )
+                    .get("liveStreamability")
+                )
+                if live_stream:
+                    raise LiveStreamError("UNKNOWN")
 
-        parsed_url = urlparse(url)
+            parsed_url = urlparse(url)
 
-        # Convert query params off url to dict
-        query_params = parse_qs(urlparse(url).query)
-        query_params = {
-            k: v[0] for k, v in query_params.items()
-        }
+            # Convert query params off url to dict
+            query_params = parse_qs(urlparse(url).query)
+            query_params = {
+                k: v[0] for k, v in query_params.items()
+            }
 
-        # 403 Forbidden fix.
-        if "signature" in url or (
-                "s" not in stream and ("&sig=" in url or "&lsig=" in url)
-        ):
-            # For certain videos, YouTube will just provide them pre-signed, in
-            # which case there's no real magic to download them and we can skip
-            # the whole signature descrambling entirely.
-            logger.debug("signature found, skip decipher")
+            # 403 Forbidden fix.
+            if "signature" in url or (
+                    "s" not in stream and ("&sig=" in url or "&lsig=" in url)
+            ):
+                # For certain videos, YouTube will just provide them pre-signed, in
+                # which case there's no real magic to download them and we can skip
+                # the whole signature descrambling entirely.
+                logger.debug("signature found, skip decipher")
 
-        else:
-            signature = cipher.get_sig(ciphered_signature=stream["s"])
-
-            logger.debug(
-                "finished descrambling signature for itag=%s", stream["itag"]
-            )
-
-            query_params['sig'] = signature
-
-        if 'n' in query_params.keys():
-            # For WEB-based clients, YouTube sends an "n" parameter that throttles download speed.
-            # To decipher the value of "n", we must interpret the player's JavaScript.
-
-            initial_n = query_params['n']
-            logger.debug(f'Parameter n is: {initial_n}')
-
-            # Check if any previous stream decrypted the parameter
-            if initial_n not in discovered_n:
-                discovered_n[initial_n] = cipher.get_nsig(initial_n)
             else:
-                logger.debug('Parameter n found skipping decryption')
+                signature = cipher.get_sig(ciphered_signature=stream["s"])
 
-            new_n = discovered_n[initial_n]
-            query_params['n'] = new_n
-            logger.debug(f'Parameter n deciphered: {new_n}')
+                logger.debug(
+                    "finished descrambling signature for itag=%s", stream["itag"]
+                )
 
-        url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'  # noqa:E501
+                query_params['sig'] = signature
 
-        stream_manifest[i]["url"] = url
+            if 'n' in query_params.keys():
+                # For WEB-based clients, YouTube sends an "n" parameter that throttles download speed.
+                # To decipher the value of "n", we must interpret the player's JavaScript.
 
-    cipher.runner_sig.close()
-    cipher.runner_nsig.close()
+                initial_n = query_params['n']
+                logger.debug(f'Parameter n is: {initial_n}')
+
+                # Check if any previous stream decrypted the parameter
+                if initial_n not in discovered_n:
+                    discovered_n[initial_n] = cipher.get_nsig(initial_n)
+                else:
+                    logger.debug('Parameter n found skipping decryption')
+
+                new_n = discovered_n[initial_n]
+                query_params['n'] = new_n
+                logger.debug(f'Parameter n deciphered: {new_n}')
+
+            url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{urlencode(query_params)}'  # noqa:E501
+
+            stream_manifest[i]["url"] = url
+    finally:
+        # Always release the two node subprocesses spawned by Cipher, even if
+        # the loop above raised (LiveStreamError, NodeRunner*Error during a
+        # base.js rotation, network failure, ...). Without this, every failed
+        # call leaks two `node runner.js` children whose stdin pipes stay open
+        # forever, eventually exhausting FDs in long-running hosts.
+        try:
+            cipher.runner_sig.close()
+        finally:
+            cipher.runner_nsig.close()
 
 
 def apply_descrambler(stream_data: Dict) -> Optional[List[Dict]]:
