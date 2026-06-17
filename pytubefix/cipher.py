@@ -13,6 +13,7 @@ functions" (2) sends them to be interpreted by nodejs
 import logging
 import re
 import time
+import ast
 from typing import Optional
 
 from pytubefix.exceptions import RegexMatchError, InterpretationError
@@ -78,6 +79,85 @@ def _find_js_array_end(js: str, start: int) -> Optional[int]:
                 return index + 1
 
     return None
+
+
+def _split_js_array_entries(array_body: str) -> list:
+    entries = []
+    token = []
+    depth = 0
+    quote = None
+    escaped = False
+
+    for char in array_body:
+        if quote:
+            token.append(char)
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            continue
+
+        if char in ("'", '"'):
+            quote = char
+            token.append(char)
+        elif char in "[{(":
+            depth += 1
+            token.append(char)
+        elif char in "]})":
+            depth -= 1
+            token.append(char)
+        elif char == "," and depth == 0:
+            entries.append("".join(token).strip())
+            token = []
+        else:
+            token.append(char)
+
+    entries.append("".join(token).strip())
+    return entries
+
+
+def _decode_js_string_literal(value: str):
+    if len(value) < 2 or value[0] not in ("'", '"') or value[-1] != value[0]:
+        return None
+    try:
+        return ast.literal_eval(value)
+    except Exception:
+        quote = value[0]
+        return (
+            value[1:-1]
+            .replace("\\\\", "\\")
+            .replace("\\" + quote, quote)
+            .replace("\\n", "\n")
+            .replace("\\r", "\r")
+            .replace("\\t", "\t")
+        )
+
+
+def _extract_plain_array_player_js_global_var(js: str):
+    """Extract plain global string tables, e.g. var W=["split", ..., fn]."""
+    for match in re.finditer(
+        r"(?:(?:var|let|const)\s+)?(?P<varname>[A-Za-z0-9_$]+)\s*=\s*\[",
+        js,
+    ):
+        array_start = match.end() - 1
+        array_end = _find_js_array_end(js, array_start)
+        if array_end is None:
+            continue
+
+        array_code = js[array_start:array_end]
+        if "_w8_" not in array_code:
+            continue
+
+        global_obj = []
+        for entry in _split_js_array_entries(array_code[1:-1]):
+            global_obj.append(_decode_js_string_literal(entry))
+
+        if any(isinstance(value, str) and value.endswith("_w8_") for value in global_obj):
+            return match.group("varname"), global_obj
+
+    return None, None
 
 
 def _extract_property_array_player_js_global_var(js: str):
@@ -293,6 +373,8 @@ class Cipher:
             if not varname or not global_arr:
                 varname, global_arr = _extract_property_array_player_js_global_var(self.js)
             if not varname or not global_arr:
+                varname, global_arr = _extract_plain_array_player_js_global_var(self.js)
+            if not varname or not global_arr:
                 return []
 
         w8_idx = None
@@ -318,7 +400,7 @@ class Cipher:
         catch_pattern = re.compile(
             r'catch\s*\([^)]+\)\s*\{\s*[A-Za-z0-9_$]+\s*=\s*'
             + re.escape(varname)
-            + r'\[(?P<xor>[A-Za-z0-9_$]+)\^(?P<const>\d+)\]\s*\+\s*[A-Za-z0-9_$]+\s*;\s*break\s+[A-Za-z_$]+\s*\}'
+            + r'\[(?P<xor>[A-Za-z0-9_$]+)\^\s*(?P<const>\d+)\]\s*\+\s*[A-Za-z0-9_$]+\s*;\s*break\s+[A-Za-z_$]+\s*\}'
         )
         for match in catch_pattern.finditer(body):
             xor_var = match.group("xor")
@@ -548,6 +630,8 @@ class Cipher:
                 varname, global_obj = _extract_split_player_js_global_var(js)
                 if not (varname and global_obj):
                     varname, global_obj = _extract_property_array_player_js_global_var(js)
+                if not (varname and global_obj):
+                    varname, global_obj = _extract_plain_array_player_js_global_var(js)
                 if varname and global_obj:
                     logger.debug(f"TCE global Obj name is: {varname}")
 
@@ -566,7 +650,7 @@ class Cipher:
                         r'catch\s*\([^)]+\)\s*\{\s*'
                         r'[A-Za-z0-9_$]+\s*=\s*'
                         + re.escape(varname) +
-                        r'\[([A-Za-z0-9_$]+)\^(\d+)\]\s*\+\s*([A-Za-z0-9_$]+)\s*;\s*break\s+a\s*\}'
+                        r'\[([A-Za-z0-9_$]+)\^\s*(\d+)\]\s*\+\s*([A-Za-z0-9_$]+)\s*;\s*break\s+a\s*\}'
                     )
                     for cm in xor_catch.finditer(js):
                         xor_var = cm.group(1)
@@ -612,6 +696,10 @@ class Cipher:
                             js, n_func, varname, global_obj, body, xor_var, arg_var,
                             w8_xor_b=w8_xor_b
                         )
+                        if xor_params is None:
+                            xor_params = self._extract_xor_branch_nsig_params(
+                                js, n_func, varname, global_obj
+                            )
                         if xor_params is not None:
                             logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
                             self._nsig_param_val = xor_params
@@ -668,6 +756,10 @@ class Cipher:
                             js, n_func, varname, global_obj, body, xor_var_found, arg_var,
                             w8_xor_b=None
                         )
+                        if xor_params is None:
+                            xor_params = self._extract_xor_branch_nsig_params(
+                                js, n_func, varname, global_obj
+                            )
                         if xor_params is not None:
                             logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
                             self._nsig_param_val = xor_params
@@ -812,6 +904,42 @@ class Cipher:
                             f"constants={c1},{c2}, a={a_val}, params=({param1},{param2},{param3})"
                         )
                         return candidate
+
+            # Strategy 2.75: Hybrid IAS+TCE nsig wrapper.
+            # Some hybrid players route nsig through a compact XOR branch that
+            # calls g.t_(input, helper) instead of exposing a call-site pattern.
+            # Prefer this over the broad try/catch fallback below, which can
+            # otherwise pick generic helpers such as "f".
+            for func_def in re.finditer(
+                r'(?<![A-Za-z0-9_$.])(?P<funcname>[A-Za-z0-9_$]+)\s*=\s*function\s*\(',
+                js,
+            ):
+                candidate = func_def.group("funcname")
+                func_start = func_def.start()
+                depth = 0
+                func_end = func_start
+                for i in range(func_start, min(func_start + 50000, len(js))):
+                    if js[i] == '{':
+                        depth += 1
+                    elif js[i] == '}':
+                        depth -= 1
+                        if depth == 0:
+                            func_end = i + 1
+                            break
+                func_body = js[func_start:func_end]
+                if "g.t_(" not in func_body:
+                    continue
+                if not (global_obj and varname):
+                    continue
+                xor_params = self._extract_xor_branch_nsig_params(
+                    js, candidate, varname, global_obj, func_body
+                )
+                if xor_params is None:
+                    continue
+                logger.debug(f"Nfunc name (strategy 2.75 - hybrid g.t_ wrapper): {candidate}")
+                logger.debug(f"Using XOR-branch params for {candidate}: {xor_params}")
+                self._nsig_param_val = xor_params
+                return candidate
 
             # Strategy 3: Broader var=[func], validate it's nsig (has try/catch)
             logger.debug('Trying broader patterns with nsig validation')
