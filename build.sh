@@ -13,21 +13,16 @@ Fixes:#653
 "
 BRANCH="main"
 
-if [[ -z $PATCH ]]; then
-    PATCH=""
-else
+if [[ -n "${PATCH-}" ]]; then
     PATCH=".$PATCH"
 fi
 
-if [[ $EXTRAVERSION == *"-rc"* ]]; then
-    FULL_VERSION="$VERSION.$MINOR$PATCH$EXTRAVERSION"
-else
+FULL_VERSION="$VERSION.$MINOR$PATCH"
 
-    if [[ -z $EXTRAVERSION ]]; then
-        FULL_VERSION="$VERSION.$MINOR$PATCH"
-    else
-        FULL_VERSION="$VERSION.$MINOR$PATCH.$EXTRAVERSION"
-    fi
+if [[ $EXTRAVERSION == *"-rc"* ]]; then
+    FULL_VERSION+="$EXTRAVERSION"
+elif [[ -n $EXTRAVERSION ]]; then
+    FULL_VERSION+=".$EXTRAVERSION"
 fi
 
 git add .
