@@ -696,6 +696,12 @@ class Cipher:
                             js, n_func, varname, global_obj, body, xor_var, arg_var,
                             w8_xor_b=w8_xor_b
                         )
+                        # Some IAS mega-functions place the split branch outside
+                        # the local catch window. Retry against the full function.
+                        if xor_params is None:
+                            xor_params = self._extract_xor_branch_nsig_params(
+                                js, n_func, varname, global_obj
+                            )
                         if xor_params is not None:
                             logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
                             self._nsig_param_val = xor_params
@@ -752,6 +758,12 @@ class Cipher:
                             js, n_func, varname, global_obj, body, xor_var_found, arg_var,
                             w8_xor_b=None
                         )
+                        # Some IAS mega-functions place the split branch outside
+                        # the local catch window. Retry against the full function.
+                        if xor_params is None:
+                            xor_params = self._extract_xor_branch_nsig_params(
+                                js, n_func, varname, global_obj
+                            )
                         if xor_params is not None:
                             logger.debug(f"Using XOR-branch params for {n_func}: {xor_params}")
                             self._nsig_param_val = xor_params
