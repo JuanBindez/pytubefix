@@ -4,14 +4,14 @@ set -e
 
 VERSION=10
 MINOR=11
-PATCH=
-EXTRAVERSION="-rc1"
+PATCH=0
+EXTRAVERSION=""
 COMMIT="(#667 #663)
 
 Tested-by: Justin 'Muggwomp' Corey <justincorey@mindgarden.cc>
 Tested-by: Sai Asish Y <say.apm35@gmail.com>
 "
-BRANCH="dev"
+BRANCH="main"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
