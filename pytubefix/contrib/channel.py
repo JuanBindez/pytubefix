@@ -109,6 +109,18 @@ class Channel(Playlist):
         return self.initial_data['metadata']['channelMetadataRenderer']['title']
 
     @property
+    def title(self) -> str:
+        """Get the title of the YouTube channel.
+
+        The inherited ``Playlist.title`` reads from a ``sidebar`` key that is
+        not present in a channel's initial data, so it is overridden here to
+        return the channel name.
+
+        :rtype: str
+        """
+        return self.channel_name
+
+    @property
     def channel_id(self):
         """Get the ID of the YouTube channel.
 

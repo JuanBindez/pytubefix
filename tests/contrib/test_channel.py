@@ -35,6 +35,14 @@ def test_channel_name(request_get, channel_videos_html):
 
 
 @mock.patch('pytubefix.request.get')
+def test_channel_title(request_get, channel_videos_html):
+    request_get.return_value = channel_videos_html
+
+    c = Channel('https://www.youtube.com/c/ProgrammingKnowledge/videos')
+    assert c.title == 'ProgrammingKnowledge'
+
+
+@mock.patch('pytubefix.request.get')
 def test_channel_id(request_get, channel_videos_html):
     request_get.return_value = channel_videos_html
 
