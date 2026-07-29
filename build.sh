@@ -11,7 +11,7 @@ COMMIT="(#667 #663)
 Tested-by: Justin 'Muggwomp' Corey <justincorey@mindgarden.cc>
 Tested-by: Sai Asish Y <say.apm35@gmail.com>
 "
-BRANCH="main"
+BRANCH="dev"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
