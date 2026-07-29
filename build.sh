@@ -3,13 +3,13 @@
 set -e
 
 VERSION=10
-MINOR=10
-PATCH=1
-EXTRAVERSION=""
-COMMIT="(#656)
+MINOR=11
+PATCH=
+EXTRAVERSION="-rc1"
+COMMIT="(#667 #663)
 
 Tested-by: Justin 'Muggwomp' Corey <justincorey@mindgarden.cc>
-Fixes:#653
+Tested-by: Sai Asish Y <say.apm35@gmail.com>
 "
 BRANCH="main"
 
