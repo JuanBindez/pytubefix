@@ -4,6 +4,7 @@ Info
 ====
 
 This can be useful for debugging or logging purposes, as it allows developers to quickly check the environment in which the code is being executed. It helps ensure that the correct versions of Python and Pytubefix are being used, and can also assist in identifying any compatibility issues between the system and the application::
+
     >>> from pytubefix import info
     >>> 
     >>> print(info())
@@ -11,6 +12,7 @@ This can be useful for debugging or logging purposes, as it allows developers to
     >>> 
 
 to get just the operating system::
+
     >>> from pytubefix import info
     >>> 
     >>> system_info = info()
@@ -21,6 +23,7 @@ to get just the operating system::
     >>>
 
 to use only the pytubefix version::
+
     >>> from pytubefix import info
     >>> 
     >>> system_info = info()
@@ -30,6 +33,7 @@ to use only the pytubefix version::
     >>>
 
 The main purpose is to use in logs, especially if you are using in cloud environments where you may be using a broken version of pytubefix::
+
     >>> import logging
     >>> from pytubefix import YouTube, info
     >>> from pytubefix.cli import on_progress
