@@ -1,7 +1,7 @@
 .. _install:
 
 Installation of pytubefix
-======================
+=========================
 
 This guide assumes you already have python and pip installed.
 

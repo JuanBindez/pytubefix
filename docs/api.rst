@@ -79,14 +79,14 @@ Search Object
    :inherited-members:
 
 ChapterThumbnail Object
--------------
+-----------------------
 
 .. autoclass:: pytubefix.chapters.ChapterThumbnail
    :members:
    :inherited-members:
 
 Chapter Object
--------------
+--------------
 
 .. autoclass:: pytubefix.chapters.Chapter
    :members:

@@ -1,7 +1,7 @@
 .. _m4a:
 
 M4a Download (MPEG-4 AAC audio codec)
-=============================
+=====================================
 
 **Attention the mp3 parameter will no longer be used, all audios will now be downloaded as .m4a, the correct extension for the codec (MPEG-4 AAC audio codec)**::
 
