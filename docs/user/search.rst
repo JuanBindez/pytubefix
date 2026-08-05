@@ -98,7 +98,7 @@ The .videos method will only return the videos::
     >>> 
 
 
-The .shorts method will only return the shorts.::
+The .shorts method will only return the shorts.
 
 Here it is interesting to note that videos and shorts are from the same class of objects::
 
