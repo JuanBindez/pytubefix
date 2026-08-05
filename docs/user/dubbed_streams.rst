@@ -3,7 +3,7 @@
 Filtering Dubbed Streams
 ==============
 
-**YouTube added videos that contain multiple audios for re-dubbing, but they have the same Itag**::
+**YouTube added videos that contain multiple audios for re-dubbing, but they have the same Itag**
 
 Adds the possibility of filtering these streams that contain dubbing.
 
