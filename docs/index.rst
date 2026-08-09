@@ -1,7 +1,7 @@
 .. pytubefix documentation master file,
 
 pytubefix
-======
+=========
 Release v\ |version|. (:ref:`Installation<install>`)
 
 
