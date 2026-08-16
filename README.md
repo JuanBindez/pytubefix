@@ -2,9 +2,10 @@
   <img
     width="250"
     alt="pytubefix_logo"
-    src="https://github.com/user-attachments/assets/f57a840f-9fa7-465c-997b-17bdf8f8be2e"
+    src="https://github.com/user-attachments/assets/fc27680a-a9ed-4702-a1b8-b8f9d3252619"
   />
 </p>
+
 
 <p align="center">
   <img src="https://img.shields.io/pypi/dm/pytubefix">
