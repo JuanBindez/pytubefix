@@ -38,7 +38,7 @@ _default_clients = {
                     'clientName': 'WEB',
                     'osName': 'Windows',
                     'osVersion': '10.0',
-                    'clientVersion': '2.20251021.01.00',
+                    'clientVersion': '2.20260708.00.00',
                     'platform': 'DESKTOP'
                 }
             }
@@ -46,7 +46,7 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0',
             'X-Youtube-Client-Name': '1',
-            'X-Youtube-Client-Version': '2.20251021.01.00'
+            'X-Youtube-Client-Version': '2.20260708.00.00'
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         'require_js_player': True,
@@ -60,7 +60,7 @@ _default_clients = {
                     'clientName': 'WEB_EMBEDDED_PLAYER',
                     'osName': 'Windows',
                     'osVersion': '10.0',
-                    'clientVersion': '2.20240530.02.00',
+                    'clientVersion': '2.20260708.00.00',
                     'clientScreen': 'EMBED'
                 }
             }
@@ -79,7 +79,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'WEB_REMIX',
-                    'clientVersion': '1.20251013.03.00'
+                    'clientVersion': '1.20260707.12.00'
                 }
             }
         },
@@ -97,7 +97,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'WEB_CREATOR',
-                    'clientVersion': '1.20220726.00.00'
+                    'clientVersion': '1.20260708.06.00'
                 }
             }
         },
@@ -115,7 +115,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'WEB',
-                    'clientVersion': '2.20240726.00.00',
+                    'clientVersion': '2.20260708.00.00',
                 }
             }
         },
@@ -133,7 +133,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'MWEB',
-                    'clientVersion': '2.20251014.06.00'
+                    'clientVersion': '2.20260708.05.00'
                 }
             }
         },
@@ -173,7 +173,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'ANDROID',
-                    'clientVersion': '19.44.38',
+                    'clientVersion': '21.26.364',
                     'platform': 'MOBILE',
                     'osName': 'Android',
                     'osVersion': '14',
@@ -216,7 +216,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'ANDROID_VR',
-                    'clientVersion': '1.60.19',
+                    'clientVersion': '1.65.10',
                     'deviceMake': 'Oculus',
                     'deviceModel': 'Quest 3',
                     'osName': 'Android',
@@ -226,7 +226,7 @@ _default_clients = {
             }
         },
         'header': {
-            'User-Agent': 'com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
+            'User-Agent': 'com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
             'X-Youtube-Client-Name': '28'
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
@@ -345,7 +345,7 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'IOS',
-                    'clientVersion': '19.45.4',
+                    'clientVersion': '21.26.4',
                     'deviceMake': 'Apple',
                     'platform': 'MOBILE',
                     'osName': 'iPhone',
@@ -355,7 +355,7 @@ _default_clients = {
             }
         },
         'header': {
-            'User-Agent': 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)',
+            'User-Agent': 'com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)',
             'X-Youtube-Client-Name': '5'
         },
         'api_key': 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
@@ -385,6 +385,29 @@ _default_clients = {
     #     'api_key': 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
     #     'require_js_player': False
     # },
+
+    'VISION_OS': {
+        'innertube_context': {
+            'context': {
+                'client': {
+                    'clientName': 'VISIONOS',
+                    'clientVersion': '1.02',
+                    'deviceMake': 'Apple',
+                    'platform': 'MOBILE',
+                    'osName': 'visionOS',
+                    'osVersion': '26.5.23O471',
+                    'deviceModel': 'RealityDevice17,1'
+                }
+            }
+        },
+        'header': {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
+            'X-Youtube-Client-Name': '101'
+        },
+        'api_key': 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
+        'require_js_player': False,
+        'require_po_token': False
+    },
 
     'IOS_MUSIC': {
         'innertube_context': {
@@ -458,13 +481,13 @@ _default_clients = {
             'context': {
                 'client': {
                     'clientName': 'TVHTML5',
-                    'clientVersion': '7.20240813.07.00',
+                    'clientVersion': '7.20260707.07.00',
                     'platform': 'TV'
                 }
             }
         },
         'header': {
-            'User-Agent': 'Mozilla/5.0',
+            'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/25.lts.30.1034943-gold (unlike Gecko), Unknown_TV_Unknown_0/Unknown (Unknown, Unknown)',
             'X-Youtube-Client-Name': '7'
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
@@ -486,6 +509,44 @@ _default_clients = {
         'header': {
             'User-Agent': 'Mozilla/5.0',
             'X-Youtube-Client-Name': '85'
+        },
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True,
+        'require_po_token': False
+    },
+
+    'TV_DOWNGRADED': {
+        'innertube_context': {
+            'context': {
+                'client': {
+                    'clientName': 'TVHTML5',
+                    'clientVersion': '5.20260707',
+                    'platform': 'TV'
+                }
+            }
+        },
+        'header': {
+            'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+            'X-Youtube-Client-Name': '7'
+        },
+        'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        'require_js_player': True,
+        'require_po_token': False
+    },
+
+    'TV_SIMPLY': {
+        'innertube_context': {
+            'context': {
+                'client': {
+                    'clientName': 'TVHTML5_SIMPLY',
+                    'clientVersion': '1.0',
+                    'platform': 'TV'
+                }
+            }
+        },
+        'header': {
+            'User-Agent': 'Mozilla/5.0',
+            'X-Youtube-Client-Name': '75'
         },
         'api_key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         'require_js_player': True,
@@ -536,7 +597,7 @@ class InnerTube:
 
     def __init__(
             self,
-            client='ANDROID_VR',
+            client='VISION_OS',
             use_oauth=False,
             allow_cache=True,
             token_file=None,
