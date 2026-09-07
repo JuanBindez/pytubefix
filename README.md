@@ -2,7 +2,7 @@
   <img
     width="250"
     alt="pytubefix_logo"
-    src="https://github.com/user-attachments/assets/f57a840f-9fa7-465c-997b-17bdf8f8be2e"
+    src="./images/pytubefix_logo.png"
   />
 </p>
 
