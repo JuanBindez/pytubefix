@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubefix"
-version = "10.11.0"
+version = "11.0-rc1"
 
 authors = [
   { name="Juan Bindez", email="juanbindez780@gmail.com" },
@@ -24,7 +24,7 @@ classifiers = [
 	#   3 - Alpha
 	#   4 - Beta
 	#   5 - Production/Stable
-	"Development Status :: 5 - Production/Stable",
+	"Development Status :: 4 - Beta",
 	"Environment :: Console",
 	"Intended Audience :: Developers",
 	"Natural Language :: English",
