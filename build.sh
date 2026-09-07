@@ -3,9 +3,9 @@
 set -e
 
 VERSION=11
-MINOR=0
-PATCH=
-EXTRAVERSION="-rc1"
+MINOR=1
+PATCH=0
+EXTRAVERSION=""
 COMMIT="(#670 #676 #677 #678)
 
 Tested-by: Folade <Foladeakhibi@gmail.com>
@@ -14,7 +14,7 @@ Inspired-by: @LuanRT https://github.com/LuanRT/BgUtils
 Fixes: #675
 
 "
-BRANCH="dev"
+BRANCH="main"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
