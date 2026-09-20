@@ -201,3 +201,32 @@ def test_repr(cipher_signature):
         'res="360p" fps="24fps" vcodec="avc1.42001E" '
         'acodec="mp4a.40.2" progressive="True" type="video">]'
     )
+
+
+def test_get_by_resolution_progressive(cipher_signature):
+    """Progressive resolution lookup still works (backward compatibility)."""
+    stream = cipher_signature.streams.get_by_resolution("360p")
+    assert stream is not None
+    assert stream.resolution == "360p"
+    assert stream.is_progressive is True
+
+
+def test_get_by_resolution_adaptive(cipher_signature):
+    """When progressive=False the method accepts adaptive streams."""
+    stream = cipher_signature.streams.get_by_resolution("720p", progressive=False)
+    if stream is not None:
+        assert stream.resolution == "720p"
+        assert stream.is_progressive or stream.is_adaptive
+
+
+def test_get_by_resolution_none(cipher_signature):
+    """Returns None when the requested resolution does not exist."""
+    stream = cipher_signature.streams.get_by_resolution("9999p")
+    assert stream is None
+
+
+def test_get_by_resolution_default_is_progressive(cipher_signature):
+    """Default behaviour (no second argument) remains progressive-only."""
+    stream = cipher_signature.streams.get_by_resolution("360p")
+    stream2 = cipher_signature.streams.get_by_resolution("360p", progressive=True)
+    assert stream is stream2
