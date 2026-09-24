@@ -39,7 +39,7 @@ import pytubefix.exceptions as exceptions
 from pytubefix import extract, request
 from pytubefix import Stream, StreamQuery
 from pytubefix.helpers import install_proxy
-from pytubefix.innertube import InnerTube
+from pytubefix.innertube import CLIENT_UNAVAILABLE_REASONS, InnerTube
 from pytubefix.metadata import YouTubeMetadata
 from pytubefix.monostate import Monostate
 from pytubefix.botGuard import bot_guard
@@ -540,8 +540,9 @@ class YouTube:
             # Some clients are unable to access certain types of videos
             # If the video is unavailable for the current client, attempts will be made with fallback clients
             playability_status = innertube_response['playabilityStatus']
-            if playability_status['status'] == 'UNPLAYABLE' and 'reason' in playability_status and playability_status['reason'] == 'This video is not available':
-                logger.warning(f"{self.client} client returned: This video is not available")
+            if (playability_status['status'] == 'UNPLAYABLE'
+                    and playability_status.get('reason') in CLIENT_UNAVAILABLE_REASONS):
+                logger.warning(f"{self.client} client returned: {playability_status['reason']}")
                 self.client = client
                 logger.warning(f"Switching to client: {client}")
                 innertube_response = call_innertube(client)

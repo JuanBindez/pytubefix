@@ -592,6 +592,14 @@ def _default_po_token_verifier() -> Tuple[str, str]:
     return visitor_data, po_token
 
 
+# Playability reasons that one client returns for a video that other clients can still play.
+# When the player response has one of them, the next fallback client is tried.
+CLIENT_UNAVAILABLE_REASONS = (
+    'This video is not available',
+    'The page needs to be reloaded.',
+)
+
+
 class InnerTube:
     """Object for interacting with the innertube API."""
 
