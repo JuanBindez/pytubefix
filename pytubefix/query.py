@@ -266,22 +266,39 @@ class StreamQuery(Sequence):
         elif isinstance(itag, str) and itag.isdigit():
             return self.itag_index.get(int(itag))
 
-    def get_by_resolution(self, resolution: str) -> Optional[Stream]:
+    def get_by_resolution(
+        self, resolution: str, progressive: bool = True
+    ) -> Optional[Stream]:
         """Get the corresponding :class:`Stream <Stream>` for a given resolution.
 
-        Stream must be a progressive mp4.
+        By default only progressive MP4 streams are considered (video + audio
+        in a single file).  Set `progressive=False` to allow adaptive
+        (DASH) video-only streams of the requested resolution.
 
         :param str resolution:
             Video resolution i.e. "720p", "480p", "360p", "240p", "144p"
+        :param bool progressive:
+            If True (default) only progressive streams are returned.
+            If False, adaptive video-only streams are also considered.
         :rtype: :class:`Stream <Stream>` or None
         :returns:
-            The :class:`Stream <Stream>` matching the given itag or None if
-            not found.
-
+            The :class:`Stream <Stream>` matching the given resolution
+            or None if not found.
         """
-        return self.filter(
-            progressive=True, subtype="mp4", resolution=resolution
-        ).first()
+        if progressive:
+            return self.filter(
+                progressive=True, subtype="mp4", resolution=resolution
+            ).first()
+        else:
+            # Prefer progressive if it exists, otherwise fall back to adaptive video
+            stream = self.filter(
+                progressive=True, subtype="mp4", resolution=resolution
+            ).first()
+            if stream is not None:
+                return stream
+            return self.filter(
+                adaptive=True, only_video=True, resolution=resolution
+            ).order_by("fps").desc().first()
 
     def get_default_audio_track(self) -> "StreamQuery":
         """Takes the standard audio tracks, will return all audio tracks if there is no dubbing.
