@@ -6,7 +6,7 @@ import pytubefix.exceptions as exceptions
 from pytubefix import extract
 from pytubefix import Stream, StreamQuery
 from pytubefix.helpers import install_proxy
-from pytubefix.innertube import InnerTube
+from pytubefix.innertube import CLIENT_UNAVAILABLE_REASONS, InnerTube
 from pytubefix.metadata import YouTubeMetadata
 from pytubefix.monostate import Monostate
 from pytubefix.botGuard import bot_guard
@@ -183,7 +183,8 @@ class AsyncYouTube:
         innertube_response = await call_innertube()
         for client in self.fallback_clients:
             playability_status = innertube_response['playabilityStatus']
-            if playability_status['status'] == 'UNPLAYABLE' and 'reason' in playability_status and playability_status['reason'] == 'This video is not available':
+            if (playability_status['status'] == 'UNPLAYABLE'
+                    and playability_status.get('reason') in CLIENT_UNAVAILABLE_REASONS):
                 self.client = client
                 innertube_response = await call_innertube()
             else:
