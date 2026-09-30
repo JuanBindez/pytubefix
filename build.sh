@@ -4,12 +4,16 @@ set -e
 
 VERSION=11
 MINOR=2
-PATCH=
-EXTRAVERSION="-rc2"
+PATCH=0
+EXTRAVERSION=""
 COMMIT="(#680 #681)
 
+Tested-by: yamoaharmahalfred-create <yamoaharmahalfred@gmail.com>
+Tested-by: mrhard9090 <74858909+mrhard9090@users.noreply.github.com>
+Fixes: #679
 "
-BRANCH="dev"
+
+BRANCH="main"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
