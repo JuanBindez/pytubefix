@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    width="350"
+    width="450"
     alt="pytubefix_logo"
     src="./images/pytubefix.png"
   />
