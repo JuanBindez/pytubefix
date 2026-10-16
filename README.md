@@ -1,8 +1,8 @@
 <p align="center">
   <img
-    width="250"
-    alt="pytubefix_logo"
-    src="./images/pytubefix_logo.png"
+    width="430"
+    alt="pytubefix"
+    src="./images/pytubefix.png"
   />
 </p>
 
