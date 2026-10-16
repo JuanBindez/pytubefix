@@ -4,13 +4,12 @@ set -e
 
 VERSION=11
 MINOR=2
-PATCH=0
+PATCH=1
 EXTRAVERSION=""
-COMMIT="(#680 #681)
+COMMIT="(#684 #686)
 
-Tested-by: yamoaharmahalfred-create <yamoaharmahalfred@gmail.com>
-Tested-by: mrhard9090 <74858909+mrhard9090@users.noreply.github.com>
-Fixes: #679
+Tested-by: Justin "Muggwomp" Corey <justincorey@mindgarden.cc>
+Fixes: #683
 "
 
 BRANCH="main"
