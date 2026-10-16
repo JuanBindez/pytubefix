@@ -496,6 +496,30 @@ class Cipher:
                     self._nsig_param_val = (
                         [working_param] if isinstance(working_param, list) else working_param
                     )
+            elif self._nsig_param_val == []:
+                # An empty extracted parameter list can still describe an XOR
+                # mega-function. Derive its catch-block invariant before
+                # treating it as a genuine single-argument transform.
+                recovered_params = self._search_nsig_invariant_candidates(
+                    n,
+                    self._derive_nsig_invariants(self.nsig_function_name),
+                )
+                if recovered_params:
+                    logger.info(
+                        "Recovered nsig XOR params for %s: %s",
+                        self.js_url,
+                        recovered_params[0],
+                    )
+                    self._nsig_param_val = recovered_params
+                    nsig, last_exc, working_param = self._run_nsig_candidates(
+                        recovered_params, n
+                    )
+                    if working_param is not None:
+                        self._nsig_param_val = [working_param]
+                else:
+                    nsig = self._call_with_retry(
+                        self.runner_nsig, [n], label="nsig"
+                    )
             else:
                 nsig = self._call_with_retry(
                     self.runner_nsig, [n], label="nsig"
@@ -661,14 +685,18 @@ class Cipher:
                         search_start = max(0, cm.start() - 5000)
                         func_area = js[search_start:cm.start()]
                         fms = list(re.finditer(
-                            r'(?:([a-zA-Z0-9_$]+)\s*=\s*function|function\s+([a-zA-Z0-9_$]+))\s*\(([^)]*)\)',
+                            r'(?:(?:([a-zA-Z0-9_$]+)\.)?([a-zA-Z0-9_$]+)\s*=\s*function|function\s+([a-zA-Z0-9_$]+))\s*\(([^)]*)\)',
                             func_area
                         ))
                         if not fms:
                             continue
 
                         last = fms[-1]
-                        n_func = last.group(1) or last.group(2)
+                        n_func = (
+                            f"{last.group(1)}.{last.group(2)}"
+                            if last.group(1)
+                            else last.group(2) or last.group(3)
+                        )
                         actual_start = search_start + last.start()
 
                         # Verify: function must have var xor_var = param ^ param
@@ -696,8 +724,6 @@ class Cipher:
                             js, n_func, varname, global_obj, body, xor_var, arg_var,
                             w8_xor_b=w8_xor_b
                         )
-                        # Some IAS mega-functions place the split branch outside
-                        # the local catch window. Retry against the full function.
                         if xor_params is None:
                             xor_params = self._extract_xor_branch_nsig_params(
                                 js, n_func, varname, global_obj
@@ -727,14 +753,18 @@ class Cipher:
                         search_start = max(0, cm.start() - 5000)
                         func_area = js[search_start:cm.start()]
                         fms = list(re.finditer(
-                            r'(?:([a-zA-Z0-9_$]+)\s*=\s*function|function\s+([a-zA-Z0-9_$]+))\s*\(([^)]*)\)',
+                            r'(?:(?:([a-zA-Z0-9_$]+)\.)?([a-zA-Z0-9_$]+)\s*=\s*function|function\s+([a-zA-Z0-9_$]+))\s*\(([^)]*)\)',
                             func_area
                         ))
                         if not fms:
                             continue
 
                         last = fms[-1]
-                        n_func = last.group(1) or last.group(2)
+                        n_func = (
+                            f"{last.group(1)}.{last.group(2)}"
+                            if last.group(1)
+                            else last.group(2) or last.group(3)
+                        )
                         actual_start = search_start + last.start()
 
                         header_area = js[actual_start:actual_start + 200]
@@ -758,8 +788,6 @@ class Cipher:
                             js, n_func, varname, global_obj, body, xor_var_found, arg_var,
                             w8_xor_b=None
                         )
-                        # Some IAS mega-functions place the split branch outside
-                        # the local catch window. Retry against the full function.
                         if xor_params is None:
                             xor_params = self._extract_xor_branch_nsig_params(
                                 js, n_func, varname, global_obj
@@ -908,6 +936,69 @@ class Cipher:
                             f"constants={c1},{c2}, a={a_val}, params=({param1},{param2},{param3})"
                         )
                         return candidate
+
+            # Strategy 2.75: Hybrid IAS+TCE nsig wrapper.
+            # Some hybrid players route nsig through a compact XOR branch that
+            # calls g.t_(input, helper) instead of exposing a call-site pattern.
+            # Prefer this over the broad try/catch fallback below, which can
+            # otherwise pick generic helpers such as "f".
+            for func_def in re.finditer(
+                r'(?<![A-Za-z0-9_$.])(?P<funcname>[A-Za-z0-9_$]+)\s*=\s*function\s*\(',
+                js,
+            ):
+                candidate = func_def.group("funcname")
+                func_start = func_def.start()
+                depth = 0
+                func_end = func_start
+                for i in range(func_start, min(func_start + 50000, len(js))):
+                    if js[i] == '{':
+                        depth += 1
+                    elif js[i] == '}':
+                        depth -= 1
+                        if depth == 0:
+                            func_end = i + 1
+                            break
+                func_body = js[func_start:func_end]
+                if "g.t_(" not in func_body:
+                    continue
+                if not (global_obj and varname):
+                    continue
+                xor_params = self._extract_xor_branch_nsig_params(
+                    js, candidate, varname, global_obj, func_body
+                )
+                if xor_params is None:
+                    continue
+                logger.debug(f"Nfunc name (strategy 2.75 - hybrid g.t_ wrapper): {candidate}")
+                logger.debug(f"Using XOR-branch params for {candidate}: {xor_params}")
+                self._nsig_param_val = xor_params
+                return candidate
+
+            # Strategy 2.9: Direct TCE nsig transform.
+            # Some players expose nsig as a single-argument function whose body
+            # directly starts with arg.split("") and contains the _w8_ fallback.
+            direct_tce_nsig = re.compile(
+                r'(?<![A-Za-z0-9_$.])'
+                r'(?:(?P<obj>[A-Za-z0-9_$]+)\.)?(?P<funcname>[A-Za-z0-9_$]+)'
+                r'\s*=\s*function\s*\(\s*(?P<arg>[A-Za-z0-9_$]+)\s*\)\s*\{\s*'
+                r'var\s+(?P<parts>[A-Za-z0-9_$]+)\s*=\s*(?P=arg)\.split\((?:""|\'\')\)\s*,',
+                re.DOTALL,
+            )
+            for func_def in direct_tce_nsig.finditer(js):
+                func_name = func_def.group("funcname")
+                if func_def.group("obj"):
+                    func_name = f"{func_def.group('obj')}.{func_name}"
+                parts_name = func_def.group("parts")
+                func_window = js[func_def.start():func_def.start() + 15000]
+                if "_w8_" not in func_window or "catch(" not in func_window:
+                    continue
+                if not re.search(
+                    r'return\s+' + re.escape(parts_name) + r'\.join\((?:""|\'\')\)',
+                    func_window,
+                ):
+                    continue
+                logger.debug(f"Nfunc name (strategy 2.9 - direct TCE nsig): {func_name}")
+                self._nsig_param_val = None
+                return func_name
 
             # Strategy 3: Broader var=[func], validate it's nsig (has try/catch)
             logger.debug('Trying broader patterns with nsig validation')
