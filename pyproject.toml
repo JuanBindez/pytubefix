@@ -47,7 +47,12 @@ classifiers = [
 
 dependencies = [
     "aiohttp >=3.12.13",
-    "nodejs-wheel-binaries >= 22.20.0"
+    # Node.js >= 24 ships only macOS 13+ wheels (macosx_13_0); on older macOS
+    # (Darwin 21 = macOS 12 and below) pip finds no binary for the newest
+    # release, falls back to the sdist and the Node.js source build fails.
+    # Pin the last release with macosx_11_0 wheels there.
+    "nodejs-wheel-binaries>=22.20.0; platform_system != 'Darwin' or platform_release >= '22'",
+    "nodejs-wheel-binaries==22.20.0; platform_system == 'Darwin' and platform_release < '22'",
 ]
 
 [project.urls]
