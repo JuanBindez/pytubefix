@@ -1,9 +1,9 @@
 <p align="center">
-  <img
-    width="430"
-    alt="pytubefix"
-    src="./images/pytubefix.png"
-  />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./images/pytubefix_logo.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./images/pytubefix_logo.svg">
+    <img width="430" alt="pytubefix" src="./images/pytubefix_logo.svg">
+  </picture>
 </p>
 
 <p align="center">
