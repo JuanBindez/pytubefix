@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./images/pytubefix_logo_dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="./images/pytubefix_logo.svg">
-    <img width="430" alt="pytubefix" src="./images/pytubefix_logo.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./images/pytubefix_logo_dark.svg">
+    <img width="430" alt="pytubefix" src="./images/pytubefix_logo_dark.svg">
   </picture>
 </p>
 
@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/readthedocs/pytubefix">
   <img src="https://img.shields.io/github/v/tag/JuanBindez/pytubefix?include_prereleases">
   <img src="https://img.shields.io/pypi/v/pytubefix">
-  <img src="https://img.shields.io/pypi/pyversions/pytubefix_logo.svg">
+  <img src="https://img.shields.io/pypi/pyversions/pytubefix.svg">
 </p>
 
 <h2 align="center">
