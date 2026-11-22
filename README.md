@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/pytubefix_logo_dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="./images/pytubefix_logo.svg">
     <source media="(prefers-color-scheme: light)" srcset="./images/pytubefix_logo.svg">
     <img width="430" alt="pytubefix" src="./images/pytubefix_logo.svg">
   </picture>
