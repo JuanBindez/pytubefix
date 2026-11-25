@@ -1202,7 +1202,8 @@ class Cipher:
             )
             expr = expr.replace('&&', ' and ').replace('||', ' or ')
             expr = expr.replace('!', ' not ')
-            return bool(eval(expr))  # noqa: S307 - restricted branch syntax only
+            # Keep the guard grouped so line breaks between tokens are valid.
+            return bool(eval(f'({expr})'))  # noqa: S307 - restricted branch syntax only
 
         def _normalize_js_cond(cond_str: str) -> str:
             return re.sub(r'\s+', '', cond_str)
