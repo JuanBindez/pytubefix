@@ -1200,6 +1200,7 @@ class Cipher:
                 r'\b' + re.escape(pname) + r'\b',
                 str(x_candidate), cond_str
             )
+            expr = re.sub(r'\s+', ' ', expr)
             expr = expr.replace('&&', ' and ').replace('||', ' or ')
             expr = expr.replace('!', ' not ')
             return bool(eval(expr))  # noqa: S307 - restricted branch syntax only
