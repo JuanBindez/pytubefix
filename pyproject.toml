@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubefix"
-version = "11.2.2"
+version = "11.3a1"
 
 authors = [
   { name="Juan Bindez", email="juanbindez780@gmail.com" },
@@ -24,7 +24,7 @@ classifiers = [
 	#   3 - Alpha
 	#   4 - Beta
 	#   5 - Production/Stable
-	"Development Status :: 5 - Production/Stable",
+	"Development Status :: 3 - Alpha",
 	"Environment :: Console",
 	"Intended Audience :: Developers",
 	"Natural Language :: English",
@@ -47,12 +47,8 @@ classifiers = [
 
 dependencies = [
     "aiohttp >=3.12.13",
-    # Node.js >= 24 ships only macOS 13+ wheels (macosx_13_0); on older macOS
-    # (Darwin 21 = macOS 12 and below) pip finds no binary for the newest
-    # release, falls back to the sdist and the Node.js source build fails.
-    # Pin the last release with macosx_11_0 wheels there.
-    "nodejs-wheel-binaries>=22.20.0; platform_system != 'Darwin' or platform_release >= '22'",
-    "nodejs-wheel-binaries==22.20.0; platform_system == 'Darwin' and platform_release < '22'",
+    "nodejs-wheel-binaries>=22.20.0; sys_platform != 'darwin'",
+    "nodejs-wheel-binaries==22.20.0; sys_platform == 'darwin'",
 ]
 
 [project.urls]
