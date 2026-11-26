@@ -4,9 +4,11 @@ set -e
 
 VERSION=11
 MINOR=3
-PATCH=a1
-EXTRAVERSION=""
+PATCH=
+EXTRAVERSION="-rc1"
 COMMIT="(#694 #695)
+
+Added how to use the new CLI in the README.
 
 "
 
