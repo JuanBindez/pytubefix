@@ -7,9 +7,7 @@ MINOR=3
 PATCH=
 EXTRAVERSION="-rc1"
 COMMIT="(#694 #695)
-
 Added how to use the new CLI in the README.
-
 "
 
 BRANCH="dev"
