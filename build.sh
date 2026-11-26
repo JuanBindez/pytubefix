@@ -3,14 +3,14 @@
 set -e
 
 VERSION=11
-MINOR=2
-PATCH=2
+MINOR=3
+PATCH=a1
 EXTRAVERSION=""
-COMMIT="(#688 #690)
+COMMIT="(#694 #695)
 
 "
 
-BRANCH="main"
+BRANCH="dev"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
