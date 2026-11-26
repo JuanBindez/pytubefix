@@ -4,13 +4,13 @@ set -e
 
 VERSION=11
 MINOR=3
-PATCH=
-EXTRAVERSION="-rc1"
+PATCH=0
+EXTRAVERSION=""
 COMMIT="(#694 #695)
-Added how to use the new CLI in the README.
+
 "
 
-BRANCH="dev"
+BRANCH="main"
 
 if [[ -z $PATCH ]]; then
     PATCH=""
